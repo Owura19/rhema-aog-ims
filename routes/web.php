@@ -18,7 +18,7 @@ Route::get('/', function () {
 
 Route::middleware(['auth'])->group(function () {
 
-    // Dashboard
+    // Dashboard — any logged-in user
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // Members
@@ -39,9 +39,42 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('devices', BiometricDeviceController::class);
     Route::post('/devices/{device}/test', [BiometricDeviceController::class, 'testConnection'])->name('devices.test');
 
-    // Finance
-    Route::resource('finance', FinanceController::class);
-    Route::get('/finance-report', [FinanceController::class, 'report'])->name('finance.report');
+    // ─────────────────────────────────────────────────────────────
+    // FINANCE — role-gated (sensitive: church money)
+    // Order matters: specific routes (create, edit, report) are declared
+    // BEFORE the /finance/{finance} wildcard, or Laravel treats words like
+    // "create" as a transaction ID and matches the wrong route.
+    //
+    // view:   'view finance'   → Super Admin, Pastor
+    // create: 'create finance' → Super Admin
+    // edit:   'edit finance'   → Super Admin
+    // delete: 'delete finance' → Super Admin
+    // ─────────────────────────────────────────────────────────────
+
+    // Create
+    Route::middleware('permission:create finance')->group(function () {
+        Route::get('/finance/create', [FinanceController::class, 'create'])->name('finance.create');
+        Route::post('/finance', [FinanceController::class, 'store'])->name('finance.store');
+    });
+
+    // Edit / Update
+    Route::middleware('permission:edit finance')->group(function () {
+        Route::get('/finance/{finance}/edit', [FinanceController::class, 'edit'])->name('finance.edit');
+        Route::put('/finance/{finance}', [FinanceController::class, 'update'])->name('finance.update');
+        Route::patch('/finance/{finance}', [FinanceController::class, 'update']);
+    });
+
+    // Delete
+    Route::middleware('permission:delete finance')->group(function () {
+        Route::delete('/finance/{finance}', [FinanceController::class, 'destroy'])->name('finance.destroy');
+    });
+
+    // View (index + report first, then the {finance} wildcard LAST)
+    Route::middleware('permission:view finance')->group(function () {
+        Route::get('/finance', [FinanceController::class, 'index'])->name('finance.index');
+        Route::get('/finance-report', [FinanceController::class, 'report'])->name('finance.report');
+        Route::get('/finance/{finance}', [FinanceController::class, 'show'])->name('finance.show');
+    });
 
     // Cell Groups & Departments
     Route::resource('cellgroups', CellGroupController::class);
@@ -53,7 +86,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/events/{event}/rsvp', [EventController::class, 'rsvp'])->name('events.rsvp');
     Route::delete('/events/{event}/rsvp/{rsvp}', [EventController::class, 'cancelRsvp'])->name('events.cancel-rsvp');
 
-    // Community
+    // Community — any logged-in user
     Route::get('/community', [CommunityController::class, 'index'])->name('community.index');
     Route::post('/community', [CommunityController::class, 'store'])->name('community.store');
     Route::delete('/community/{post}', [CommunityController::class, 'destroy'])->name('community.destroy');
@@ -62,7 +95,7 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/community/comments/{comment}', [CommunityController::class, 'deleteComment'])->name('community.delete-comment');
     Route::post('/community/{post}/pin', [CommunityController::class, 'pin'])->name('community.pin');
 
-    // RandyImpact AI
+    // RandyImpact AI — any logged-in user
     Route::get('/randyimpact', [RandyImpactAIController::class, 'index'])->name('randyimpact.index');
     Route::get('/randyimpact/live-sermon', [RandyImpactAIController::class, 'liveSermon'])->name('randyimpact.live-sermon');
     Route::get('/randyimpact/projector', [RandyImpactAIController::class, 'projector'])->name('randyimpact.projector');
