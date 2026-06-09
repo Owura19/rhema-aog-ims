@@ -306,6 +306,15 @@
     </div>
     @endcan
 
+    @can('manage users')
+    <div class="sidebar-section">
+        <div class="sidebar-section-label">Administration</div>
+        <a href="{{ route('users.index') }}" class="sidebar-link {{ request()->routeIs('users.*') ? 'active' : '' }}">
+            <i class="fas fa-user-shield"></i> User Management
+        </a>
+    </div>
+    @endcan
+
     <div class="sidebar-section">
         <div class="sidebar-section-label">Account</div>
         <form method="POST" action="{{ route('logout') }}">

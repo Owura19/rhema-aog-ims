@@ -144,6 +144,20 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // ─────────────────────────────────────────────────────────────
+    // USER MANAGEMENT — Super Admin only ('manage users')
+    // Staff accounts: create, edit, activate/deactivate, delete.
+    // ─────────────────────────────────────────────────────────────
+    Route::middleware('permission:manage users')->group(function () {
+        Route::get('/users', [\App\Http\Controllers\UserController::class, 'index'])->name('users.index');
+        Route::get('/users/create', [\App\Http\Controllers\UserController::class, 'create'])->name('users.create');
+        Route::post('/users', [\App\Http\Controllers\UserController::class, 'store'])->name('users.store');
+        Route::get('/users/{user}/edit', [\App\Http\Controllers\UserController::class, 'edit'])->name('users.edit');
+        Route::put('/users/{user}', [\App\Http\Controllers\UserController::class, 'update'])->name('users.update');
+        Route::patch('/users/{user}/toggle-active', [\App\Http\Controllers\UserController::class, 'toggleActive'])->name('users.toggle-active');
+        Route::delete('/users/{user}', [\App\Http\Controllers\UserController::class, 'destroy'])->name('users.destroy');
+    });
+    
+    // ─────────────────────────────────────────────────────────────
     // COMMUNITY — any logged-in user
     // ─────────────────────────────────────────────────────────────
     Route::get('/community', [CommunityController::class, 'index'])->name('community.index');
