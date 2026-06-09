@@ -242,21 +242,30 @@
         </a>
     </div>
 
+    @canany(['view members', 'view cell groups'])
     <div class="sidebar-section">
         <div class="sidebar-section-label">People</div>
+        @can('view members')
         <a href="{{ route('members.index') }}" class="sidebar-link {{ request()->routeIs('members.*') ? 'active' : '' }}">
             <i class="fas fa-users"></i> Members
         </a>
+        @endcan
+        @can('view cell groups')
         <a href="{{ route('cellgroups.index') }}" class="sidebar-link {{ request()->routeIs('cellgroups.*') ? 'active' : '' }}">
             <i class="fas fa-home"></i> Cell Groups
         </a>
+        @endcan
     </div>
+    @endcanany
 
     <div class="sidebar-section">
         <div class="sidebar-section-label">Programs</div>
+        @can('view events')
         <a href="{{ route('events.index') }}" class="sidebar-link {{ request()->routeIs('events.*') ? 'active' : '' }}">
             <i class="fas fa-calendar-alt"></i> Events & Programs
         </a>
+        @endcan
+        {{-- Community & RandyImpact are open to any logged-in user --}}
         <a href="{{ route('community.index') }}" class="sidebar-link {{ request()->routeIs('community.*') ? 'active' : '' }}">
             <i class="fas fa-globe"></i> Community
         </a>
@@ -265,6 +274,7 @@
         </a>
     </div>
 
+    @can('view attendance')
     <div class="sidebar-section">
         <div class="sidebar-section-label">Attendance</div>
         <a href="{{ route('services.index') }}" class="sidebar-link {{ request()->routeIs('services.*') ? 'active' : '' }}">
@@ -276,11 +286,15 @@
         <a href="{{ route('attendance.report') }}" class="sidebar-link {{ request()->routeIs('attendance.report') ? 'active' : '' }}">
             <i class="fas fa-chart-bar"></i> Att. Reports
         </a>
+        @role('Super Admin')
         <a href="{{ route('devices.index') }}" class="sidebar-link {{ request()->routeIs('devices.*') ? 'active' : '' }}">
             <i class="fas fa-fingerprint"></i> Biometric Devices
         </a>
+        @endrole
     </div>
+    @endcan
 
+    @can('view finance')
     <div class="sidebar-section">
         <div class="sidebar-section-label">Finance</div>
         <a href="{{ route('finance.index') }}" class="sidebar-link {{ request()->routeIs('finance.index') || request()->routeIs('finance.show') || request()->routeIs('finance.create') || request()->routeIs('finance.edit') ? 'active' : '' }}">
@@ -290,6 +304,7 @@
             <i class="fas fa-chart-line"></i> Finance Reports
         </a>
     </div>
+    @endcan
 
     <div class="sidebar-section">
         <div class="sidebar-section-label">Account</div>
