@@ -12,6 +12,12 @@
         <h2 style="font-size:20px; font-weight:700; color:#1e293b; margin-top:4px;">Transaction {{ $transaction->reference }}</h2>
     </div>
     <div style="display:flex; gap:10px;">
+        <a href="/receipts/{{ $transaction->id }}" class="btn-primary" style="background:#16a34a;" target="_blank">
+            <i class="fas fa-file-pdf"></i> View Receipt
+        </a>
+        <a href="/receipts/{{ $transaction->id }}/download" class="btn-outline">
+            <i class="fas fa-download"></i> Download
+        </a>
         <a href="{{ route('finance.edit', $transaction) }}" class="btn-primary">
             <i class="fas fa-edit"></i> Edit
         </a>
@@ -39,6 +45,9 @@
                     <td style="padding:14px 20px; font-size:12px; color:#94a3b8; font-weight:600; text-transform:uppercase;">Type</td>
                     <td style="padding:14px 20px;">
                         <span class="badge {{ $transaction->category === 'Income' ? 'badge-success' : 'badge-danger' }}">{{ $transaction->type }}</span>
+                        @if($transaction->subcategory)
+                            <span class="badge badge-gray" style="margin-left:4px;">{{ $transaction->subcategory }}</span>
+                        @endif
                     </td>
                 </tr>
                 <tr style="border-bottom:1px solid #f1f5f9;">
@@ -149,6 +158,21 @@
             </div>
         </div>
         @endif
+
+        <!-- Receipt Actions -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title"><i class="fas fa-file-pdf" style="color:#16a34a; margin-right:8px;"></i>Receipt</div>
+            </div>
+            <div class="card-body" style="display:flex; flex-direction:column; gap:10px;">
+                <a href="/receipts/{{ $transaction->id }}" target="_blank" class="btn-primary" style="background:#16a34a; justify-content:center;">
+                    <i class="fas fa-eye"></i> View Receipt (PDF)
+                </a>
+                <a href="/receipts/{{ $transaction->id }}/download" class="btn-outline" style="justify-content:center;">
+                    <i class="fas fa-download"></i> Download Receipt
+                </a>
+            </div>
+        </div>
 
     </div>
 </div>

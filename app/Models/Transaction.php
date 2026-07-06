@@ -11,24 +11,25 @@ class Transaction extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'reference',
-        'type',
-        'category',
-        'amount',
-        'currency',
-        'member_id',
-        'payer_name',
-        'transaction_date',
-        'church_service_id',
-        'payment_method',
-        'mobile_money_number',
-        'cheque_number',
-        'bank_name',
-        'status',
-        'description',
-        'receipt_number',
-        'recorded_by',
-    ];
+    'reference',
+    'type',
+    'subcategory',
+    'category',
+    'amount',
+    'currency',
+    'member_id',
+    'payer_name',
+    'transaction_date',
+    'church_service_id',
+    'payment_method',
+    'mobile_money_number',
+    'cheque_number',
+    'bank_name',
+    'status',
+    'description',
+    'receipt_number',
+    'recorded_by',
+];
 
     protected $casts = [
         'transaction_date' => 'date',

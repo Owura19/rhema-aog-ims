@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Transaction;
 use App\Models\Member;
 use App\Models\ChurchService;
+use App\Exports\FinanceExport;
 use Illuminate\Http\Request;
 
 class FinanceController extends Controller
@@ -68,6 +69,7 @@ class FinanceController extends Controller
     {
         $validated = $request->validate([
             'type'                 => 'required|in:Tithe,Offering,First Fruit,Seed,Pledge,Donation,Expense,Other',
+            'subcategory'          => 'nullable|string|max:100',
             'category'             => 'required|in:Income,Expense',
             'amount'               => 'required|numeric|min:0.01',
             'member_id'            => 'nullable|exists:members,id',
@@ -84,29 +86,32 @@ class FinanceController extends Controller
 
         $validated['recorded_by'] = auth()->id();
 
-        $transaction = Transaction::create($validated);
+        $finance = Transaction::create($validated);
 
-        return redirect()->route('finance.show', $transaction)
-            ->with('success', "Transaction {$transaction->reference} recorded successfully!");
+        return redirect()->route('finance.show', $finance)
+            ->with('success', "Transaction {$finance->reference} recorded successfully!");
     }
 
-    public function show(Transaction $transaction)
+    public function show(Transaction $finance)
     {
-        $transaction->load(['member', 'churchService', 'recordedBy']);
+        $finance->load(['member', 'churchService', 'recordedBy']);
+        $transaction = $finance;
         return view('finance.show', compact('transaction'));
     }
 
-    public function edit(Transaction $transaction)
+    public function edit(Transaction $finance)
     {
-        $members  = Member::orderBy('first_name')->get();
-        $services = ChurchService::latest('service_date')->take(20)->get();
+        $transaction = $finance;
+        $members     = Member::orderBy('first_name')->get();
+        $services    = ChurchService::latest('service_date')->take(20)->get();
         return view('finance.edit', compact('transaction', 'members', 'services'));
     }
 
-    public function update(Request $request, Transaction $transaction)
+    public function update(Request $request, Transaction $finance)
     {
         $validated = $request->validate([
             'type'                 => 'required|in:Tithe,Offering,First Fruit,Seed,Pledge,Donation,Expense,Other',
+            'subcategory'          => 'nullable|string|max:100',
             'category'             => 'required|in:Income,Expense',
             'amount'               => 'required|numeric|min:0.01',
             'member_id'            => 'nullable|exists:members,id',
@@ -121,16 +126,16 @@ class FinanceController extends Controller
             'description'          => 'nullable|string',
         ]);
 
-        $transaction->update($validated);
+        $finance->update($validated);
 
-        return redirect()->route('finance.show', $transaction)
-            ->with('success', "Transaction {$transaction->reference} updated successfully!");
+        return redirect()->route('finance.show', $finance)
+            ->with('success', "Transaction {$finance->reference} updated successfully!");
     }
 
-    public function destroy(Transaction $transaction)
+    public function destroy(Transaction $finance)
     {
-        $ref = $transaction->reference;
-        $transaction->delete();
+        $ref = $finance->reference;
+        $finance->delete();
         return redirect()->route('finance.index')
             ->with('success', "Transaction {$ref} deleted.");
     }
@@ -149,9 +154,9 @@ class FinanceController extends Controller
             $query->whereYear('transaction_date', $year);
         }
 
-        $income   = (clone $query)->where('category', 'Income')->sum('amount');
-        $expense  = (clone $query)->where('category', 'Expense')->sum('amount');
-        $balance  = $income - $expense;
+        $income  = (clone $query)->where('category', 'Income')->sum('amount');
+        $expense = (clone $query)->where('category', 'Expense')->sum('amount');
+        $balance = $income - $expense;
 
         $byType = Transaction::selectRaw('type, category, SUM(amount) as total, COUNT(*) as count')
             ->whereYear('transaction_date', $year)
@@ -181,5 +186,40 @@ class FinanceController extends Controller
             'byType', 'monthly', 'topGivers',
             'year', 'month'
         ));
+    }
+
+    public function exportExcel(Request $request)
+    {
+        $year   = $request->get('year', now()->year);
+        $export = new FinanceExport($year);
+        $export->download();
+    }
+
+    public function receipt(Transaction $transaction)
+    {
+        $transaction->load(['member', 'churchService', 'recordedBy']);
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('receipts.transaction', compact('transaction'));
+        $pdf->setPaper([0, 0, 226.77, 600], 'portrait');
+        $pdf->setOptions([
+            'dpi'                  => 150,
+            'defaultFont'          => 'DejaVu Sans',
+            'isRemoteEnabled'      => false,
+            'isHtml5ParserEnabled' => true,
+        ]);
+        return $pdf->download('Receipt_' . $transaction->reference . '.pdf');
+    }
+
+    public function receiptView(Transaction $transaction)
+    {
+        $transaction->load(['member', 'churchService', 'recordedBy']);
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('receipts.transaction', compact('transaction'));
+        $pdf->setPaper([0, 0, 226.77, 600], 'portrait');
+        $pdf->setOptions([
+            'dpi'                  => 150,
+            'defaultFont'          => 'DejaVu Sans',
+            'isRemoteEnabled'      => false,
+            'isHtml5ParserEnabled' => true,
+        ]);
+        return $pdf->stream('Receipt_' . $transaction->reference . '.pdf');
     }
 }

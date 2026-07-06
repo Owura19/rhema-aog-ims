@@ -15,7 +15,7 @@ class DatabaseSeeder extends Seeder
 
         // Create Super Admin user
         $superAdmin = User::firstOrCreate(
-            ['email' => 'admin@graceworldims.com'],
+            ['email' => 'admin@rhemaims.com'],
             [
                 'name'              => 'System Administrator',
                 'password'          => Hash::make('Admin@1234'),
@@ -26,9 +26,9 @@ class DatabaseSeeder extends Seeder
 
         // Create Pastor user
         $pastor = User::firstOrCreate(
-            ['email' => 'pastor@graceworldims.com'],
+            ['email' => 'pastor@rhemaims.com'],
             [
-                'name'              => 'Pastor GraceWorld',
+                'name'              => 'Pastor Rhema',
                 'password'          => Hash::make('Pastor@1234'),
                 'email_verified_at' => now(),
             ]

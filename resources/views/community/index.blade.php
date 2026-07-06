@@ -16,7 +16,7 @@
                         {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
                     </div>
                     <div style="flex:1;">
-                        <textarea name="content" rows="3" class="form-control" placeholder="Share something with the GraceWorld family..." style="resize:none; border:none; padding:0; font-size:15px; box-shadow:none;">{{ old('content') }}</textarea>
+                        <textarea name="content" rows="3" class="form-control" placeholder="Share something with the Rhema family..." style="resize:none; border:none; padding:0; font-size:15px; box-shadow:none;">{{ old('content') }}</textarea>
 
                         <!-- Media Preview -->
                         <div id="media-preview" style="display:none; margin-top:12px;">
@@ -166,7 +166,7 @@
         <div style="text-align:center; padding:60px; color:#94a3b8;">
             <i class="fas fa-users" style="font-size:48px; display:block; margin-bottom:16px;"></i>
             <div style="font-size:16px; font-weight:600; margin-bottom:8px;">No posts yet</div>
-            <div style="font-size:13px;">Be the first to share something with the GraceWorld family!</div>
+            <div style="font-size:13px;">Be the first to share something with the Rhema family!</div>
         </div>
     </div>
     @endforelse

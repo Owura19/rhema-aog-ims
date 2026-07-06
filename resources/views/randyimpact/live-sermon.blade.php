@@ -148,7 +148,7 @@ let countdownTimer   = null;
 let countdownValue   = 120; // 2 minutes
 let currentNotes     = '';
 
-try { projectorChannel = new BroadcastChannel('graceworld-projector'); } catch(e) {}
+try { projectorChannel = new BroadcastChannel('rhema-projector'); } catch(e) {}
 
 function sendToProjector(data) {
     if (projectorChannel) projectorChannel.postMessage(data);

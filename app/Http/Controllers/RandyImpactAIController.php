@@ -103,7 +103,7 @@ class RandyImpactAIController extends Controller
         ]);
 
         $topic  = $validated['topic'] ?? 'the sermon';
-        $prompt = "You are a church sermon assistant for GraceWorld International.
+        $prompt = "You are a church sermon assistant for Rhema Assembly of God.
 
 Based on the following sermon transcript, generate structured sermon notes.
 
@@ -134,7 +134,7 @@ Format the response clearly with these sections.";
             'question' => 'required|string|max:1000',
         ]);
 
-        $prompt = "You are RandyImpact AI, a Bible assistant for GraceWorld International church.
+        $prompt = "You are RandyImpact AI, a Bible assistant for Rhema Assembly of God church.
 
 Answer the following Bible question with relevant scripture references, clear explanation, and practical application.
 Be encouraging, doctrinally sound, and easy to understand.
@@ -191,7 +191,7 @@ Notes:
                 'messages'    => [
                     [
                         'role'    => 'system',
-                        'content' => 'You are RandyImpact AI, a helpful Bible and church assistant for GraceWorld International church in Ghana. Always respond with scripture references and practical application.',
+                        'content' => 'You are RandyImpact AI, a helpful Bible and church assistant for Rhema Assembly of God church in Ghana. Always respond with scripture references and practical application.',
                     ],
                     [
                         'role'    => 'user',

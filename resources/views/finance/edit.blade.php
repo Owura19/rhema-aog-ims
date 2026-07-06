@@ -23,13 +23,20 @@
         <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:20px;">
 
             <div>
-                <label class="form-label">Transaction Type <span style="color:red;">*</span></label>
-                <select name="type" class="form-control" onchange="setCategory(this.value)">
-                    @foreach(['Tithe','Offering','First Fruit','Seed','Pledge','Donation','Expense','Other'] as $type)
-                        <option value="{{ $type }}" {{ old('type', $transaction->type) == $type ? 'selected' : '' }}>{{ $type }}</option>
-                    @endforeach
-                </select>
-            </div>
+    <label class="form-label">Transaction Type <span style="color:red;">*</span></label>
+    <select name="type" class="form-control" onchange="setCategory(this.value); showSubcategory(this.value)">
+        @foreach(['Tithe','Offering','First Fruit','Seed','Pledge','Donation','Expense','Other'] as $type)
+            <option value="{{ $type }}" {{ old('type', $transaction->type) == $type ? 'selected' : '' }}>{{ $type }}</option>
+        @endforeach
+    </select>
+</div>
+
+<div id="subcategory-field" style="display:none;">
+    <label class="form-label">Subcategory</label>
+    <select name="subcategory" id="subcategory-select" class="form-control">
+        <option value="">Select subcategory</option>
+    </select>
+</div>
 
             <div>
                 <label class="form-label">Category <span style="color:red;">*</span></label>
@@ -172,6 +179,88 @@ function showPaymentFields(method) {
 }
 
 showPaymentFields('{{ old('payment_method', $transaction->payment_method) }}');
+
+const subcategories = {
+    'Expense': [
+        'Funeral Dept',
+        'Transport (Bus)',
+        'Wednesday Prayer',
+        'Welfare',
+        'Women Ministry',
+        'Scholarship & Needy',
+        'General Expense',
+        "Rt. Pastor's Pension Payments",
+        'Salaries & Staff Allowance',
+        'SSNIT/2nd Tier/PAYE',
+        'Travel & Transport',
+        'Cleaning & Sanitation',
+        'Gen. Coun/Tithe on Tithe',
+        'Donation (Expense)',
+        'Internet & Comm Cost',
+        'Medicals',
+        'Refreshments',
+        'Repairs & Maintenance',
+        'Retreat/Revival/Seminar',
+        'Printing & Stationery',
+        'Utility Bills',
+        'School Fees',
+        'Security & Police on Duty',
+        'Satellite Church',
+    ],
+    'Offering': [
+        'Executive (English) Service',
+        'Divine (Twi) Service',
+        'Joint Service',
+        'Bible Studies - Tuesday',
+        'Miracle Service - Friday',
+        'Fundraisings',
+    ],
+    'Donation': [
+        'Men Ministry',
+        'Women Ministry',
+        'Children Ministry',
+        'Sunday School',
+        'Funeral Dept.',
+        'Christ Ambassador (CA)',
+        'Welfare Dept.',
+        'Prayer Mtg (Wednesday)',
+    ],
+    'Other': [
+        'Dist/Reg/Gen. Council',
+        'Fund Raising',
+        'Child Dedication',
+        'All Night',
+        'Satellite Churches',
+        'Revival/Retreat/Seminars',
+        'Scholarship Fund',
+        'Book Sales (Sunday School)',
+        'Missions',
+        'Joy Fellowship',
+        'Interest Received',
+    ],
+};
+
+function showSubcategory(type) {
+    const field    = document.getElementById('subcategory-field');
+    const select   = document.getElementById('subcategory-select');
+    const options  = subcategories[type] || [];
+    const existing = '{{ old('subcategory', $transaction->subcategory) }}';
+
+    if (options.length > 0) {
+        field.style.display = 'block';
+        select.innerHTML    = '<option value="">Select subcategory</option>';
+        options.forEach(opt => {
+            const selected = opt === existing ? 'selected' : '';
+            select.innerHTML += `<option value="${opt}" ${selected}>${opt}</option>`;
+        });
+    } else {
+        field.style.display = 'none';
+        select.innerHTML    = '<option value="">Select subcategory</option>';
+    }
+}
+
+// Run on load
+showSubcategory('{{ old('type', $transaction->type) }}');
 </script>
 
 @endsection

@@ -7,7 +7,7 @@
 <div style="margin-bottom:24px; display:flex; align-items:center; justify-content:space-between;">
     <div>
         <h2 style="font-size:24px; font-weight:800; color:#1e293b;">⚡ RandyImpact <span style="color:#e8a020;">AI</span></h2>
-        <div style="font-size:13px; color:#64748b;">Bible assistant & sermon tools for GraceWorld International</div>
+        <div style="font-size:13px; color:#64748b;">Bible assistant & sermon tools for Rhema Assembly of God</div>
     </div>
     <div style="display:flex; gap:10px;">
         <a href="{{ route('randyimpact.live-sermon') }}" class="btn-primary" style="background:#dc2626;">

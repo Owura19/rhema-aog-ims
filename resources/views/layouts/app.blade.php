@@ -231,8 +231,8 @@
 <!-- Sidebar -->
 <div class="sidebar">
     <div class="sidebar-logo">
-        <h1 class="brand-font">GraceWorld <span>IMS</span></h1>
-        <p>International Management System</p>
+        <h1 class="brand-font">Rhema <span>IMS</span></h1>
+        <p>Information Management System</p>
     </div>
 
     <div class="sidebar-section">
@@ -242,12 +242,17 @@
         </a>
     </div>
 
-    @canany(['view members', 'view cell groups'])
+    @canany(['view members', 'view cell groups', 'view visitors'])
     <div class="sidebar-section">
         <div class="sidebar-section-label">People</div>
         @can('view members')
         <a href="{{ route('members.index') }}" class="sidebar-link {{ request()->routeIs('members.*') ? 'active' : '' }}">
             <i class="fas fa-users"></i> Members
+        </a>
+        @endcan
+        @can('view visitors')
+        <a href="{{ route('visitors.index') }}" class="sidebar-link {{ request()->routeIs('visitors.*') ? 'active' : '' }}">
+            <i class="fas fa-user-friends"></i> Visitors
         </a>
         @endcan
         @can('view cell groups')

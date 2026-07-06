@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ config('app.name') }} — @yield('title', 'Dashboard')</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <meta name="csrf-token" content="<?php echo e(csrf_token()); ?>">
+    <title><?php echo e(config('app.name')); ?> — <?php echo $__env->yieldContent('title', 'Dashboard'); ?></title>
+    <?php echo app('Illuminate\Foundation\Vite')(['resources/css/app.css', 'resources/js/app.js']); ?>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -232,63 +232,98 @@
 <div class="sidebar">
     <div class="sidebar-logo">
         <h1 class="brand-font">Rhema <span>IMS</span></h1>
-        <p>International Management System</p>
+        <p>Information Management System</p>
     </div>
 
     <div class="sidebar-section">
         <div class="sidebar-section-label">Main</div>
-        <a href="{{ route('dashboard') }}" class="sidebar-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
+        <a href="<?php echo e(route('dashboard')); ?>" class="sidebar-link <?php echo e(request()->routeIs('dashboard') ? 'active' : ''); ?>">
             <i class="fas fa-th-large"></i> Dashboard
         </a>
     </div>
 
+    <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->any(['view members', 'view cell groups', 'view visitors'])): ?>
     <div class="sidebar-section">
         <div class="sidebar-section-label">People</div>
-        <a href="{{ route('members.index') }}" class="sidebar-link {{ request()->routeIs('members.*') ? 'active' : '' }}">
+        <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('view members')): ?>
+        <a href="<?php echo e(route('members.index')); ?>" class="sidebar-link <?php echo e(request()->routeIs('members.*') ? 'active' : ''); ?>">
             <i class="fas fa-users"></i> Members
         </a>
-        <a href="{{ route('cellgroups.index') }}" class="sidebar-link {{ request()->routeIs('cellgroups.*') ? 'active' : '' }}">
+        <?php endif; ?>
+        <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('view visitors')): ?>
+        <a href="<?php echo e(route('visitors.index')); ?>" class="sidebar-link <?php echo e(request()->routeIs('visitors.*') ? 'active' : ''); ?>">
+            <i class="fas fa-user-friends"></i> Visitors
+        </a>
+        <?php endif; ?>
+        <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('view cell groups')): ?>
+        <a href="<?php echo e(route('cellgroups.index')); ?>" class="sidebar-link <?php echo e(request()->routeIs('cellgroups.*') ? 'active' : ''); ?>">
             <i class="fas fa-home"></i> Cell Groups
         </a>
+        <?php endif; ?>
     </div>
+    <?php endif; ?>
 
     <div class="sidebar-section">
         <div class="sidebar-section-label">Programs</div>
-        <a href="{{ route('events.index') }}" class="sidebar-link {{ request()->routeIs('events.*') ? 'active' : '' }}">
+        <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('view events')): ?>
+        <a href="<?php echo e(route('events.index')); ?>" class="sidebar-link <?php echo e(request()->routeIs('events.*') ? 'active' : ''); ?>">
             <i class="fas fa-calendar-alt"></i> Events & Programs
         </a>
+        <?php endif; ?>
+        
+        <a href="<?php echo e(route('community.index')); ?>" class="sidebar-link <?php echo e(request()->routeIs('community.*') ? 'active' : ''); ?>">
+            <i class="fas fa-globe"></i> Community
+        </a>
+        <a href="<?php echo e(route('randyimpact.index')); ?>" class="sidebar-link <?php echo e(request()->routeIs('randyimpact.*') ? 'active' : ''); ?>">
+            <i class="fas fa-bolt"></i> RandyImpact AI
+        </a>
     </div>
 
+    <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('view attendance')): ?>
     <div class="sidebar-section">
         <div class="sidebar-section-label">Attendance</div>
-        <a href="{{ route('services.index') }}" class="sidebar-link {{ request()->routeIs('services.*') ? 'active' : '' }}">
+        <a href="<?php echo e(route('services.index')); ?>" class="sidebar-link <?php echo e(request()->routeIs('services.*') ? 'active' : ''); ?>">
             <i class="fas fa-church"></i> Church Services
         </a>
-        <a href="{{ route('attendance.index') }}" class="sidebar-link {{ request()->routeIs('attendance.index') ? 'active' : '' }}">
+        <a href="<?php echo e(route('attendance.index')); ?>" class="sidebar-link <?php echo e(request()->routeIs('attendance.index') ? 'active' : ''); ?>">
             <i class="fas fa-clipboard-list"></i> Attendance Logs
         </a>
-        <a href="{{ route('attendance.report') }}" class="sidebar-link {{ request()->routeIs('attendance.report') ? 'active' : '' }}">
+        <a href="<?php echo e(route('attendance.report')); ?>" class="sidebar-link <?php echo e(request()->routeIs('attendance.report') ? 'active' : ''); ?>">
             <i class="fas fa-chart-bar"></i> Att. Reports
         </a>
-        <a href="{{ route('devices.index') }}" class="sidebar-link {{ request()->routeIs('devices.*') ? 'active' : '' }}">
+        <?php if (\Illuminate\Support\Facades\Blade::check('role', 'Super Admin')): ?>
+        <a href="<?php echo e(route('devices.index')); ?>" class="sidebar-link <?php echo e(request()->routeIs('devices.*') ? 'active' : ''); ?>">
             <i class="fas fa-fingerprint"></i> Biometric Devices
         </a>
+        <?php endif; ?>
     </div>
+    <?php endif; ?>
 
+    <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('view finance')): ?>
     <div class="sidebar-section">
         <div class="sidebar-section-label">Finance</div>
-        <a href="{{ route('finance.index') }}" class="sidebar-link {{ request()->routeIs('finance.index') || request()->routeIs('finance.show') || request()->routeIs('finance.create') || request()->routeIs('finance.edit') ? 'active' : '' }}">
+        <a href="<?php echo e(route('finance.index')); ?>" class="sidebar-link <?php echo e(request()->routeIs('finance.index') || request()->routeIs('finance.show') || request()->routeIs('finance.create') || request()->routeIs('finance.edit') ? 'active' : ''); ?>">
             <i class="fas fa-money-bill-wave"></i> Transactions
         </a>
-        <a href="{{ route('finance.report') }}" class="sidebar-link {{ request()->routeIs('finance.report') ? 'active' : '' }}">
+        <a href="<?php echo e(route('finance.report')); ?>" class="sidebar-link <?php echo e(request()->routeIs('finance.report') ? 'active' : ''); ?>">
             <i class="fas fa-chart-line"></i> Finance Reports
         </a>
     </div>
+    <?php endif; ?>
+
+    <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('manage users')): ?>
+    <div class="sidebar-section">
+        <div class="sidebar-section-label">Administration</div>
+        <a href="<?php echo e(route('users.index')); ?>" class="sidebar-link <?php echo e(request()->routeIs('users.*') ? 'active' : ''); ?>">
+            <i class="fas fa-user-shield"></i> User Management
+        </a>
+    </div>
+    <?php endif; ?>
 
     <div class="sidebar-section">
         <div class="sidebar-section-label">Account</div>
-        <form method="POST" action="{{ route('logout') }}">
-            @csrf
+        <form method="POST" action="<?php echo e(route('logout')); ?>">
+            <?php echo csrf_field(); ?>
             <button type="submit" class="sidebar-link" style="width:100%; background:none; border:none; cursor:pointer; text-align:left;">
                 <i class="fas fa-sign-out-alt"></i> Logout
             </button>
@@ -299,32 +334,34 @@
 <!-- Main Content -->
 <div class="main-content">
     <div class="topbar">
-        <div class="topbar-title">@yield('title', 'Dashboard')</div>
+        <div class="topbar-title"><?php echo $__env->yieldContent('title', 'Dashboard'); ?></div>
         <div class="topbar-right">
             <div style="text-align:right;">
-                <div style="font-size:14px; font-weight:600; color:#1e293b;">{{ auth()->user()->name }}</div>
-                <div style="font-size:12px; color:#64748b;">{{ auth()->user()->getRoleNames()->first() }}</div>
+                <div style="font-size:14px; font-weight:600; color:#1e293b;"><?php echo e(auth()->user()->name); ?></div>
+                <div style="font-size:12px; color:#64748b;"><?php echo e(auth()->user()->getRoleNames()->first()); ?></div>
             </div>
-            <div class="user-avatar">{{ strtoupper(substr(auth()->user()->name, 0, 1)) }}</div>
+            <div class="user-avatar"><?php echo e(strtoupper(substr(auth()->user()->name, 0, 1))); ?></div>
         </div>
     </div>
 
     <div class="page-content">
-        @if(session('success'))
+        <?php if(session('success')): ?>
             <div class="alert alert-success">
-                <i class="fas fa-check-circle"></i> {{ session('success') }}
-            </div>
-        @endif
+                <i class="fas fa-check-circle"></i> <?php echo e(session('success')); ?>
 
-        @if(session('error'))
+            </div>
+        <?php endif; ?>
+
+        <?php if(session('error')): ?>
             <div class="alert alert-danger">
-                <i class="fas fa-exclamation-circle"></i> {{ session('error') }}
-            </div>
-        @endif
+                <i class="fas fa-exclamation-circle"></i> <?php echo e(session('error')); ?>
 
-        @yield('content')
+            </div>
+        <?php endif; ?>
+
+        <?php echo $__env->yieldContent('content'); ?>
     </div>
 </div>
 
 </body>
-</html>
+</html><?php /**PATH C:\Users\user\Herd\rhema-aog-ims\resources\views/layouts/app.blade.php ENDPATH**/ ?>

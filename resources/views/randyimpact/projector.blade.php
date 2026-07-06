@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GraceWorld — Projector View</title>
+    <title>Rhema — Projector View</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -365,7 +365,7 @@
 
 <!-- Header -->
 <div class="header">
-    <div class="church-name">GraceWorld International</div>
+    <div class="church-name">Rhema Assembly of God</div>
     <div class="header-right">
         <div class="view-switcher">
             <button class="switch-btn active" id="btn-waiting" onclick="showWaiting()">Waiting</button>
@@ -436,7 +436,7 @@ const VERSE_DISPLAY_TIME = 15000; // 15 seconds
 
 // ── BROADCAST CHANNEL ──
 try {
-    const channel = new BroadcastChannel('graceworld-projector');
+    const channel = new BroadcastChannel('rhema-projector');
     channel.onmessage = (event) => {
         if (event.data.type === 'verse') {
             // Always interrupt — show verse immediately regardless of current mode

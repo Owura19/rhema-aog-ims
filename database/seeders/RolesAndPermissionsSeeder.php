@@ -23,6 +23,12 @@ class RolesAndPermissionsSeeder extends Seeder
             'edit members',
             'delete members',
 
+            // Visitors
+            'view visitors',
+            'create visitors',
+            'edit visitors',
+            'delete visitors',
+
             // Attendance
             'view attendance',
             'manage attendance',
@@ -55,19 +61,20 @@ class RolesAndPermissionsSeeder extends Seeder
         ];
 
         foreach ($permissions as $permission) {
-            Permission::create(['name' => $permission]);
+            Permission::firstOrCreate(['name' => $permission]);
         }
 
         // ── ROLES ─────────────────────────────────────────────────
 
         // Super Admin — has all permissions
-        $superAdmin = Role::create(['name' => 'Super Admin']);
+        $superAdmin = Role::firstOrCreate(['name' => 'Super Admin']);
         $superAdmin->givePermissionTo(Permission::all());
 
         // Pastor / Overseer — sees everything, manages nothing sensitive
-        $pastor = Role::create(['name' => 'Pastor']);
+        $pastor = Role::firstOrCreate(['name' => 'Pastor']);
         $pastor->givePermissionTo([
             'view members',
+            'view visitors',
             'view attendance',
             'view finance',
             'view cell groups',
@@ -78,9 +85,12 @@ class RolesAndPermissionsSeeder extends Seeder
         ]);
 
         // Head of Department (HOD)
-        $hod = Role::create(['name' => 'HOD']);
+        $hod = Role::firstOrCreate(['name' => 'HOD']);
         $hod->givePermissionTo([
             'view members',
+            'view visitors',
+            'create visitors',
+            'edit visitors',
             'view attendance',
             'manage attendance',
             'view cell groups',
@@ -90,9 +100,12 @@ class RolesAndPermissionsSeeder extends Seeder
         ]);
 
         // Cell Leader
-        $cellLeader = Role::create(['name' => 'Cell Leader']);
+        $cellLeader = Role::firstOrCreate(['name' => 'Cell Leader']);
         $cellLeader->givePermissionTo([
             'view members',
+            'view visitors',
+            'create visitors',
+            'edit visitors',
             'view attendance',
             'manage attendance',
             'view cell groups',
@@ -100,20 +113,26 @@ class RolesAndPermissionsSeeder extends Seeder
         ]);
 
         // Data Entry
-        $dataEntry = Role::create(['name' => 'Data Entry']);
+        $dataEntry = Role::firstOrCreate(['name' => 'Data Entry']);
         $dataEntry->givePermissionTo([
             'view members',
             'create members',
             'edit members',
+            'view visitors',
+            'create visitors',
+            'edit visitors',
             'view attendance',
             'manage attendance',
             'view events',
         ]);
 
         // Usher
-        $usher = Role::create(['name' => 'Usher']);
+        $usher = Role::firstOrCreate(['name' => 'Usher']);
         $usher->givePermissionTo([
             'view members',
+            'view visitors',
+            'create visitors',
+            'edit visitors',
             'view attendance',
             'manage attendance',
         ]);

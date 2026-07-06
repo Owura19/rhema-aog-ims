@@ -55,13 +55,16 @@
 
 <!-- Transactions Table -->
 <div class="card">
-    <div class="card-header">
-        <div class="card-title"><i class="fas fa-money-bill-wave" style="color:#16a34a; margin-right:8px;"></i>Transactions</div>
-        <div style="display:flex; gap:10px;">
-            <a href="{{ route('finance.report') }}" class="btn-outline btn-sm"><i class="fas fa-chart-bar"></i> Reports</a>
-            <a href="{{ route('finance.create') }}" class="btn-primary"><i class="fas fa-plus"></i> Record Transaction</a>
-        </div>
+   <div class="card-header">
+    <div class="card-title"><i class="fas fa-money-bill-wave" style="color:#16a34a; margin-right:8px;"></i>Transactions</div>
+    <div style="display:flex; gap:10px;">
+        <a href="{{ route('finance.report') }}" class="btn-outline btn-sm"><i class="fas fa-chart-bar"></i> Reports</a>
+        <a href="{{ route('finance.export', ['year' => now()->year]) }}" class="btn-primary btn-sm" style="background:#16a34a;">
+            <i class="fas fa-file-excel"></i> Export Excel
+        </a>
+        <a href="{{ route('finance.create') }}" class="btn-primary"><i class="fas fa-plus"></i> Record Transaction</a>
     </div>
+</div>
 
     <!-- Filters -->
     <div style="padding:16px 24px; border-bottom:1px solid #f1f5f9; background:#f8fafc;">
@@ -141,16 +144,17 @@
                             <span class="badge badge-danger">Cancelled</span>
                         @endif
                     </td>
-                    <td>
-                        <div style="display:flex; gap:6px;">
-                            <a href="{{ route('finance.show', $transaction) }}" class="btn-outline btn-sm"><i class="fas fa-eye"></i></a>
-                            <a href="{{ route('finance.edit', $transaction) }}" class="btn-primary btn-sm"><i class="fas fa-edit"></i></a>
-                            <form method="POST" action="{{ route('finance.destroy', $transaction) }}" onsubmit="return confirm('Delete this transaction?')">
-                                @csrf @method('DELETE')
-                                <button type="submit" class="btn-danger btn-sm"><i class="fas fa-trash"></i></button>
-                            </form>
-                        </div>
-                    </td>
+                   <td>
+    <div style="display:flex; gap:6px;">
+        <a href="{{ route('finance.show', $transaction) }}" class="btn-outline btn-sm" title="View"><i class="fas fa-eye"></i></a>
+        <a href="{{ route('finance.receipt', ['transaction' => $transaction->id]) }}" class="btn-primary btn-sm" style="background:#16a34a;" title="Receipt" target="_blank"><i class="fas fa-file-pdf"></i></a>
+        <a href="{{ route('finance.edit', $transaction) }}" class="btn-primary btn-sm" title="Edit"><i class="fas fa-edit"></i></a>
+        <form method="POST" action="{{ route('finance.destroy', $transaction) }}" onsubmit="return confirm('Delete this transaction?')">
+            @csrf @method('DELETE')
+            <button type="submit" class="btn-danger btn-sm" title="Delete"><i class="fas fa-trash"></i></button>
+        </form>
+    </div>
+</td>
                 </tr>
                 @empty
                 <tr>

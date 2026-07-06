@@ -24,7 +24,7 @@
 
             <div style="grid-column:span 2;">
                 <label class="form-label">Event Title <span style="color:red;">*</span></label>
-                <input type="text" name="title" value="{{ old('title') }}" class="form-control {{ $errors->has('title') ? 'is-invalid' : '' }}" placeholder="e.g. GraceWorld Annual Convention 2026">
+                <input type="text" name="title" value="{{ old('title') }}" class="form-control {{ $errors->has('title') ? 'is-invalid' : '' }}" placeholder="e.g. Rhema Annual Convention 2026">
                 @error('title')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
 
@@ -91,7 +91,7 @@
         <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:20px;">
             <div>
                 <label class="form-label">Venue Name</label>
-                <input type="text" name="venue" value="{{ old('venue') }}" class="form-control" placeholder="e.g. GraceWorld Auditorium">
+                <input type="text" name="venue" value="{{ old('venue') }}" class="form-control" placeholder="e.g. Rhema Auditorium">
             </div>
             <div>
                 <label class="form-label">Address</label>

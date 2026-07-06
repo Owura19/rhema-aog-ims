@@ -11,6 +11,10 @@
             {{ $month ? \Carbon\Carbon::create()->month($month)->format('F') . ' ' . $year : 'Full Year ' . $year }}
         </div>
     </div>
+ <a href="{{ route('finance.export', ['year' => $year]) }}" class="btn-primary" style="background:#16a34a;">
+    <i class="fas fa-file-excel"></i> Export Excel
+</a>
+
     <a href="{{ route('finance.create') }}" class="btn-primary">
         <i class="fas fa-plus"></i> Record Transaction
     </a>

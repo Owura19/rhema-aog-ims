@@ -15,7 +15,7 @@ Route::middleware('guest')->group(function () {
 
     // ---------------------------------------------------------------------
     // PUBLIC REGISTRATION DISABLED (security)
-    // GraceWorld IMS is an internal staff system — strangers must not be
+    // Rhema AoG IMS is an internal staff system — strangers must not be
     // able to create accounts. New staff accounts are created by an admin
     // (via tinker for now, or the future User Management screen).
     // To re-enable, uncomment the two routes below.

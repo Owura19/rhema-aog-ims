@@ -11,6 +11,7 @@ use App\Http\Controllers\CellGroupController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\CommunityController;
 use App\Http\Controllers\RandyImpactAIController;
+use App\Http\Controllers\VisitorController;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -99,7 +100,10 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware('permission:view finance')->group(function () {
         Route::get('/finance', [FinanceController::class, 'index'])->name('finance.index');
         Route::get('/finance-report', [FinanceController::class, 'report'])->name('finance.report');
+        Route::get('/finance-export', [FinanceController::class, 'exportExcel'])->name('finance.export');
         Route::get('/finance/{finance}', [FinanceController::class, 'show'])->name('finance.show');
+        Route::get('/receipts/{transaction}', [FinanceController::class, 'receiptView'])->name('finance.receipt');
+        Route::get('/receipts/{transaction}/download', [FinanceController::class, 'receipt'])->name('finance.receipt.download');
     });
 
     // ─────────────────────────────────────────────────────────────
@@ -144,6 +148,13 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // ─────────────────────────────────────────────────────────────
+    // VISITORS — view: 'view visitors' | manage: 'manage visitors'
+    // Follow-up tracking with one-click conversion to member.
+    // ─────────────────────────────────────────────────────────────
+    Route::resource('visitors', VisitorController::class);
+    Route::post('/visitors/{visitor}/convert', [VisitorController::class, 'convertToMember'])->name('visitors.convert');
+
+    // ─────────────────────────────────────────────────────────────
     // USER MANAGEMENT — Super Admin only ('manage users')
     // Staff accounts: create, edit, activate/deactivate, delete.
     // ─────────────────────────────────────────────────────────────
@@ -156,7 +167,7 @@ Route::middleware(['auth'])->group(function () {
         Route::patch('/users/{user}/toggle-active', [\App\Http\Controllers\UserController::class, 'toggleActive'])->name('users.toggle-active');
         Route::delete('/users/{user}', [\App\Http\Controllers\UserController::class, 'destroy'])->name('users.destroy');
     });
-    
+
     // ─────────────────────────────────────────────────────────────
     // COMMUNITY — any logged-in user
     // ─────────────────────────────────────────────────────────────
