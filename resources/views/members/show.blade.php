@@ -22,7 +22,7 @@
     </div>
 </div>
 
-<div style="display:grid; grid-template-columns:1fr 2fr; gap:20px;">
+<div class="grid-main-rev">
 
     <!-- Left Column -->
     <div style="display:flex; flex-direction:column; gap:20px;">
@@ -103,7 +103,7 @@
                 <div class="card-title"><i class="fas fa-phone" style="color:#16a34a; margin-right:8px;"></i>Contact Information</div>
             </div>
             <div class="card-body">
-                <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:20px;">
+                <div class="grid-2">
                     <div>
                         <div style="font-size:12px; color:#94a3b8; font-weight:600; text-transform:uppercase; margin-bottom:4px;">Phone</div>
                         <div style="font-size:15px; color:#1e293b; font-weight:500;">{{ $member->phone ?? '—' }}</div>
@@ -134,7 +134,7 @@
                 <div class="card-title"><i class="fas fa-briefcase" style="color:#7c3aed; margin-right:8px;"></i>Work Information</div>
             </div>
             <div class="card-body">
-                <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:20px;">
+                <div class="grid-2">
                     <div>
                         <div style="font-size:12px; color:#94a3b8; font-weight:600; text-transform:uppercase; margin-bottom:4px;">Occupation</div>
                         <div style="font-size:15px; color:#1e293b; font-weight:500;">{{ $member->occupation ?? '—' }}</div>
@@ -153,7 +153,7 @@
                 <div class="card-title"><i class="fas fa-heartbeat" style="color:#dc2626; margin-right:8px;"></i>Emergency Contact</div>
             </div>
             <div class="card-body">
-                <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:20px;">
+                <div class="grid-2">
                     <div>
                         <div style="font-size:12px; color:#94a3b8; font-weight:600; text-transform:uppercase; margin-bottom:4px;">Name</div>
                         <div style="font-size:15px; color:#1e293b; font-weight:500;">{{ $member->emergency_contact_name ?? '—' }}</div>
@@ -173,7 +173,7 @@
                 <div class="card-title"><i class="fas fa-home" style="color:#e8a020; margin-right:8px;"></i>Family</div>
             </div>
             <div class="card-body">
-                <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:20px;">
+                <div class="grid-2">
                     <div>
                         <div style="font-size:12px; color:#94a3b8; font-weight:600; text-transform:uppercase; margin-bottom:4px;">Family Name</div>
                         <div style="font-size:15px; color:#1e293b; font-weight:500;">{{ $member->family->family_name }}</div>

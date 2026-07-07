@@ -4,7 +4,7 @@
 
 @section('content')
 
-<div style="display:grid; grid-template-columns:repeat(4,1fr); gap:20px; margin-bottom:28px;">
+<div class="grid-4" style="margin-bottom:28px;">
     <div class="stat-card">
         <div class="stat-icon" style="background:#dbeafe;">
             <i class="fas fa-users" style="color:#2563eb;"></i>

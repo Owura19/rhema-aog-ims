@@ -20,7 +20,7 @@
         <div class="card-title"><i class="fas fa-user" style="color:#2563eb; margin-right:8px;"></i>Personal Information</div>
     </div>
     <div class="card-body">
-        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:20px;">
+        <div class="grid-3">
 
             <div>
                 <label class="form-label">First Name <span style="color:red;">*</span></label>
@@ -88,7 +88,7 @@
         <div class="card-title"><i class="fas fa-church" style="color:#7c3aed; margin-right:8px;"></i>Visit Details</div>
     </div>
     <div class="card-body">
-        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:20px;">
+        <div class="grid-3">
 
             <div>
                 <label class="form-label">Visit Date <span style="color:red;">*</span></label>

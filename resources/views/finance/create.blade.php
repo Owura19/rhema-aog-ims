@@ -19,7 +19,7 @@
         <div class="card-title"><i class="fas fa-money-bill-wave" style="color:#16a34a; margin-right:8px;"></i>Transaction Details</div>
     </div>
     <div class="card-body">
-        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:20px;">
+        <div class="grid-3">
 
            <div>
     <label class="form-label">Transaction Type <span style="color:red;">*</span></label>
@@ -89,7 +89,7 @@
         <div class="card-title"><i class="fas fa-user" style="color:#2563eb; margin-right:8px;"></i>Payer Information</div>
     </div>
     <div class="card-body">
-        <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:20px;">
+        <div class="grid-2">
 
             <div>
                 <label class="form-label">Member (if registered)</label>
@@ -130,7 +130,7 @@
         <div class="card-title"><i class="fas fa-credit-card" style="color:#7c3aed; margin-right:8px;"></i>Payment Details</div>
     </div>
     <div class="card-body">
-        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:20px;">
+        <div class="grid-3">
 
             <div id="momo-field" style="display:none;">
                 <label class="form-label">Mobile Money Number</label>

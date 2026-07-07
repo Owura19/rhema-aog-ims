@@ -23,7 +23,7 @@
     </div>
 </div>
 
-<div style="display:grid; grid-template-columns:2fr 1fr; gap:20px;">
+<div class="grid-main">
 
     <!-- Members List -->
     <div class="card">

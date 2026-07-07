@@ -20,7 +20,7 @@
         <div class="card-title"><i class="fas fa-calendar-alt" style="color:#2563eb; margin-right:8px;"></i>Event Details</div>
     </div>
     <div class="card-body">
-        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:20px;">
+        <div class="grid-3">
 
             <div style="grid-column:span 2;">
                 <label class="form-label">Event Title <span style="color:red;">*</span></label>
@@ -88,7 +88,7 @@
         <div class="card-title"><i class="fas fa-map-marker-alt" style="color:#dc2626; margin-right:8px;"></i>Venue & Location</div>
     </div>
     <div class="card-body">
-        <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:20px;">
+        <div class="grid-2">
             <div>
                 <label class="form-label">Venue Name</label>
                 <input type="text" name="venue" value="{{ old('venue') }}" class="form-control" placeholder="e.g. Rhema Auditorium">
@@ -107,7 +107,7 @@
         <div class="card-title"><i class="fas fa-ticket-alt" style="color:#7c3aed; margin-right:8px;"></i>RSVP & Tickets</div>
     </div>
     <div class="card-body">
-        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:20px;">
+        <div class="grid-3">
 
             <div>
                 <label class="form-label">Capacity</label>

@@ -19,7 +19,7 @@
     </div>
 </div>
 
-<div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:20px;">
+<div class="grid-3">
 
     <!-- Column 1 — Microphone & Transcript -->
     <div style="display:flex; flex-direction:column; gap:20px;">

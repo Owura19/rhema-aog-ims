@@ -20,7 +20,7 @@
 </div>
 
 <!-- Stats -->
-<div style="display:grid; grid-template-columns:repeat(5,1fr); gap:16px; margin-bottom:24px;">
+<div class="grid-5" style="margin-bottom:24px;">
     <div class="stat-card">
         <div class="stat-icon" style="background:#dcfce7;"><i class="fas fa-user-check" style="color:#16a34a;"></i></div>
         <div><div class="stat-value">{{ $stats['present'] }}</div><div class="stat-label">Present</div></div>
@@ -43,7 +43,7 @@
     </div>
 </div>
 
-<div style="display:grid; grid-template-columns:2fr 1fr; gap:20px;">
+<div class="grid-main">
 
     <!-- Attendance List -->
     <div class="card">

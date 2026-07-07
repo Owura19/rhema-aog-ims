@@ -10,7 +10,7 @@
 </div>
 
 <!-- Stats -->
-<div style="display:grid; grid-template-columns:repeat(4,1fr); gap:20px; margin-bottom:28px;">
+<div class="grid-4" style="margin-bottom:28px;">
     <div class="stat-card">
         <div class="stat-icon" style="background:#f3e8ff;">
             <i class="fas fa-home" style="color:#7c3aed;"></i>
@@ -49,7 +49,7 @@
     </div>
 </div>
 
-<div style="display:grid; grid-template-columns:2fr 1fr; gap:20px;">
+<div class="grid-main">
 
     <!-- My Cell Groups -->
     <div style="display:flex; flex-direction:column; gap:20px;">

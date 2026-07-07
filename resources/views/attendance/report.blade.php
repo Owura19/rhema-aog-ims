@@ -26,7 +26,7 @@
 @else
 
 <!-- Summary Cards -->
-<div style="display:grid; grid-template-columns:repeat(3,1fr); gap:20px; margin-bottom:28px;">
+<div class="grid-3" style="margin-bottom:28px;">
     <div class="stat-card">
         <div class="stat-icon" style="background:#dbeafe;">
             <i class="fas fa-church" style="color:#2563eb;"></i>

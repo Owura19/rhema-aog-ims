@@ -19,7 +19,7 @@
     </div>
 </div>
 
-<div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:20px;">
+<div class="grid-2" style="margin-bottom:20px;">
 
     <!-- Bible Q&A -->
     <div class="card">
@@ -67,7 +67,7 @@
         <span class="badge badge-success">AI Powered</span>
     </div>
     <div class="card-body">
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:16px;">
+        <div class="grid-2" style="margin-bottom:16px;">
             <div>
                 <label class="form-label">Sermon Topic (optional)</label>
                 <input type="text" id="sermon-topic" class="form-control" placeholder="e.g. The Power of Faith">

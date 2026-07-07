@@ -22,7 +22,7 @@
         <div class="card-title"><i class="fas fa-user" style="color:#2563eb; margin-right:8px;"></i>Personal Information</div>
     </div>
     <div class="card-body">
-        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:20px;">
+        <div class="grid-3">
 
             <div>
                 <label class="form-label">First Name <span style="color:red;">*</span></label>
@@ -92,7 +92,7 @@
         <div class="card-title"><i class="fas fa-phone" style="color:#16a34a; margin-right:8px;"></i>Contact Information</div>
     </div>
     <div class="card-body">
-        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:20px;">
+        <div class="grid-3">
 
             <div>
                 <label class="form-label">Phone Number</label>
@@ -130,7 +130,7 @@
         <div class="card-title"><i class="fas fa-heartbeat" style="color:#dc2626; margin-right:8px;"></i>Emergency Contact</div>
     </div>
     <div class="card-body">
-        <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:20px;">
+        <div class="grid-2">
             <div>
                 <label class="form-label">Emergency Contact Name</label>
                 <input type="text" name="emergency_contact_name" value="{{ old('emergency_contact_name') }}" class="form-control" placeholder="Full name">
@@ -149,7 +149,7 @@
         <div class="card-title"><i class="fas fa-church" style="color:#7c3aed; margin-right:8px;"></i>Church Information</div>
     </div>
     <div class="card-body">
-        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:20px;">
+        <div class="grid-3">
 
             <div>
                 <label class="form-label">Membership Status <span style="color:red;">*</span></label>

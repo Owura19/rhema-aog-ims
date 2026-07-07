@@ -20,7 +20,7 @@
         <div class="card-title"><i class="fas fa-fingerprint" style="color:#2563eb; margin-right:8px;"></i>Device Details</div>
     </div>
     <div class="card-body">
-        <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:20px;">
+        <div class="grid-2">
 
             <div style="grid-column:span 2;">
                 <label class="form-label">Device Name <span style="color:red;">*</span></label>
