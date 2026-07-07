@@ -5,7 +5,7 @@
 @section('content')
 
 <!-- Stats Row 1 -->
-<div style="display:grid; grid-template-columns:repeat(4,1fr); gap:20px; margin-bottom:20px;">
+<div class="grid-4" style="margin-bottom:20px;">
     <div class="stat-card">
         <div class="stat-icon" style="background:#dbeafe;">
             <i class="fas fa-users" style="color:#2563eb;"></i>
@@ -45,7 +45,7 @@
 </div>
 
 <!-- Stats Row 2 -->
-<div style="display:grid; grid-template-columns:repeat(4,1fr); gap:20px; margin-bottom:28px;">
+<div class="grid-4" style="margin-bottom:28px;">
     <div class="stat-card">
         <div class="stat-icon" style="background:#dcfce7;">
             <i class="fas fa-arrow-up" style="color:#16a34a;"></i>
@@ -84,7 +84,7 @@
     </div>
 </div>
 
-<div style="display:grid; grid-template-columns:2fr 1fr; gap:20px;">
+<div class="grid-main">
 
     <!-- Recent Services -->
     <div class="card">
