@@ -83,6 +83,7 @@
         .main-content {
             margin-left: var(--sidebar-width);
             min-height: 100vh;
+            transition: margin-left 0.3s ease;
         }
         .topbar {
             height: var(--topbar-height);
@@ -96,8 +97,27 @@
             top: 0;
             z-index: 50;
         }
+        .topbar-left { display: flex; align-items: center; gap: 12px; }
         .topbar-title { font-size: 18px; font-weight: 700; color: var(--primary); }
         .topbar-right { display: flex; align-items: center; gap: 16px; }
+        .mobile-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: var(--primary);
+            cursor: pointer;
+            padding: 6px;
+            line-height: 1;
+        }
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15,37,64,0.5);
+            z-index: 99;
+        }
+        .sidebar-overlay.show { display: block; }
         .user-avatar {
             width: 36px; height: 36px;
             background: var(--primary);
@@ -224,12 +244,39 @@
             display: flex; align-items: center; justify-content: center;
             color: #fff; font-size: 14px; font-weight: 700;
         }
+
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                box-shadow: 4px 0 24px rgba(0,0,0,0.25);
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+            }
+            .mobile-toggle {
+                display: inline-flex;
+                align-items: center;
+            }
+            .topbar {
+                padding: 0 16px;
+            }
+            .topbar-title {
+                font-size: 16px;
+            }
+            .page-content {
+                padding: 18px 16px;
+            }
+        }
     </style>
 </head>
 <body>
 
 <!-- Sidebar -->
-<div class="sidebar">
+<div class="sidebar" id="sidebar">
     <div class="sidebar-logo">
         <h1 class="brand-font">Rhema <span>IMS</span></h1>
         <p>Information Management System</p>
@@ -331,10 +378,18 @@
     </div>
 </div>
 
+<!-- Mobile overlay (tap to close sidebar) -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
 <!-- Main Content -->
 <div class="main-content">
     <div class="topbar">
-        <div class="topbar-title">@yield('title', 'Dashboard')</div>
+        <div class="topbar-left">
+            <button class="mobile-toggle" onclick="toggleSidebar()" aria-label="Toggle menu">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="topbar-title">@yield('title', 'Dashboard')</div>
+        </div>
         <div class="topbar-right">
             <div style="text-align:right;">
                 <div style="font-size:14px; font-weight:600; color:#1e293b;">{{ auth()->user()->name }}</div>
@@ -360,6 +415,25 @@
         @yield('content')
     </div>
 </div>
+
+<script>
+    function toggleSidebar() {
+        document.getElementById('sidebar').classList.toggle('open');
+        document.getElementById('sidebarOverlay').classList.toggle('show');
+    }
+    function closeSidebar() {
+        document.getElementById('sidebar').classList.remove('open');
+        document.getElementById('sidebarOverlay').classList.remove('show');
+    }
+    // On mobile, close the menu after tapping a navigation link
+    document.querySelectorAll('.sidebar-link').forEach(function (link) {
+        link.addEventListener('click', function () {
+            if (window.innerWidth <= 768) {
+                closeSidebar();
+            }
+        });
+    });
+</script>
 
 </body>
 </html>
