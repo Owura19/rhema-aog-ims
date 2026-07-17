@@ -148,6 +148,7 @@
     <div style="display:flex; gap:6px;">
         <a href="{{ route('finance.show', $transaction) }}" class="btn-outline btn-sm" title="View"><i class="fas fa-eye"></i></a>
         <a href="{{ route('finance.receipt', ['transaction' => $transaction->id]) }}" class="btn-primary btn-sm" style="background:#16a34a;" title="Receipt" target="_blank"><i class="fas fa-file-pdf"></i></a>
+        <a href="{{ route('finance.receipt.print', $transaction) }}" class="btn-outline btn-sm" title="Print" target="_blank"><i class="fas fa-print"></i></a>
         <a href="{{ route('finance.edit', $transaction) }}" class="btn-primary btn-sm" title="Edit"><i class="fas fa-edit"></i></a>
         <form method="POST" action="{{ route('finance.destroy', $transaction) }}" onsubmit="return confirm('Delete this transaction?')">
             @csrf @method('DELETE')

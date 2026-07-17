@@ -15,6 +15,8 @@
         <a href="/receipts/{{ $transaction->id }}" class="btn-primary" style="background:#16a34a;" target="_blank">
             <i class="fas fa-file-pdf"></i> View Receipt
         </a>
+         <a href="{{ route('finance.receipt.print', $transaction) }}" class="btn-outline" target="_blank">
+            <i class="fas fa-print"></i> Print
         <a href="/receipts/{{ $transaction->id }}/download" class="btn-outline">
             <i class="fas fa-download"></i> Download
         </a>
@@ -167,6 +169,9 @@
             <div class="card-body" style="display:flex; flex-direction:column; gap:10px;">
                 <a href="/receipts/{{ $transaction->id }}" target="_blank" class="btn-primary" style="background:#16a34a; justify-content:center;">
                     <i class="fas fa-eye"></i> View Receipt (PDF)
+                </a>
+                <a href="{{ route('finance.receipt.print', $transaction) }}" target="_blank" class="btn-outline" style="justify-content:center;">
+                    <i class="fas fa-print"></i> Print Receipt
                 </a>
                 <a href="/receipts/{{ $transaction->id }}/download" class="btn-outline" style="justify-content:center;">
                     <i class="fas fa-download"></i> Download Receipt

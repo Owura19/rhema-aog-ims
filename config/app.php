@@ -14,6 +14,9 @@ return [
     */
 
     'name' => env('APP_NAME', 'Laravel'),
+    'short_name' => 'Rhema A/G',
+    'logo_initials' => 'RAG',
+    'location' => 'Kumasi, Ghana',
 
     /*
     |--------------------------------------------------------------------------
