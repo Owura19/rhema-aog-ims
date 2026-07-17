@@ -29,7 +29,8 @@
     .amount-type { font-size:10px; color:rgba(255,255,255,0.7); margin-top:6px; background:rgba(255,255,255,0.1); padding:3px 10px; border-radius:20px; display:inline-block; }
 
     .detail-row { display:table; width:100%; padding:3px 0; }
-    .detail-label { display:table-cell; font-size:10px; color:#94a3b8; text-transform:uppercase; letter-spacing:0.5px; width:45%; }
+.detail-label { display:table-cell; font-size:10px; color:#94a3b8; text-transform:uppercase; letter-spacing:0.5px; width:45%; font-weight:700; }
+    .detail-label { display:table-cell; font-size:10px; color:#94a3b8; text-transform:uppercase; letter-spacing:0.5px; width:45%; font-weight:700; }
     .detail-value { display:table-cell; font-size:11px; font-weight:700; color:#1e293b; text-align:right; }
 
     .ref-section { text-align:center; margin:10px 0; }
