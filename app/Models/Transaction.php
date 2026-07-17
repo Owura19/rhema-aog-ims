@@ -14,6 +14,7 @@ class Transaction extends Model
     'reference',
     'type',
     'subcategory',
+    'account_id',
     'category',
     'amount',
     'currency',
@@ -51,6 +52,11 @@ class Transaction extends Model
     public function recordedBy()
     {
         return $this->belongsTo(User::class, 'recorded_by');
+    }
+
+    public function account()
+    {
+        return $this->belongsTo(Account::class);
     }
 
     // ── ACCESSORS ──────────────────────────────────────────

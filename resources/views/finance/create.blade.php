@@ -19,7 +19,7 @@
         <div class="card-title"><i class="fas fa-money-bill-wave" style="color:#16a34a; margin-right:8px;"></i>Transaction Details</div>
     </div>
     <div class="card-body">
-        <div class="grid-3">
+        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:20px;">
 
            <div>
     <label class="form-label">Transaction Type <span style="color:red;">*</span></label>
@@ -39,14 +39,64 @@
     </select>
 </div>
 
+<div>
+    <label class="form-label">Post to Account <span style="color:red;">*</span></label>
+    <select name="account_id" class="form-control {{ $errors->has('account_id') ? 'is-invalid' : '' }}">
+        <option value="">Select account</option>
+        @php
+            $grouped = $accounts->groupBy(fn($a) => optional($a->parent)->name ?? 'Other');
+        @endphp
+        @foreach($accounts->whereNotNull('parent_id')->groupBy('parent_id') as $parentId => $group)
+            <optgroup label="{{ optional($group->first()->parent)->name }}">
+                @foreach($group as $acct)
+                    <option value="{{ $acct->id }}" {{ old('account_id') == $acct->id ? 'selected' : '' }}>
+                        {{ $acct->code }} — {{ $acct->name }}
+                    </option>
+                @endforeach
+            </optgroup>
+        @endforeach
+        @foreach($accounts->where('parent_id', null) as $acct)
+            <option value="{{ $acct->id }}" {{ old('account_id') == $acct->id ? 'selected' : '' }}>
+                {{ $acct->code }} — {{ $acct->name }}
+            </option>
+        @endforeach
+    </select>
+    @error('account_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+</div>
+
+<div>
+    <label class="form-label">Paid To / From (Cash or Bank) <span style="color:red;">*</span></label>
+    <select name="cash_account_id" class="form-control {{ $errors->has('cash_account_id') ? 'is-invalid' : '' }}">
+        <option value="">Select cash / bank account</option>
+        @foreach($cashAccounts as $ca)
+            <option value="{{ $ca->id }}" {{ old('cash_account_id') == $ca->id ? 'selected' : '' }}>
+                {{ $ca->code }} — {{ $ca->name }}
+            </option>
+        @endforeach
+    </select>
+    <small style="color:#94a3b8; font-size:12px;">Where the money was received into, or paid out from.</small>
+    @error('cash_account_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+</div>
+
             <div>
                 <label class="form-label">Category <span style="color:red;">*</span></label>
-                <select name="category" id="category" class="form-control {{ $errors->has('category') ? 'is-invalid' : '' }}">
-                    <option value="Income" {{ old('category', 'Income') == 'Income' ? 'selected' : '' }}>Income</option>
-                    <option value="Expense" {{ old('category') == 'Expense' ? 'selected' : '' }}>Expense</option>
-                </select>
+                <select name="category" id="category" class="form-control {{ $errors->has('category') ? 'is-invalid' : '' }}" onchange="onCategoryChange(this.value)">
+    <option value="Income" {{ old('category', 'Income') == 'Income' ? 'selected' : '' }}>Income</option>
+    <option value="Expense" {{ old('category') == 'Expense' ? 'selected' : '' }}>Expense</option>
+    <option value="Asset" {{ old('category') == 'Asset' ? 'selected' : '' }}>Asset (e.g. buy/sell equipment)</option>
+    <option value="Liability" {{ old('category') == 'Liability' ? 'selected' : '' }}>Liability (e.g. loan)</option>
+</select>
                 @error('category')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
+
+            <div id="direction-field" style="display:none;">
+    <label class="form-label">Direction <span style="color:red;">*</span></label>
+    <select name="direction" id="direction" class="form-control">
+        <option value="in">Money coming IN (received)</option>
+        <option value="out">Money going OUT (paid)</option>
+    </select>
+    <small style="color:#94a3b8; font-size:12px;">e.g. buying equipment = OUT; taking a loan = IN.</small>
+</div>
 
             <div>
                 <label class="form-label">Amount (GHS) <span style="color:red;">*</span></label>
@@ -89,7 +139,7 @@
         <div class="card-title"><i class="fas fa-user" style="color:#2563eb; margin-right:8px;"></i>Payer Information</div>
     </div>
     <div class="card-body">
-        <div class="grid-2">
+        <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:20px;">
 
             <div>
                 <label class="form-label">Member (if registered)</label>
@@ -130,7 +180,7 @@
         <div class="card-title"><i class="fas fa-credit-card" style="color:#7c3aed; margin-right:8px;"></i>Payment Details</div>
     </div>
     <div class="card-body">
-        <div class="grid-3">
+        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:20px;">
 
             <div id="momo-field" style="display:none;">
                 <label class="form-label">Mobile Money Number</label>
@@ -181,6 +231,24 @@ function showPaymentFields(method) {
     document.getElementById('momo-field').style.display   = method === 'Mobile Money' ? 'block' : 'none';
     document.getElementById('cheque-field').style.display = method === 'Cheque' ? 'block' : 'none';
     document.getElementById('bank-field').style.display   = (method === 'Bank Transfer' || method === 'Cheque') ? 'block' : 'none';
+}
+
+// Balance-sheet accounts for Asset/Liability transactions
+const balanceSheetAccounts = @json($balanceSheetAccounts->map(fn($a) => ['id' => $a->id, 'label' => $a->code.' — '.$a->name.' ('.$a->type.')']));
+const incomeExpenseAccounts = @json($accounts->map(fn($a) => ['id' => $a->id, 'label' => $a->code.' — '.$a->name]));
+
+function onCategoryChange(cat) {
+    const dirField = document.getElementById('direction-field');
+    const acctSelect = document.querySelector('select[name="account_id"]');
+    const isBalanceSheet = (cat === 'Asset' || cat === 'Liability');
+
+    // Show/hide the Direction field
+    dirField.style.display = isBalanceSheet ? 'block' : 'none';
+
+    // Swap the "Post to Account" options
+    const list = isBalanceSheet ? balanceSheetAccounts.filter(a => a.label.includes('('+cat+')')) : incomeExpenseAccounts;
+    acctSelect.innerHTML = '<option value="">Select account</option>';
+    list.forEach(a => { acctSelect.innerHTML += `<option value="${a.id}">${a.label}</option>`; });
 }
 
 // Run on load

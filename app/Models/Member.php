@@ -52,9 +52,19 @@ class Member extends Model
         return $this->belongsTo(Family::class);
     }
 
+    public function relationships()
+    {
+        return $this->hasMany(MemberRelationship::class, 'member_id')->with('relatedMember');
+    }
+
     public function createdBy()
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function messages()
+    {
+        return $this->hasMany(MemberMessage::class);
     }
 
     // ── ACCESSORS ──────────────────────────────────────────
@@ -87,5 +97,10 @@ class Member extends Model
                 $member->member_id = 'GW-' . str_pad($nextId, 5, '0', STR_PAD_LEFT);
             }
         });
+    }
+
+    public function user()
+    {
+        return $this->hasOne(User::class);
     }
 }

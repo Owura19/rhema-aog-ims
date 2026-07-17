@@ -292,7 +292,7 @@
 <!-- Sidebar -->
 <div class="sidebar" id="sidebar">
     <div class="sidebar-logo">
-        <h1 class="brand-font">Rhema <span>IMS</span></h1>
+        <h1 class="brand-font">Rhema <span>Assembly of God</span></h1>
         <p>Information Management System</p>
     </div>
 
@@ -309,6 +309,10 @@
         @can('view members')
         <a href="{{ route('members.index') }}" class="sidebar-link {{ request()->routeIs('members.*') ? 'active' : '' }}">
             <i class="fas fa-users"></i> Members
+        </a>
+
+        <a href="{{ route('messages.inbox') }}" class="sidebar-link {{ request()->routeIs('messages.*') ? 'active' : '' }}">
+            <i class="fas fa-comments"></i> Member Messages
         </a>
         @endcan
         @can('view visitors')
@@ -366,8 +370,27 @@
         <a href="{{ route('finance.index') }}" class="sidebar-link {{ request()->routeIs('finance.index') || request()->routeIs('finance.show') || request()->routeIs('finance.create') || request()->routeIs('finance.edit') ? 'active' : '' }}">
             <i class="fas fa-money-bill-wave"></i> Transactions
         </a>
+
+        <a href="{{ route('vouchers.index') }}" class="sidebar-link {{ request()->routeIs('vouchers.*') ? 'active' : '' }}">
+            <i class="fas fa-file-invoice-dollar"></i> Payment Vouchers
+        </a>
+        <a href="{{ route('bank.index') }}" class="sidebar-link {{ request()->routeIs('bank.*') ? 'active' : '' }}">
+            <i class="fas fa-building-columns"></i> Bank Transactions
+        </a>
         <a href="{{ route('finance.report') }}" class="sidebar-link {{ request()->routeIs('finance.report') ? 'active' : '' }}">
             <i class="fas fa-chart-line"></i> Finance Reports
+        </a>
+        <a href="{{ route('pledges.index') }}" class="sidebar-link {{ request()->routeIs('pledges.*') ? 'active' : '' }}">
+            <i class="fas fa-hand-holding-heart"></i> Pledges
+        </a>
+        <a href="{{ route('harvests.index') }}" class="sidebar-link {{ request()->routeIs('harvests.*') ? 'active' : '' }}">
+            <i class="fas fa-wheat-awn"></i> Harvest
+        </a>
+        <a href="{{ route('accounts.index') }}" class="sidebar-link {{ request()->routeIs('accounts.*') ? 'active' : '' }}">
+            <i class="fas fa-sitemap"></i> Chart of Accounts
+        </a>
+        <a href="{{ route('finance.reports-hub') }}" class="sidebar-link {{ request()->routeIs('finance.reports-hub') || request()->routeIs('finance.statement') || request()->routeIs('finance.income-note') || request()->routeIs('finance.expenditure-note') || request()->routeIs('finance.budget.report') ? 'active' : '' }}">
+            <i class="fas fa-chart-pie"></i> Financial Reports
         </a>
     </div>
     @endcan

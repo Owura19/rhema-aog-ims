@@ -62,7 +62,29 @@ class FinanceController extends Controller
     {
         $members  = Member::orderBy('first_name')->get();
         $services = ChurchService::latest('service_date')->take(20)->get();
-        return view('finance.create', compact('members', 'services'));
+
+        // Income/Expense accounts for the "Post to Account" dropdown
+        $accounts = \App\Models\Account::where('is_group', false)
+            ->whereIn('type', ['Income', 'Expense'])
+            ->orderBy('sort_order')
+            ->get();
+
+        // Cash / Bank accounts only (Current Assets group) for the "Paid to / from" dropdown
+        $currentAssetsGroup = \App\Models\Account::where('code', '1000')->first();
+        $cashAccounts = \App\Models\Account::where('is_group', false)
+            ->where('type', 'Asset')
+            ->when($currentAssetsGroup, fn($q) => $q->where('parent_id', $currentAssetsGroup->id))
+            ->orderBy('sort_order')
+            ->get();
+
+        // Balance-sheet accounts (all Asset + Liability) for asset/liability transactions
+        $balanceSheetAccounts = \App\Models\Account::where('is_group', false)
+            ->whereIn('type', ['Asset', 'Liability'])
+            ->orderBy('type')
+            ->orderBy('sort_order')
+            ->get();
+
+        return view('finance.create', compact('members', 'services', 'accounts', 'cashAccounts', 'balanceSheetAccounts'));
     }
 
     public function store(Request $request)
@@ -70,7 +92,10 @@ class FinanceController extends Controller
         $validated = $request->validate([
             'type'                 => 'required|in:Tithe,Offering,First Fruit,Seed,Pledge,Donation,Expense,Other',
             'subcategory'          => 'nullable|string|max:100',
-            'category'             => 'required|in:Income,Expense',
+            'account_id'           => 'nullable|exists:accounts,id',
+            'cash_account_id'      => 'nullable|exists:accounts,id',
+            'category'             => 'required|in:Income,Expense,Asset,Liability',
+            'direction'            => 'nullable|in:in,out',
             'amount'               => 'required|numeric|min:0.01',
             'member_id'            => 'nullable|exists:members,id',
             'payer_name'           => 'nullable|string|max:255',
@@ -86,7 +111,66 @@ class FinanceController extends Controller
 
         $validated['recorded_by'] = auth()->id();
 
+        // Pull out fields that aren't columns on transactions
+        $cashAccountId = $request->input('cash_account_id');
+        $direction     = $request->input('direction');
+        unset($validated['cash_account_id'], $validated['direction']);
+
+        // Asset/Liability transactions store as Income or Expense category on the
+        // transaction record (based on money direction), but post to the ledger
+        // against the chosen balance-sheet account.
+        $balanceSheetType = null;
+        if (in_array($validated['category'], ['Asset', 'Liability'])) {
+            $balanceSheetType = $validated['category']; // remember it for posting
+            // Money IN behaves like income (cash up), money OUT like expense (cash down)
+            $validated['category'] = ($direction === 'in') ? 'Income' : 'Expense';
+        }
+
         $finance = Transaction::create($validated);
+
+        // ── DOUBLE-ENTRY POSTING ─────────────────────────────────
+        if ($finance->account_id && $cashAccountId && $finance->status === 'Confirmed') {
+            $ledger = new \App\Services\LedgerService();
+            $desc = "{$finance->type} — " . ($finance->reference ?? 'Transaction');
+
+            if ($balanceSheetType) {
+                // ASSET or LIABILITY movement
+                $amount = (float) $finance->amount;
+                if ($direction === 'in') {
+                    // Money in: debit cash/bank, credit the balance-sheet account
+                    $ledger->postEntry([
+                        ['account_id' => $cashAccountId,        'debit' => $amount, 'credit' => 0],
+                        ['account_id' => $finance->account_id,  'debit' => 0,       'credit' => $amount],
+                    ], $finance->transaction_date, $desc, 'transaction', $finance->id);
+                } else {
+                    // Money out: debit the balance-sheet account, credit cash/bank
+                    $ledger->postEntry([
+                        ['account_id' => $finance->account_id,  'debit' => $amount, 'credit' => 0],
+                        ['account_id' => $cashAccountId,        'debit' => 0,       'credit' => $amount],
+                    ], $finance->transaction_date, $desc, 'transaction', $finance->id);
+                }
+            } elseif ($finance->category === 'Income') {
+                $ledger->postIncome(
+                    (float) $finance->amount,
+                    $finance->account_id,
+                    $cashAccountId,
+                    $finance->transaction_date,
+                    $desc,
+                    'transaction',
+                    $finance->id
+                );
+            } else {
+                $ledger->postExpense(
+                    (float) $finance->amount,
+                    $finance->account_id,
+                    $cashAccountId,
+                    $finance->transaction_date,
+                    $desc,
+                    'transaction',
+                    $finance->id
+                );
+            }
+        }
 
         return redirect()->route('finance.show', $finance)
             ->with('success', "Transaction {$finance->reference} recorded successfully!");
@@ -134,6 +218,9 @@ class FinanceController extends Controller
 
     public function destroy(Transaction $finance)
     {
+        // Remove any double-entry journal tied to this transaction
+        (new \App\Services\LedgerService())->removeForSource('transaction', $finance->id);
+
         $ref = $finance->reference;
         $finance->delete();
         return redirect()->route('finance.index')

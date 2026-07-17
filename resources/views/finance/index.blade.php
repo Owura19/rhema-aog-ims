@@ -5,7 +5,7 @@
 @section('content')
 
 <!-- Stats Row -->
-<div class="grid-5" style="margin-bottom:28px;">
+<div style="display:grid; grid-template-columns:repeat(5,1fr); gap:16px; margin-bottom:28px;">
     <div class="stat-card">
         <div class="stat-icon" style="background:#dcfce7;">
             <i class="fas fa-arrow-up" style="color:#16a34a;"></i>

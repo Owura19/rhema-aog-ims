@@ -12,6 +12,9 @@
         <h2 style="font-size:20px; font-weight:700; color:#1e293b; margin-top:4px;">{{ $member->full_name }}</h2>
     </div>
     <div style="display:flex; gap:10px;">
+        <a href="{{ route('member-ledger.show', $member) }}" class="btn-outline" style="margin-right:8px;">
+    <i class="fas fa-hand-holding-heart"></i> Giving Statement
+</a>
         <a href="{{ route('members.edit', $member) }}" class="btn-primary">
             <i class="fas fa-edit"></i> Edit Member
         </a>
@@ -22,7 +25,7 @@
     </div>
 </div>
 
-<div class="grid-main-rev">
+<div style="display:grid; grid-template-columns:1fr 2fr; gap:20px;">
 
     <!-- Left Column -->
     <div style="display:flex; flex-direction:column; gap:20px;">
@@ -103,7 +106,7 @@
                 <div class="card-title"><i class="fas fa-phone" style="color:#16a34a; margin-right:8px;"></i>Contact Information</div>
             </div>
             <div class="card-body">
-                <div class="grid-2">
+                <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:20px;">
                     <div>
                         <div style="font-size:12px; color:#94a3b8; font-weight:600; text-transform:uppercase; margin-bottom:4px;">Phone</div>
                         <div style="font-size:15px; color:#1e293b; font-weight:500;">{{ $member->phone ?? '—' }}</div>
@@ -134,7 +137,7 @@
                 <div class="card-title"><i class="fas fa-briefcase" style="color:#7c3aed; margin-right:8px;"></i>Work Information</div>
             </div>
             <div class="card-body">
-                <div class="grid-2">
+                <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:20px;">
                     <div>
                         <div style="font-size:12px; color:#94a3b8; font-weight:600; text-transform:uppercase; margin-bottom:4px;">Occupation</div>
                         <div style="font-size:15px; color:#1e293b; font-weight:500;">{{ $member->occupation ?? '—' }}</div>
@@ -153,7 +156,7 @@
                 <div class="card-title"><i class="fas fa-heartbeat" style="color:#dc2626; margin-right:8px;"></i>Emergency Contact</div>
             </div>
             <div class="card-body">
-                <div class="grid-2">
+                <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:20px;">
                     <div>
                         <div style="font-size:12px; color:#94a3b8; font-weight:600; text-transform:uppercase; margin-bottom:4px;">Name</div>
                         <div style="font-size:15px; color:#1e293b; font-weight:500;">{{ $member->emergency_contact_name ?? '—' }}</div>
@@ -173,7 +176,7 @@
                 <div class="card-title"><i class="fas fa-home" style="color:#e8a020; margin-right:8px;"></i>Family</div>
             </div>
             <div class="card-body">
-                <div class="grid-2">
+                <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:20px;">
                     <div>
                         <div style="font-size:12px; color:#94a3b8; font-weight:600; text-transform:uppercase; margin-bottom:4px;">Family Name</div>
                         <div style="font-size:15px; color:#1e293b; font-weight:500;">{{ $member->family->family_name }}</div>
@@ -186,6 +189,145 @@
             </div>
         </div>
         @endif
+        {{-- ============================================================
+     FAMILY RELATIONSHIPS CARD
+     Paste this in resources/views/members/show.blade.php,
+     right AFTER the closing </div> of the existing
+     "Family Information" card (in the right column).
+     ============================================================ --}}
+
+<div class="card" style="margin-top:20px;">
+    <div class="card-header">
+        <div class="card-title"><i class="fas fa-people-roof" style="color:#7c3aed; margin-right:8px;"></i>Family Relationships</div>
+    </div>
+    <div style="padding:0;">
+        @forelse($member->relationships as $rel)
+            @if($rel->relatedMember)
+            <div style="display:flex; align-items:center; gap:10px; padding:12px 20px; border-bottom:1px solid #f1f5f9;">
+                <div class="member-avatar-placeholder" style="width:34px; height:34px; font-size:13px;">
+                    {{ strtoupper(substr($rel->relatedMember->first_name, 0, 1)) }}
+                </div>
+                <div style="flex:1;">
+                    <a href="{{ route('members.show', $rel->relatedMember) }}" style="font-size:14px; font-weight:600; color:#1e293b; text-decoration:none;">
+                        {{ $rel->relatedMember->first_name }} {{ $rel->relatedMember->last_name }}
+                    </a>
+                    <div style="font-size:12px; color:#7c3aed;">{{ $rel->type_label }}</div>
+                </div>
+                @can('edit members')
+                <form method="POST" action="{{ route('members.relationships.destroy', [$member, $rel->relatedMember]) }}"
+                      onsubmit="return confirm('Remove this relationship?');">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" style="background:none; border:none; color:#dc2626; cursor:pointer;" title="Remove">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </form>
+                @endcan
+            </div>
+            @endif
+        @empty
+            <div style="padding:20px; text-align:center; color:#94a3b8; font-size:13px;">No family relationships linked yet.</div>
+        @endforelse
+    </div>
+
+    @can('edit members')
+    <div class="card-body" style="border-top:1px solid #f1f5f9;">
+        <form method="POST" action="{{ route('members.relationships.store', $member) }}">
+            @csrf
+            <div style="margin-bottom:10px;">
+                <label class="form-label">Relationship</label>
+                <select name="type" class="form-control" required>
+                    <option value="spouse">Spouse</option>
+                    <option value="parent">Parent</option>
+                    <option value="child">Child</option>
+                    <option value="sibling">Sibling</option>
+                    <option value="guardian">Guardian</option>
+                    <option value="other">Other</option>
+                </select>
+                <div style="font-size:11px; color:#94a3b8; margin-top:4px;">
+                    e.g. "Parent" means the person you pick is this member's parent.
+                </div>
+            </div>
+            <div style="margin-bottom:12px;">
+                <label class="form-label">Member</label>
+                <select name="related_member_id" class="form-control" required>
+                    <option value="">— Select member —</option>
+                    @foreach($otherMembers as $other)
+                    <option value="{{ $other->id }}">{{ $other->first_name }} {{ $other->last_name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <button type="submit" class="btn-primary btn-sm" style="width:100%; justify-content:center;">
+                <i class="fas fa-link"></i> Add Relationship
+            </button>
+        </form>
+    </div>
+    @endcan
+</div>
+
+{{-- ============================================================
+     MEMBER PORTAL LOGIN CARD
+     Paste into resources/views/members/show.blade.php,
+     in the right column (e.g. after the Family Relationships card).
+     ============================================================ --}}
+
+<div class="card" style="margin-top:20px;">
+    <div class="card-header">
+        <div class="card-title"><i class="fas fa-right-to-bracket" style="color:#2563eb; margin-right:8px;"></i>Portal Login</div>
+    </div>
+    <div class="card-body">
+
+        {{-- Show the temp password once, right after creation/reset --}}
+        @if(session('portal_created'))
+        <div class="alert alert-success" style="flex-direction:column; align-items:flex-start; gap:6px;">
+            <div style="font-weight:700;"><i class="fas fa-circle-check"></i> Login ready — share these with the member:</div>
+            <div style="font-size:13px;">Email: <strong>{{ session('portal_created')['email'] }}</strong></div>
+            <div style="font-size:13px;">Temporary password: <strong style="font-family:monospace; background:#fff; padding:2px 8px; border-radius:5px;">{{ session('portal_created')['password'] }}</strong></div>
+            <div style="font-size:12px; color:#15803d;">This password is shown only once. The member should change it after logging in.</div>
+        </div>
+        @endif
+
+        @if($member->user)
+            {{-- Member HAS a login --}}
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px;">
+                <div style="width:38px; height:38px; border-radius:10px; background:#dcfce7; color:#16a34a; display:flex; align-items:center; justify-content:center;">
+                    <i class="fas fa-user-check"></i>
+                </div>
+                <div>
+                    <div style="font-weight:600; color:#1e293b; font-size:14px;">Portal access active</div>
+                    <div style="font-size:12px; color:#94a3b8;">{{ $member->user->email }}</div>
+                </div>
+            </div>
+            <div style="display:flex; gap:8px;">
+                <form method="POST" action="{{ route('members.portal.reset', $member) }}" onsubmit="return confirm('Generate a new temporary password for this member?');">
+                    @csrf
+                    <button type="submit" class="btn-outline btn-sm"><i class="fas fa-key"></i> Reset Password</button>
+                </form>
+                <form method="POST" action="{{ route('members.portal.revoke', $member) }}" onsubmit="return confirm('Revoke this member''s portal login? They will no longer be able to sign in.');">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn-outline btn-sm" style="border-color:#fecaca; color:#dc2626;"><i class="fas fa-ban"></i> Revoke</button>
+                </form>
+            </div>
+        @else
+            {{-- Member has NO login --}}
+            @if(empty($member->email))
+                <div style="font-size:13px; color:#94a3b8; margin-bottom:12px;">
+                    <i class="fas fa-circle-info"></i> Add an email address to this member before creating a portal login.
+                </div>
+            @else
+                <div style="font-size:13px; color:#64748b; margin-bottom:14px;">
+                    Create a login so this member can sign in to view their own giving, pledges, and attendance.
+                </div>
+                <form method="POST" action="{{ route('members.portal.create', $member) }}" onsubmit="return confirm('Create a portal login for {{ $member->full_name }}?');">
+                    @csrf
+                    <button type="submit" class="btn-primary btn-sm"><i class="fas fa-user-plus"></i> Create Portal Login</button>
+                </form>
+            @endif
+        @endif
+
+    </div>
+</div>
 
         <!-- Notes -->
         @if($member->notes)

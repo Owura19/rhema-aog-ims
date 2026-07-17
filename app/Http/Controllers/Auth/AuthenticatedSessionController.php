@@ -28,6 +28,11 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
+        // Members go to their own portal; staff go to the admin dashboard.
+        if (auth()->user()->hasRole('Member')) {
+            return redirect()->route('portal.dashboard');
+        }
+
         return redirect()->intended(route('dashboard', absolute: false));
     }
 

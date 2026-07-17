@@ -100,68 +100,79 @@ class MemberController extends Controller
             ->with('success', "Member {$member->full_name} added successfully! ID: {$member->member_id}");
     }
 
-    public function show(Member $member)
+  public function show(Member $member)
     {
-        $member->load('family', 'createdBy');
-        return view('members.show', compact('member'));
+        $member->load([
+            'family',
+            'createdBy',
+            'relationships.relatedMember',
+        ]);
+
+        // Other members for the "add relationship" dropdown
+        $otherMembers = Member::where('id', '!=', $member->id)
+            ->orderBy('first_name')
+            ->get(['id', 'first_name', 'last_name']);
+
+        return view('members.show', compact('member', 'otherMembers'));
     }
 
+    // ── EDIT FORM ────────────────────────────────────────────────
     public function edit(Member $member)
     {
-        $families = Family::orderBy('family_name')->get();
+        $families = \App\Models\Family::orderBy('family_name')->get();
         return view('members.edit', compact('member', 'families'));
     }
 
+    // ── UPDATE ───────────────────────────────────────────────────
     public function update(Request $request, Member $member)
     {
+        // Mirror the same validation your store() uses.
+        // Adjust field names/rules here if your store() differs.
         $validated = $request->validate([
-            'first_name'              => 'required|string|max:255',
-            'last_name'               => 'required|string|max:255',
-            'other_name'              => 'nullable|string|max:255',
-            'email'                   => 'nullable|email|unique:members,email,' . $member->id,
-            'phone'                   => 'nullable|string|max:20',
-            'alt_phone'               => 'nullable|string|max:20',
-            'gender'                  => 'required|in:Male,Female',
-            'date_of_birth'           => 'nullable|date',
-            'occupation'              => 'nullable|string|max:255',
-            'employer'                => 'nullable|string|max:255',
-            'marital_status'          => 'nullable|in:Single,Married,Divorced,Widowed',
-            'residential_address'     => 'nullable|string|max:255',
-            'digital_address'         => 'nullable|string|max:255',
-            'emergency_contact_name'  => 'nullable|string|max:255',
-            'emergency_contact_phone' => 'nullable|string|max:20',
-            'date_joined'             => 'nullable|date',
-            'date_baptized'           => 'nullable|date',
-            'membership_status'       => 'required|in:Active,Inactive,Visitor,Transferred,Deceased',
-            'member_type'             => 'required|in:Full Member,Associate,Visitor',
-            'family_id'               => 'nullable|exists:families,id',
-            'family_role'             => 'nullable|string|max:50',
-            'fingerprint_id'          => 'nullable|integer',
-            'notes'                   => 'nullable|string',
-            'photo'                   => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'first_name'      => 'required|string|max:255',
+            'last_name'       => 'required|string|max:255',
+            'gender'          => 'nullable|string',
+            'date_of_birth'   => 'nullable|date',
+            'marital_status'  => 'nullable|string',
+            'phone'           => 'nullable|string|max:30',
+            'alt_phone'       => 'nullable|string|max:30',
+            'email'           => 'nullable|email|max:255',
+            'residential_address' => 'nullable|string',
+            'digital_address' => 'nullable|string|max:100',
+            'occupation'      => 'nullable|string|max:255',
+            'employer'        => 'nullable|string|max:255',
+            'member_type'     => 'nullable|string',
+            'status'          => 'nullable|string',
+            'family_id'       => 'nullable|exists:families,id',
+            'family_role'     => 'nullable|string|max:50',
+            'photo'           => 'nullable|image|max:4096',
         ]);
 
-        // Handle photo upload
+        // Handle photo upload if a new one is provided
         if ($request->hasFile('photo')) {
-            // Delete old photo
-            if ($member->photo) {
-                Storage::disk('public')->delete($member->photo);
-            }
-            $validated['photo'] = $request->file('photo')->store('members/photos', 'public');
+            $validated['photo'] = $request->file('photo')->store('members', 'public');
         }
 
         $member->update($validated);
 
-        return redirect()->route('members.show', $member)
-            ->with('success', "Member {$member->full_name} updated successfully!");
+        return redirect()
+            ->route('members.show', $member)
+            ->with('success', "Member {$member->full_name} updated successfully.");
     }
 
+    // ── DELETE ───────────────────────────────────────────────────
     public function destroy(Member $member)
     {
+        // Remove this member's family relationship links first
+        \App\Models\MemberRelationship::where('member_id', $member->id)
+            ->orWhere('related_member_id', $member->id)
+            ->delete();
+
         $name = $member->full_name;
         $member->delete();
 
-        return redirect()->route('members.index')
-            ->with('success', "Member {$name} has been removed.");
+        return redirect()
+            ->route('members.index')
+            ->with('success', "Member {$name} deleted.");
     }
 }

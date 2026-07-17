@@ -17,6 +17,7 @@ class User extends Authenticatable
         'phone',
         'password',
         'is_active',
+        'member_id',
     ];
 
     protected $hidden = [
@@ -31,5 +32,10 @@ class User extends Authenticatable
             'password' => 'hashed',
             'is_active' => 'boolean',
         ];
+    }
+
+    public function member()
+    {
+        return $this->belongsTo(Member::class);
     }
 }
