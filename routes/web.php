@@ -104,6 +104,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/finance/{finance}', [FinanceController::class, 'show'])->name('finance.show');
         Route::get('/receipts/{transaction}', [FinanceController::class, 'receiptView'])->name('finance.receipt');
         Route::get('/receipts/{transaction}/download', [FinanceController::class, 'receipt'])->name('finance.receipt.download');
+        Route::get('/receipts/{transaction}/print', [FinanceController::class, 'print'])->name('finance.receipt.print');
     });
 
     // ─────────────────────────────────────────────────────────────

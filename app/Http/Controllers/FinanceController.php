@@ -195,20 +195,6 @@ class FinanceController extends Controller
         $export->download();
     }
 
-    public function receipt(Transaction $transaction)
-    {
-        $transaction->load(['member', 'churchService', 'recordedBy']);
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('receipts.transaction', compact('transaction'));
-        $pdf->setPaper([0, 0, 226.77, 600], 'portrait');
-        $pdf->setOptions([
-            'dpi'                  => 150,
-            'defaultFont'          => 'DejaVu Sans',
-            'isRemoteEnabled'      => false,
-            'isHtml5ParserEnabled' => true,
-        ]);
-        return $pdf->download('Receipt_' . $transaction->reference . '.pdf');
-    }
-
     public function receiptView(Transaction $transaction)
     {
         $transaction->load(['member', 'churchService', 'recordedBy']);
@@ -221,5 +207,11 @@ class FinanceController extends Controller
             'isHtml5ParserEnabled' => true,
         ]);
         return $pdf->stream('Receipt_' . $transaction->reference . '.pdf');
+    }
+
+    public function print(Transaction $transaction)
+    {
+        $transaction->load(['member', 'churchService', 'recordedBy']);
+        return view('receipts.print', compact('transaction'));
     }
 }
