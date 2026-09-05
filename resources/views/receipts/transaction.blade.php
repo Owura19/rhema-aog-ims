@@ -410,11 +410,6 @@
 
     <hr class="dashed">
 
-    <!-- Barcode Style -->
-    <div class="barcode-section">
-        <div class="barcode-lines">||| || ||| | || ||| || | |||</div>
-        <div class="barcode-text">{{ $transaction->reference }}</div>
-    </div>
 
     <hr class="dashed">
 

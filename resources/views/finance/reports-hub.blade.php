@@ -22,6 +22,18 @@
         </div>
     </a>
 
+    <!-- Receipts & Payments -->
+    <a href="{{ route('finance.cash-summary') }}" class="card" style="text-decoration:none; display:block; transition:box-shadow 0.2s;">
+        <div class="card-body">
+            <div class="stat-icon" style="background:#dcfce7; margin-bottom:14px;">
+                <i class="fas fa-money-bill-wave" style="color:#16a34a;"></i>
+            </div>
+            <div style="font-weight:700; color:#1e293b; font-size:16px; margin-bottom:6px;">Receipts &amp; Payments</div>
+            <div style="color:#64748b; font-size:13px; line-height:1.5;">Total receipts and payments for a period (Cash, Mobile Money &amp; Cheque only), broken down by account.</div>
+            <div style="color:#16a34a; font-size:13px; font-weight:600; margin-top:14px;">Open report <i class="fas fa-arrow-right" style="font-size:11px;"></i></div>
+        </div>
+    </a>
+
     <!-- Finance Analytics -->
     <a href="{{ route('finance.analytics') }}" class="card" style="text-decoration:none; display:block; transition:box-shadow 0.2s;">
         <div class="card-body">
@@ -46,6 +58,17 @@
         </div>
     </a>
 
+    <!-- Tithe Report -->
+    <a href="{{ route('finance.tithe-report') }}" class="card" style="text-decoration:none; display:block; transition:box-shadow 0.2s;">
+        <div class="card-body">
+            <div class="stat-icon" style="background:#dcfce7; margin-bottom:14px;">
+                <i class="fas fa-hand-holding-usd" style="color:#16a34a;"></i>
+            </div>
+            <div style="font-weight:700; color:#1e293b; font-size:16px; margin-bottom:6px;">Tithe Report</div>
+            <div style="color:#64748b; font-size:13px; line-height:1.5;">Tithe totals per member for a selected year, including walk-in tithes and a grand total.</div>
+            <div style="color:#16a34a; font-size:13px; font-weight:600; margin-top:14px;">Open report <i class="fas fa-arrow-right" style="font-size:11px;"></i></div>
+        </div>
+    </a>
     <!-- Expenditure Note -->
     <a href="{{ route('finance.expenditure-note') }}" class="card" style="text-decoration:none; display:block; transition:box-shadow 0.2s;">
         <div class="card-body">

@@ -8,7 +8,7 @@
     <div>
         <h2 style="font-size:20px; font-weight:700; color:#1e293b;">Finance Report</h2>
         <div style="font-size:13px; color:#64748b;">
-            {{ $month ? \Carbon\Carbon::create()->month($month)->format('F') . ' ' . $year : 'Full Year ' . $year }}
+            {{ $month ? \Carbon\Carbon::create()->month((int) $month)->format('F') . ' ' . $year : 'Full Year ' . $year }}
         </div>
     </div>
  <a href="{{ route('finance.export', ['year' => $year]) }}" class="btn-primary" style="background:#16a34a;">

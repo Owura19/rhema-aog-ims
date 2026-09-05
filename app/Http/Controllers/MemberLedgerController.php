@@ -70,7 +70,7 @@ class MemberLedgerController extends Controller
         // Itemized list
         $items = (clone $base)
             ->orderBy('transaction_date')
-            ->get(['transaction_date', 'type', 'reference', 'amount', 'payment_method']);
+            ->get(['id', 'transaction_date', 'type', 'reference', 'amount', 'payment_method']);
 
         $total = (clone $base)->sum('amount');
 

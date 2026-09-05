@@ -12,7 +12,7 @@
         </div>
         <div>
             <div class="stat-value" style="font-size:18px;">GHS {{ number_format($stats['total_income'], 2) }}</div>
-            <div class="stat-label">Income This Month</div>
+            <div class="stat-label">Income {{ $rangeLabel }}</div>
         </div>
     </div>
     <div class="stat-card">
@@ -21,7 +21,7 @@
         </div>
         <div>
             <div class="stat-value" style="font-size:18px;">GHS {{ number_format($stats['total_expense'], 2) }}</div>
-            <div class="stat-label">Expenses This Month</div>
+            <div class="stat-label">Expenses {{ $rangeLabel }}</div>
         </div>
     </div>
     <div class="stat-card">
@@ -30,7 +30,7 @@
         </div>
         <div>
             <div class="stat-value" style="font-size:18px;">GHS {{ number_format($stats['total_tithes'], 2) }}</div>
-            <div class="stat-label">Tithes This Month</div>
+            <div class="stat-label">Tithes {{ $rangeLabel }}</div>
         </div>
     </div>
     <div class="stat-card">
@@ -39,7 +39,7 @@
         </div>
         <div>
             <div class="stat-value" style="font-size:18px;">GHS {{ number_format($stats['total_offerings'], 2) }}</div>
-            <div class="stat-label">Offerings This Month</div>
+            <div class="stat-label">Offerings {{ $rangeLabel }}</div>
         </div>
     </div>
     <div class="stat-card">

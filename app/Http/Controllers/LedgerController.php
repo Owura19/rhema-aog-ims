@@ -14,6 +14,11 @@ class LedgerController extends Controller
      */
     public function index(Request $request)
     {
+        $from = $request->get('from', now()->startOfYear()->toDateString());
+        $to   = $request->get('to', now()->toDateString());
+        $opening = JournalLine::select('account_id', DB::raw('SUM(debit) as total_debit'), DB::raw('SUM(credit) as total_credit'))
+            ->whereHas('entry', fn($q) => $q->whereDate('entry_date', '<', $from))
+            ->groupBy('account_id')->get()->keyBy('account_id');
         $asOf = $request->get('as_of', now()->toDateString());
 
         $sums = JournalLine::select(
@@ -21,7 +26,7 @@ class LedgerController extends Controller
                 DB::raw('SUM(debit) as total_debit'),
                 DB::raw('SUM(credit) as total_credit')
             )
-            ->whereHas('entry', fn($q) => $q->whereDate('entry_date', '<=', $asOf))
+            ->whereHas('entry', fn($q) => $q->whereDate('entry_date', '>=', $from)->whereDate('entry_date', '<=', $to))
             ->groupBy('account_id')
             ->get()
             ->keyBy('account_id');
@@ -29,16 +34,22 @@ class LedgerController extends Controller
         $accounts = Account::where('is_group', false)
             ->orderBy('type')->orderBy('code')
             ->get()
-            ->map(function ($acct) use ($sums) {
+            ->map(function ($acct) use ($sums, $opening) {
                 $row = $sums->get($acct->id);
+                $op = $opening->get($acct->id);
+                $opD = $op ? (float) $op->total_debit : 0;
+                $opC = $op ? (float) $op->total_credit : 0;
                 $debit  = $row ? (float) $row->total_debit  : 0;
                 $credit = $row ? (float) $row->total_credit : 0;
                 // Balance on the account's natural side
                 $balance = in_array($acct->type, ['Asset', 'Expense'])
                     ? $debit - $credit
                     : $credit - $debit;
+                $natural = in_array($acct->type, ['Asset', 'Expense']);
+                $openingBal = $natural ? $opD - $opC : $opC - $opD;
                 return (object) [
                     'account' => $acct,
+                    'opening' => $openingBal,
                     'debit'   => $debit,
                     'credit'  => $credit,
                     'balance' => $balance,
@@ -46,7 +57,7 @@ class LedgerController extends Controller
                 ];
             });
 
-        return view('ledger.index', compact('accounts', 'asOf'));
+        return view('ledger.index', compact('accounts', 'from', 'to'));
     }
 
     /**

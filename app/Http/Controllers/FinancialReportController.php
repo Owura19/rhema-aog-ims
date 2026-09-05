@@ -52,6 +52,51 @@ class FinancialReportController extends Controller
     }
 
     /**
+     * Receipts & Payments — cash, mobile money, and cheque, by account.
+     */
+    public function cashSummary(Request $request)
+    {
+        $from = $request->filled('from')
+            ? Carbon::parse($request->from)->startOfDay()
+            : now()->startOfYear();
+        $to = $request->filled('to')
+            ? Carbon::parse($request->to)->endOfDay()
+            : now()->endOfDay();
+
+        $cashMethods = ['Cash', 'Mobile Money', 'Cheque'];
+
+        $rows = Transaction::query()
+            ->with('account')
+            ->whereNotNull('account_id')
+            ->whereIn('payment_method', $cashMethods)
+            ->whereBetween('transaction_date', [$from->toDateString(), $to->toDateString()])
+            ->where('status', 'Confirmed')
+            ->selectRaw('account_id, category, SUM(amount) as total')
+            ->groupBy('account_id', 'category')
+            ->get();
+
+        $receipts = $rows->where('category', 'Income')
+            ->map(fn($r) => (object)['account' => optional($r->account)->name ?? '—', 'total' => (float)$r->total])
+            ->sortByDesc('total')->values();
+        $payments = $rows->where('category', 'Expense')
+            ->map(fn($r) => (object)['account' => optional($r->account)->name ?? '—', 'total' => (float)$r->total])
+            ->sortByDesc('total')->values();
+
+        $totalReceipts = $receipts->sum('total');
+        $totalPayments = $payments->sum('total');
+        $netCash       = $totalReceipts - $totalPayments;
+
+        return view('finance.cash-summary', [
+            'receipts'      => $receipts,
+            'payments'      => $payments,
+            'totalReceipts' => $totalReceipts,
+            'totalPayments' => $totalPayments,
+            'netCash'       => $netCash,
+            'from'          => $from->toDateString(),
+            'to'            => $to->toDateString(),
+        ]);
+    }
+    /**
      * Actuals — condensed statement: group-level totals only.
      */
     public function actuals(Request $request)
@@ -273,6 +318,9 @@ class FinancialReportController extends Controller
                 ];
             });
 
+            // Drop children with exactly zero for the period
+            $children = $children->filter(fn($c) => (float) $c->total != 0.0)->values();
+
             $childrenTotal = $children->sum('total');
 
             return (object) [
@@ -283,6 +331,9 @@ class FinancialReportController extends Controller
                 // Group total = its own postings + all children postings
                 'total'    => $ownTotal + $childrenTotal,
             ];
-        });
+        })
+        // Drop groups that are entirely zero for the period (no own total, no children left)
+        ->filter(fn($g) => (float) $g->total != 0.0 || $g->children->isNotEmpty())
+        ->values();
     }
 }

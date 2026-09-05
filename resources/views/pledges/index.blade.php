@@ -47,14 +47,19 @@
 <div class="card">
     <div class="card-header">
         <div class="card-title"><i class="fas fa-hand-holding-heart" style="color:#7c3aed; margin-right:8px;"></i>All Pledges</div>
-        @can('create finance')
+        @canany(['manage pledges', 'create finance'])
+        <a href="{{ route('pledges.report') }}" class="btn-primary btn-sm" style="background:#1a3c5e; margin-right:8px;"><i class="fas fa-chart-bar"></i> Report</a>
         <a href="{{ route('pledges.create') }}" class="btn-primary btn-sm"><i class="fas fa-plus"></i> New Pledge</a>
-        @endcan
+        @endcanany
     </div>
 
     <!-- Filters -->
     <div style="padding:16px 24px; border-bottom:1px solid #f1f5f9;">
         <form method="GET" action="{{ route('pledges.index') }}" style="display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end;">
+            <div>
+                <label class="form-label">Search</label>
+                <input type="text" name="search" value="{{ request('search') }}" placeholder="Name or reference..." class="form-control" style="min-width:220px;">
+            </div>
             <div>
                 <label class="form-label">Status</label>
                 <select name="status" class="form-control" style="min-width:150px;">
@@ -70,6 +75,24 @@
                     <option value="">All purposes</option>
                     @foreach($purposes as $purpose)
                     <option value="{{ $purpose->id }}" {{ request('purpose')==$purpose->id ? 'selected' : '' }}>{{ $purpose->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="form-label">Year</label>
+                <select name="year" class="form-control" style="min-width:130px;">
+                    <option value="">All years</option>
+                    @foreach($years as $y)
+                    <option value="{{ $y }}" {{ request('year')==$y ? 'selected' : '' }}>{{ $y }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="form-label">Campaign</label>
+                <select name="harvest" class="form-control" style="min-width:190px;">
+                    <option value="">All campaigns</option>
+                    @foreach($harvests as $harvest)
+                    <option value="{{ $harvest->id }}" {{ request('harvest')==$harvest->id ? 'selected' : '' }}>{{ $harvest->name }}</option>
                     @endforeach
                 </select>
             </div>
@@ -125,9 +148,9 @@
                 <tr>
                     <td colspan="8" style="text-align:center; color:#94a3b8; padding:30px;">
                         No pledges yet.
-                        @can('create finance')
+                        @canany(['manage pledges', 'create finance'])
                         <a href="{{ route('pledges.create') }}" style="color:#2563eb;">Record the first pledge</a>
-                        @endcan
+                        @endcanany
                     </td>
                 </tr>
                 @endforelse

@@ -5,7 +5,8 @@
 <title>Receipt — {{ $transaction->reference }}</title>
 <style>
     * { margin:0; padding:0; box-sizing:border-box; }
-    body { font-family:'Segoe UI', Arial, sans-serif; background:#e2e8f0; color:#1e293b; font-size:12px; }
+    body { font-family:'Segoe UI', Arial, sans-serif; background:#fff; color:#1e293b; font-size:12px; }
+    html, body { width:300px; margin:0 auto; }
 
     .print-btn { text-align:center; margin:20px 0; }
     .print-btn button { background:#1a3c5e; color:#fff; border:none; padding:10px 24px; border-radius:6px; font-size:14px; cursor:pointer; }
@@ -53,8 +54,10 @@
 
     .watermark { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%) rotate(-45deg); font-size:60px; font-weight:900; color:rgba(26,60,94,0.03); text-transform:uppercase; letter-spacing:6px; pointer-events:none; white-space:nowrap; }
 
+    @page { size: 80mm auto; margin: 0; }
     @media print {
-        body { background:#fff; }
+        body { background:#fff; margin:0; }
+        .receipt { width:80mm; box-shadow:none; margin:0; padding:6px 8px; }
         .print-btn { display:none; }
         .receipt { box-shadow:none; }
     }
@@ -72,6 +75,14 @@
         <div class="church-name">{{ config('app.name') }}</div>
         <div class="church-sub">{{ config('app.location', '') }}</div>
     </div>
+
+    @if(!empty($pledgeInfo))
+    <hr class="dashed">
+    <div class="detail-row"><div class="detail-label">Pledge</div><div class="detail-value">{{ $pledgeInfo['reference'] }}</div></div>
+    <div class="detail-row"><div class="detail-label">Total Pledged</div><div class="detail-value">GHS {{ number_format($pledgeInfo['pledged'], 2) }}</div></div>
+    <div class="detail-row"><div class="detail-label">Paid So Far</div><div class="detail-value">GHS {{ number_format($pledgeInfo['total_paid'], 2) }}</div></div>
+    <div class="detail-row"><div class="detail-label" style="font-weight:700; color:#e8a020;">BALANCE DUE</div><div class="detail-value" style="font-weight:700; color:{{ $pledgeInfo['balance'] > 0 ? '#e8a020' : '#16a34a' }};">GHS {{ number_format($pledgeInfo['balance'], 2) }}</div></div>
+    @endif
 
     <hr class="solid">
     <div class="receipt-title">*** Official Receipt ***</div>
@@ -156,10 +167,6 @@
 
     <hr class="dashed">
 
-    <div class="barcode-section">
-        <div class="barcode-lines">||| || ||| | || ||| || | |||</div>
-        <div class="barcode-text">{{ $transaction->reference }}</div>
-    </div>
 
     <hr class="dashed">
 

@@ -72,6 +72,15 @@
                         @endforeach
                     </select>
                 </div>
+                <div style="margin-bottom:16px;">
+                    <label class="form-label">Service <span style="color:#94a3b8; font-weight:400;">(optional \u2014 which service was this pledge made in?)</span></label>
+                    <select name="church_service_id" class="form-control">
+                        <option value="">— Not tied to a service —</option>
+                        @foreach($services as $service)
+                        <option value="{{ $service->id }}" {{ old('church_service_id')==$service->id ? 'selected' : '' }}>{{ $service->name }} ({{ \Carbon\Carbon::parse($service->service_date)->format('M d, Y') }})</option>
+                        @endforeach
+                    </select>
+                </div>
                     <div>
                         <label class="form-label">Amount Pledged (GHS)</label>
                         <input type="number" step="0.01" min="0.01" name="amount_pledged" class="form-control" placeholder="0.00" value="{{ old('amount_pledged') }}" required>
@@ -108,6 +117,12 @@
     function togglePledger(type) {
         document.getElementById('member-select').style.display = (type === 'member') ? 'block' : 'none';
         document.getElementById('name-input').style.display    = (type === 'other')  ? 'block' : 'none';
+        // Clear whichever field is now hidden so a stale value never gets submitted alongside the other
+        if (type === 'member') {
+            document.querySelector('#name-input input[name="pledger_name"]').value = '';
+        } else {
+            document.querySelector('#member-select select[name="member_id"]').value = '';
+        }
     }
 </script>
 

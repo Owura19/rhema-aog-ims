@@ -15,6 +15,47 @@
 @csrf
 @method('PUT')
 
+<!-- Payer Information -->
+<div class="card" style="margin-bottom:20px;">
+    <div class="card-header">
+        <div class="card-title"><i class="fas fa-user" style="color:#2563eb; margin-right:8px;"></i>Payer Information</div>
+    </div>
+    <div class="card-body">
+        <div class="grid-2">
+
+            <div>
+                <label class="form-label">Member (if registered)</label>
+                <select name="member_id" class="form-control">
+                    <option value="">Anonymous / Walk-in</option>
+                    @foreach($members as $member)
+                        <option value="{{ $member->id }}" {{ old('member_id', $transaction->member_id) == $member->id ? 'selected' : '' }}>
+                            {{ $member->full_name }} ({{ $member->member_id }})
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div>
+                <label class="form-label">Payer Name (if not a member)</label>
+                <input type="text" name="payer_name" value="{{ old('payer_name', $transaction->payer_name) }}" class="form-control">
+            </div>
+
+            <div>
+                <label class="form-label">Related Service</label>
+                <select name="church_service_id" class="form-control">
+                    <option value="">Not linked to a service</option>
+                    @foreach($services as $service)
+                        <option value="{{ $service->id }}" {{ old('church_service_id', $transaction->church_service_id) == $service->id ? 'selected' : '' }}>
+                            {{ $service->name }} — {{ $service->service_date->format('M d, Y') }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+        </div>
+    </div>
+</div>
+
 <div class="card" style="margin-bottom:20px;">
     <div class="card-header">
         <div class="card-title"><i class="fas fa-money-bill-wave" style="color:#16a34a; margin-right:8px;"></i>Transaction Details</div>
@@ -70,47 +111,6 @@
                 <select name="status" class="form-control">
                     @foreach(['Confirmed','Pending','Cancelled'] as $status)
                         <option value="{{ $status }}" {{ old('status', $transaction->status) == $status ? 'selected' : '' }}>{{ $status }}</option>
-                    @endforeach
-                </select>
-            </div>
-
-        </div>
-    </div>
-</div>
-
-<!-- Payer Information -->
-<div class="card" style="margin-bottom:20px;">
-    <div class="card-header">
-        <div class="card-title"><i class="fas fa-user" style="color:#2563eb; margin-right:8px;"></i>Payer Information</div>
-    </div>
-    <div class="card-body">
-        <div class="grid-2">
-
-            <div>
-                <label class="form-label">Member (if registered)</label>
-                <select name="member_id" class="form-control">
-                    <option value="">Anonymous / Walk-in</option>
-                    @foreach($members as $member)
-                        <option value="{{ $member->id }}" {{ old('member_id', $transaction->member_id) == $member->id ? 'selected' : '' }}>
-                            {{ $member->full_name }} ({{ $member->member_id }})
-                        </option>
-                    @endforeach
-                </select>
-            </div>
-
-            <div>
-                <label class="form-label">Payer Name (if not a member)</label>
-                <input type="text" name="payer_name" value="{{ old('payer_name', $transaction->payer_name) }}" class="form-control">
-            </div>
-
-            <div>
-                <label class="form-label">Related Service</label>
-                <select name="church_service_id" class="form-control">
-                    <option value="">Not linked to a service</option>
-                    @foreach($services as $service)
-                        <option value="{{ $service->id }}" {{ old('church_service_id', $transaction->church_service_id) == $service->id ? 'selected' : '' }}>
-                            {{ $service->name }} — {{ $service->service_date->format('M d, Y') }}
-                        </option>
                     @endforeach
                 </select>
             </div>

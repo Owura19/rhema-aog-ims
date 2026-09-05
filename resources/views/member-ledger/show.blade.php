@@ -49,7 +49,7 @@
     <div class="card-header"><div class="card-title"><i class="fas fa-list" style="color:#2563eb;margin-right:8px;"></i>All Contributions</div></div>
     <div style="overflow-x:auto;">
         <table class="table">
-            <thead><tr><th>Date</th><th>Type</th><th>Reference</th><th>Method</th><th style="text-align:right;">Amount (GHS)</th></tr></thead>
+            <thead><tr><th>Date</th><th>Type</th><th>Reference</th><th>Method</th><th style="text-align:right;">Amount (GHS)</th>@can('edit finance')<th style="text-align:center;">Edit</th>@endcan</tr></thead>
             <tbody>
                 @forelse($items as $it)
                 <tr>
@@ -58,6 +58,7 @@
                     <td style="font-family:monospace;font-size:12px;color:#94a3b8;">{{ $it->reference }}</td>
                     <td style="font-size:13px;color:#64748b;">{{ $it->payment_method }}</td>
                     <td style="text-align:right;font-weight:600;">{{ number_format($it->amount, 2) }}</td>
+                    @can('edit finance')<td style="text-align:center;"><a href="{{ route('finance.edit', $it->id) }}" style="color:#2563eb;" title="Edit transaction"><i class="fas fa-pen"></i></a></td>@endcan
                 </tr>
                 @empty
                 <tr><td colspan="5" style="text-align:center;color:#94a3b8;padding:20px;">No contributions in this period.</td></tr>

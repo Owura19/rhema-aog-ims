@@ -364,6 +364,22 @@
     </div>
     @endcan
 
+    @can('view pledges')
+    @cannot('view finance')
+    <div class="sidebar-section">
+        <div class="sidebar-section-label">Finance</div>
+        <a href="{{ route('pledges.index') }}" class="sidebar-link {{ request()->routeIs('pledges.*') ? 'active' : '' }}">
+            <i class="fas fa-hand-holding-heart"></i> Pledges
+        </a>
+        <a href="{{ route('payments.index') }}" class="sidebar-link {{ request()->routeIs('payments.*') ? 'active' : '' }}">
+            <i class="fas fa-receipt"></i> Payments
+        </a>
+        <a href="{{ route('pledges.summary') }}" class="sidebar-link {{ request()->routeIs('pledges.summary') ? 'active' : '' }}">
+            <i class="fas fa-chart-pie"></i> Pledge Summary
+        </a>
+    </div>
+    @endcannot
+    @endcan
     @can('view finance')
     <div class="sidebar-section">
         <div class="sidebar-section-label">Finance</div>
@@ -382,6 +398,12 @@
         </a>
         <a href="{{ route('pledges.index') }}" class="sidebar-link {{ request()->routeIs('pledges.*') ? 'active' : '' }}">
             <i class="fas fa-hand-holding-heart"></i> Pledges
+        </a>
+        <a href="{{ route('payments.index') }}" class="sidebar-link {{ request()->routeIs('payments.*') ? 'active' : '' }}">
+            <i class="fas fa-receipt"></i> Payments
+        </a>
+        <a href="{{ route('pledges.summary') }}" class="sidebar-link {{ request()->routeIs('pledges.summary') ? 'active' : '' }}">
+            <i class="fas fa-chart-pie"></i> Pledge Summary
         </a>
         <a href="{{ route('harvests.index') }}" class="sidebar-link {{ request()->routeIs('harvests.*') ? 'active' : '' }}">
             <i class="fas fa-wheat-awn"></i> Harvest

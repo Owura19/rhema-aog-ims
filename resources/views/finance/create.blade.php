@@ -14,6 +14,47 @@
 <form method="POST" action="{{ route('finance.store') }}">
 @csrf
 
+<!-- Payer Information -->
+<div class="card" style="margin-bottom:20px;">
+    <div class="card-header">
+        <div class="card-title"><i class="fas fa-user" style="color:#2563eb; margin-right:8px;"></i>Payer Information</div>
+    </div>
+    <div class="card-body">
+        <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:20px;">
+
+            <div>
+                <label class="form-label">Member (if registered)</label>
+                <select name="member_id" class="form-control">
+                    <option value="">Anonymous / Walk-in</option>
+                    @foreach($members as $member)
+                        <option value="{{ $member->id }}" {{ old('member_id') == $member->id ? 'selected' : '' }}>
+                            {{ $member->full_name }} ({{ $member->member_id }})
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div>
+                <label class="form-label">Payer Name (if not a member)</label>
+                <input type="text" name="payer_name" value="{{ old('payer_name') }}" class="form-control" placeholder="Full name of payer">
+            </div>
+
+            <div>
+                <label class="form-label">Related Service</label>
+                <select name="church_service_id" class="form-control">
+                    <option value="">Not linked to a service</option>
+                    @foreach($services as $service)
+                        <option value="{{ $service->id }}" {{ old('church_service_id') == $service->id ? 'selected' : '' }}>
+                            {{ $service->name }} — {{ $service->service_date->format('M d, Y') }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+        </div>
+    </div>
+</div>
+
 <div class="card" style="margin-bottom:20px;">
     <div class="card-header">
         <div class="card-title"><i class="fas fa-money-bill-wave" style="color:#16a34a; margin-right:8px;"></i>Transaction Details</div>
@@ -23,21 +64,15 @@
 
            <div>
     <label class="form-label">Transaction Type <span style="color:red;">*</span></label>
-    <select name="type" class="form-control {{ $errors->has('type') ? 'is-invalid' : '' }}" onchange="setCategory(this.value); showSubcategory(this.value)">
+    <select name="type" class="form-control {{ $errors->has('type') ? 'is-invalid' : '' }}" onchange="setCategory(this.value)">
         <option value="">Select type</option>
-        @foreach(['Tithe','Offering','First Fruit','Seed','Pledge','Donation','Expense','Other'] as $type)
+        @foreach(['Tithe','Offering','Project Offering','Harvest','First Fruit','Seed','Pledge','Donation','Expense','Other'] as $type)
             <option value="{{ $type }}" {{ old('type') == $type ? 'selected' : '' }}>{{ $type }}</option>
         @endforeach
     </select>
     @error('type')<div class="invalid-feedback">{{ $message }}</div>@enderror
 </div>
 
-<div id="subcategory-field" style="display:none;">
-    <label class="form-label">Subcategory <span style="color:red;">*</span></label>
-    <select name="subcategory" id="subcategory-select" class="form-control">
-        <option value="">Select subcategory</option>
-    </select>
-</div>
 
 <div>
     <label class="form-label">Post to Account <span style="color:red;">*</span></label>
@@ -133,47 +168,6 @@
     </div>
 </div>
 
-<!-- Payer Information -->
-<div class="card" style="margin-bottom:20px;">
-    <div class="card-header">
-        <div class="card-title"><i class="fas fa-user" style="color:#2563eb; margin-right:8px;"></i>Payer Information</div>
-    </div>
-    <div class="card-body">
-        <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:20px;">
-
-            <div>
-                <label class="form-label">Member (if registered)</label>
-                <select name="member_id" class="form-control">
-                    <option value="">Anonymous / Walk-in</option>
-                    @foreach($members as $member)
-                        <option value="{{ $member->id }}" {{ old('member_id') == $member->id ? 'selected' : '' }}>
-                            {{ $member->full_name }} ({{ $member->member_id }})
-                        </option>
-                    @endforeach
-                </select>
-            </div>
-
-            <div>
-                <label class="form-label">Payer Name (if not a member)</label>
-                <input type="text" name="payer_name" value="{{ old('payer_name') }}" class="form-control" placeholder="Full name of payer">
-            </div>
-
-            <div>
-                <label class="form-label">Related Service</label>
-                <select name="church_service_id" class="form-control">
-                    <option value="">Not linked to a service</option>
-                    @foreach($services as $service)
-                        <option value="{{ $service->id }}" {{ old('church_service_id') == $service->id ? 'selected' : '' }}>
-                            {{ $service->name }} — {{ $service->service_date->format('M d, Y') }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
-
-        </div>
-    </div>
-</div>
-
 <!-- Payment Details -->
 <div class="card" style="margin-bottom:20px;" id="payment-details">
     <div class="card-header">
@@ -236,6 +230,7 @@ function showPaymentFields(method) {
 // Balance-sheet accounts for Asset/Liability transactions
 const balanceSheetAccounts = @json($balanceSheetAccounts->map(fn($a) => ['id' => $a->id, 'label' => $a->code.' — '.$a->name.' ('.$a->type.')']));
 const incomeExpenseAccounts = @json($accounts->map(fn($a) => ['id' => $a->id, 'label' => $a->code.' — '.$a->name]));
+const accountChildren = @json($accounts->groupBy('parent_id')->map(fn($g) => $g->map(fn($c) => $c->name)->values()));
 
 function onCategoryChange(cat) {
     const dirField = document.getElementById('direction-field');
@@ -245,10 +240,13 @@ function onCategoryChange(cat) {
     // Show/hide the Direction field
     dirField.style.display = isBalanceSheet ? 'block' : 'none';
 
-    // Swap the "Post to Account" options
-    const list = isBalanceSheet ? balanceSheetAccounts.filter(a => a.label.includes('('+cat+')')) : incomeExpenseAccounts;
-    acctSelect.innerHTML = '<option value="">Select account</option>';
-    list.forEach(a => { acctSelect.innerHTML += `<option value="${a.id}">${a.label}</option>`; });
+    // Only rebuild the account dropdown for Asset/Liability.
+    // For Income/Expense, keep the full grouped account tree rendered by Blade.
+    if (isBalanceSheet) {
+        const list = balanceSheetAccounts.filter(a => a.label.includes('('+cat+')'));
+        acctSelect.innerHTML = '<option value="">Select account</option>';
+        list.forEach(a => { acctSelect.innerHTML += `<option value="${a.id}">${a.label}</option>`; });
+    }
 }
 
 // Run on load
@@ -336,6 +334,20 @@ function showSubcategory(type) {
 
 // Run on load for old values
 showSubcategory('{{ old('type', '') }}');
+
+function showSubcategoryFromAccount(accountId) {
+    const field  = document.getElementById('subcategory-field');
+    const select = document.getElementById('subcategory-select');
+    const kids = (accountChildren && accountChildren[accountId]) ? accountChildren[accountId] : [];
+    select.innerHTML = '<option value="">Select subcategory</option>';
+    if (kids.length > 0) {
+        field.style.display = 'block';
+        kids.forEach(name => { select.innerHTML += `<option value="${name}">${name}</option>`; });
+    } else {
+        field.style.display = 'none';
+    }
+}
+function showSubcategory(type) {}
 </script>
 
 @endsection

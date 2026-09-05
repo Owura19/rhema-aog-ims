@@ -15,6 +15,7 @@ class Pledge extends Model
         'pledger_name',
         'pledge_purpose_id',
         'harvest_id',
+        'church_service_id',
         'amount_pledged',
         'currency',
         'date_pledged',
@@ -50,6 +51,11 @@ class Pledge extends Model
     public function harvest()
     {
         return $this->belongsTo(Harvest::class);
+    }
+
+    public function churchService()
+    {
+        return $this->belongsTo(ChurchService::class);
     }
 
     public function recordedBy()

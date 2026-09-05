@@ -12,7 +12,7 @@ class FinanceController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Transaction::with(['member', 'churchService', 'recordedBy'])->latest('transaction_date');
+        $query = Transaction::with(['member', 'churchService', 'recordedBy'])->orderByDesc('id');
 
         if ($request->filled('type')) {
             $query->where('type', $request->type);
@@ -46,16 +46,58 @@ class FinanceController extends Controller
 
         $transactions = $query->paginate(20)->withQueryString();
 
-        $stats = [
-            'total_income'    => Transaction::income()->thisMonth()->sum('amount'),
-            'total_expense'   => Transaction::expense()->thisMonth()->sum('amount'),
-            'total_tithes'    => Transaction::where('type', 'Tithe')->thisMonth()->sum('amount'),
-            'total_offerings' => Transaction::where('type', 'Offering')->thisMonth()->sum('amount'),
-            'net_balance'     => Transaction::income()->thisMonth()->sum('amount') - Transaction::expense()->thisMonth()->sum('amount'),
-            'total_count'     => Transaction::thisMonth()->count(),
-        ];
+        // Build a matching base query for the summary cards, using the
+        // exact same filters as the list above (but not paginated).
+        $hasDateFilter = $request->filled('date_from') || $request->filled('date_to');
 
-        return view('finance.index', compact('transactions', 'stats'));
+        $statsBase = Transaction::query();
+        if ($request->filled('type')) {
+            $statsBase->where('type', $request->type);
+        }
+        if ($request->filled('category')) {
+            $statsBase->where('category', $request->category);
+        }
+        if ($request->filled('payment_method')) {
+            $statsBase->where('payment_method', $request->payment_method);
+        }
+        if ($request->filled('date_from')) {
+            $statsBase->whereDate('transaction_date', '>=', $request->date_from);
+        }
+        if ($request->filled('date_to')) {
+            $statsBase->whereDate('transaction_date', '<=', $request->date_to);
+        }
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $statsBase->where(function ($q) use ($search) {
+                $q->where('reference', 'like', "%{$search}%")
+                  ->orWhere('payer_name', 'like', "%{$search}%")
+                  ->orWhereHas('member', fn($m) => $m->where('first_name', 'like', "%{$search}%")
+                      ->orWhere('last_name', 'like', "%{$search}%"));
+            });
+        }
+        // No date range selected: default to the current year, same as before
+        if (!$hasDateFilter) {
+            $statsBase->whereYear('transaction_date', now()->year);
+        }
+
+        $stats = [
+            'total_income'    => (clone $statsBase)->where('category', 'Income')->sum('amount'),
+            'total_expense'   => (clone $statsBase)->where('category', 'Expense')->sum('amount'),
+            'total_tithes'    => (clone $statsBase)->where('type', 'Tithe')->sum('amount'),
+            'total_offerings' => (clone $statsBase)->where('type', 'Offering')->sum('amount'),
+            'total_count'     => (clone $statsBase)->count(),
+        ];
+        $stats['net_balance'] = $stats['total_income'] - $stats['total_expense'];
+
+        if ($hasDateFilter) {
+            $rangeLabel = ($request->filled('date_from') ? \Carbon\Carbon::parse($request->date_from)->format('M d, Y') : 'Start')
+                . ' \u2013 '
+                . ($request->filled('date_to') ? \Carbon\Carbon::parse($request->date_to)->format('M d, Y') : 'Today');
+        } else {
+            $rangeLabel = 'This Year';
+        }
+
+        return view('finance.index', compact('transactions', 'stats', 'rangeLabel'));
     }
 
     public function create()
@@ -64,8 +106,7 @@ class FinanceController extends Controller
         $services = ChurchService::latest('service_date')->take(20)->get();
 
         // Income/Expense accounts for the "Post to Account" dropdown
-        $accounts = \App\Models\Account::where('is_group', false)
-            ->whereIn('type', ['Income', 'Expense'])
+        $accounts = \App\Models\Account::whereIn('type', ['Income', 'Expense'])
             ->orderBy('sort_order')
             ->get();
 
@@ -90,7 +131,7 @@ class FinanceController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'type'                 => 'required|in:Tithe,Offering,First Fruit,Seed,Pledge,Donation,Expense,Other',
+            'type'                 => 'required|in:Tithe,Offering,Project Offering,Harvest,First Fruit,Seed,Pledge,Donation,Expense,Other',
             'subcategory'          => 'nullable|string|max:100',
             'account_id'           => 'nullable|exists:accounts,id',
             'cash_account_id'      => 'nullable|exists:accounts,id',
@@ -194,7 +235,7 @@ class FinanceController extends Controller
     public function update(Request $request, Transaction $finance)
     {
         $validated = $request->validate([
-            'type'                 => 'required|in:Tithe,Offering,First Fruit,Seed,Pledge,Donation,Expense,Other',
+            'type'                 => 'required|in:Tithe,Offering,Project Offering,Harvest,First Fruit,Seed,Pledge,Donation,Expense,Other',
             'subcategory'          => 'nullable|string|max:100',
             'category'             => 'required|in:Income,Expense',
             'amount'               => 'required|numeric|min:0.01',
@@ -275,6 +316,49 @@ class FinanceController extends Controller
         ));
     }
 
+    public function titheReport(Request $request)
+    {
+        $year  = $request->get('year', now()->year);
+        $month = $request->get('month', null);
+
+        $dateFrom = $request->get('date_from');
+        $dateTo   = $request->get('date_to');
+        $q = Transaction::where('type', 'Tithe');
+        if ($dateFrom && $dateTo) {
+            $q->whereDate('transaction_date', '>=', $dateFrom)
+              ->whereDate('transaction_date', '<=', $dateTo);
+        } else {
+            $q->whereYear('transaction_date', $year);
+            if ($month) {
+                $q->whereMonth('transaction_date', $month);
+            }
+        }
+
+        // Per-member totals (registered members)
+        $members = (clone $q)
+            ->whereNotNull('member_id')
+            ->selectRaw('member_id, SUM(amount) as total, COUNT(*) as payments')
+            ->groupBy('member_id')
+            ->orderByDesc('total')
+            ->with('member')
+            ->get();
+
+        // Anonymous / walk-in tithes as one lump
+        $walkIn = (clone $q)
+            ->whereNull('member_id')
+            ->selectRaw('SUM(amount) as total, COUNT(*) as payments')
+            ->first();
+
+        $grandTotal = (clone $q)->sum('amount');
+
+        $years = Transaction::selectRaw('DISTINCT YEAR(transaction_date) as y')
+            ->orderByDesc('y')->pluck('y');
+
+        return view('finance.tithe-report', compact(
+            'members', 'walkIn', 'grandTotal', 'year', 'month', 'years', 'dateFrom', 'dateTo'
+        ));
+    }
+
     public function exportExcel(Request $request)
     {
         $year   = $request->get('year', now()->year);
@@ -299,6 +383,13 @@ class FinanceController extends Controller
     public function print(Transaction $transaction)
     {
         $transaction->load(['member', 'churchService', 'recordedBy']);
-        return view('receipts.print', compact('transaction'));
+        $pledgeInfo = null;
+        $pp = \App\Models\PledgePayment::with('pledge')->where('transaction_id', $transaction->id)->first();
+        if ($pp && $pp->pledge) {
+            $pl = $pp->pledge;
+            $paid = \App\Models\PledgePayment::where('pledge_id', $pl->id)->sum('amount');
+            $pledgeInfo = ['reference'=>$pl->reference,'pledged'=>(float)$pl->amount_pledged,'total_paid'=>(float)$paid,'balance'=>max(0,(float)$pl->amount_pledged-(float)$paid)];
+        }
+        return view('receipts.print', compact('transaction', 'pledgeInfo'));
     }
 }

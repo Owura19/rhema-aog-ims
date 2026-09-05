@@ -101,8 +101,11 @@
         <a href="{{ route('pledges.create') }}" class="btn-primary btn-sm"><i class="fas fa-plus"></i> Add Pledge</a>
         @endcan
     </div>
+    <div style="margin-bottom:14px;">
+        <input type="text" id="pledgeSearchBox" onkeyup="filterHarvestPledges()" class="form-control" placeholder="Search by name or reference..." style="max-width:320px;">
+    </div>
     <div style="overflow-x:auto;">
-        <table class="table">
+        <table class="table" id="harvestPledgesTable">
             <thead>
                 <tr>
                     <th>Pledger</th>
@@ -113,9 +116,9 @@
                     <th>Status</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="harvestPledgesBody">
                 @forelse($pledges as $pledge)
-                <tr>
+                <tr class="pledge-row" data-search="{{ strtolower($pledge->pledger_label . ' ' . $pledge->reference) }}">
                     <td>
                         <a href="{{ route('pledges.show', $pledge) }}" style="font-weight:600; color:#2563eb; text-decoration:none;">{{ $pledge->pledger_label }}</a>
                         <div style="font-size:11px; color:#94a3b8;">{{ $pledge->reference }}</div>
@@ -148,5 +151,14 @@
         </table>
     </div>
 </div>
+
+<script>
+function filterHarvestPledges() {
+    const term = document.getElementById('pledgeSearchBox').value.toLowerCase();
+    document.querySelectorAll('#harvestPledgesBody .pledge-row').forEach(function (row) {
+        row.style.display = row.getAttribute('data-search').includes(term) ? '' : 'none';
+    });
+}
+</script>
 
 @endsection

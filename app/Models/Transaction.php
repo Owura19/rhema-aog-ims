@@ -85,6 +85,11 @@ class Transaction extends Model
                 $transaction->reference = 'TXN-' . str_pad($nextId, 5, '0', STR_PAD_LEFT);
             }
         });
+        // Keep the ledger in sync — voiding a transaction must also remove
+        // its journal entry (matches how vouchers already behave).
+        static::deleted(function ($transaction) {
+            (new \App\Services\LedgerService())->removeForSource('transaction', $transaction->id);
+        });
     }
 
     // ── SCOPES ─────────────────────────────────────────────

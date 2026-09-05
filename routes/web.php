@@ -119,11 +119,16 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware('permission:view finance')->group(function () {
         Route::get('/finance', [FinanceController::class, 'index'])->name('finance.index');
         Route::get('/finance-report', [FinanceController::class, 'report'])->name('finance.report');
+        Route::get('/tithe-report', [FinanceController::class, 'titheReport'])->name('finance.tithe-report');
         Route::get('/finance-export', [FinanceController::class, 'exportExcel'])->name('finance.export');
         Route::get('/finance/{finance}', [FinanceController::class, 'show'])->name('finance.show');
+    });
+    Route::middleware('permission:view finance|manage pledges')->group(function () {
         Route::get('/receipts/{transaction}', [FinanceController::class, 'receiptView'])->name('finance.receipt');
         Route::get('/receipts/{transaction}/download', [FinanceController::class, 'receipt'])->name('finance.receipt.download');
         Route::get('/receipts/{transaction}/print', [FinanceController::class, 'print'])->name('finance.receipt.print');
+    });
+    Route::middleware('permission:view finance')->group(function () {
     });
 
     // ─────────────────────────────────────────────────────────────
@@ -215,63 +220,116 @@ Route::middleware(['auth'])->group(function () {
     // ─────────────────────────────────────────────────────────────
     // PLEDGES — view: view finance | manage: create finance
     // ─────────────────────────────────────────────────────────────
-    Route::get('/pledges', [\App\Http\Controllers\PledgeController::class, 'index'])->name('pledges.index');
-    Route::get('/pledges/create', [\App\Http\Controllers\PledgeController::class, 'create'])->name('pledges.create');
-    Route::post('/pledges', [\App\Http\Controllers\PledgeController::class, 'store'])->name('pledges.store');
-    Route::get('/pledges/{pledge}', [\App\Http\Controllers\PledgeController::class, 'show'])->name('pledges.show');
-    Route::post('/pledges/{pledge}/payments', [\App\Http\Controllers\PledgeController::class, 'storePayment'])->name('pledges.payments.store');
-    Route::patch('/pledges/{pledge}/cancel', [\App\Http\Controllers\PledgeController::class, 'cancel'])->name('pledges.cancel');
-    Route::delete('/pledges/{pledge}', [\App\Http\Controllers\PledgeController::class, 'destroy'])->name('pledges.destroy');
+    Route::middleware('permission:view pledges')->group(function () {
+        Route::get('/pledges', [\App\Http\Controllers\PledgeController::class, 'index'])->name('pledges.index');
+        Route::get('/pledges/report', [\App\Http\Controllers\PledgeController::class, 'report'])->name('pledges.report');
+        Route::get('/pledges/report/pdf', [\App\Http\Controllers\PledgeController::class, 'reportPdf'])->name('pledges.report.pdf');
+        Route::get('/pledges/{pledge}', [\App\Http\Controllers\PledgeController::class, 'show'])->whereNumber('pledge')->name('pledges.show');
+        Route::get('/payments', [\App\Http\Controllers\PledgeController::class, 'paymentsIndex'])->name('payments.index');
+        Route::get('/pledges-summary', [\App\Http\Controllers\PledgeController::class, 'summaryByService'])->name('pledges.summary');
+    });
+    Route::middleware('permission:edit pledges')->group(function () {
+        Route::get('/pledges/{pledge}/edit', [\App\Http\Controllers\PledgeController::class, 'edit'])->whereNumber('pledge')->name('pledges.edit');
+        Route::patch('/pledges/{pledge}', [\App\Http\Controllers\PledgeController::class, 'update'])->whereNumber('pledge')->name('pledges.update');
+        Route::get('/pledges/{pledge}/payments/{payment}/edit', [\App\Http\Controllers\PledgeController::class, 'editPayment'])->whereNumber('pledge')->whereNumber('payment')->name('pledges.payments.edit');
+        Route::patch('/pledges/{pledge}/payments/{payment}', [\App\Http\Controllers\PledgeController::class, 'updatePayment'])->whereNumber('pledge')->whereNumber('payment')->name('pledges.payments.update');
+        Route::delete('/pledges/{pledge}/payments/{payment}', [\App\Http\Controllers\PledgeController::class, 'destroyPayment'])->whereNumber('pledge')->whereNumber('payment')->name('pledges.payments.destroy');
+    });
+    Route::middleware('permission:manage pledges')->group(function () {
+        Route::get('/pledges/create', [\App\Http\Controllers\PledgeController::class, 'create'])->name('pledges.create');
+        Route::post('/pledges', [\App\Http\Controllers\PledgeController::class, 'store'])->name('pledges.store');
+        Route::post('/pledges/{pledge}/payments', [\App\Http\Controllers\PledgeController::class, 'storePayment'])->name('pledges.payments.store');
+        Route::patch('/pledges/{pledge}/cancel', [\App\Http\Controllers\PledgeController::class, 'cancel'])->name('pledges.cancel');
+    });
+    Route::middleware('permission:delete finance')->group(function () {
+        Route::delete('/pledges/{pledge}', [\App\Http\Controllers\PledgeController::class, 'destroy'])->name('pledges.destroy');
+    });
 
     // Member family relationships
     Route::post('/members/{member}/relationships', [\App\Http\Controllers\MemberRelationshipController::class, 'store'])->name('members.relationships.store');
     Route::delete('/members/{member}/relationships/{related}', [\App\Http\Controllers\MemberRelationshipController::class, 'destroy'])->name('members.relationships.destroy');
 
     // Chart of Accounts
-    Route::get('/accounts', [\App\Http\Controllers\AccountController::class, 'index'])->name('accounts.index');
-    Route::post('/accounts', [\App\Http\Controllers\AccountController::class, 'store'])->name('accounts.store');
-    Route::put('/accounts/{account}', [\App\Http\Controllers\AccountController::class, 'update'])->name('accounts.update');
-    Route::delete('/accounts/{account}', [\App\Http\Controllers\AccountController::class, 'destroy'])->name('accounts.destroy');
-    Route::patch('/accounts/{account}/toggle', [\App\Http\Controllers\AccountController::class, 'toggleActive'])->name('accounts.toggle');
+    Route::middleware('permission:view finance')->group(function () {
+        Route::get('/accounts', [\App\Http\Controllers\AccountController::class, 'index'])->name('accounts.index');
+    });
+    Route::middleware('permission:create finance')->group(function () {
+        Route::post('/accounts', [\App\Http\Controllers\AccountController::class, 'store'])->name('accounts.store');
+    });
+    Route::middleware('permission:edit finance')->group(function () {
+        Route::put('/accounts/{account}', [\App\Http\Controllers\AccountController::class, 'update'])->name('accounts.update');
+    });
+    Route::middleware('permission:delete finance')->group(function () {
+        Route::delete('/accounts/{account}', [\App\Http\Controllers\AccountController::class, 'destroy'])->name('accounts.destroy');
+    });
+    Route::middleware('permission:edit finance')->group(function () {
+        Route::patch('/accounts/{account}/toggle', [\App\Http\Controllers\AccountController::class, 'toggleActive'])->name('accounts.toggle');
+    });
 
     // Financial Reports
-    Route::get('/financial-reports', [\App\Http\Controllers\FinancialReportController::class, 'hub'])->name('finance.reports-hub');
-    Route::get('/trial-balance', [\App\Http\Controllers\LedgerReportController::class, 'trialBalance'])->name('finance.trial-balance');
-    Route::get('/balance-sheet', [\App\Http\Controllers\LedgerReportController::class, 'balanceSheet'])->name('finance.balance-sheet');
-    Route::get('/ledger', [\App\Http\Controllers\LedgerController::class, 'index'])->name('ledger.index');
-    Route::get('/ledger/{account}', [\App\Http\Controllers\LedgerController::class, 'show'])->name('ledger.show');
-    Route::get('/member-ledger', [\App\Http\Controllers\MemberLedgerController::class, 'index'])->name('member-ledger.index');
-    Route::get('/member-ledger/{member}', [\App\Http\Controllers\MemberLedgerController::class, 'show'])->name('member-ledger.show');
-    Route::get('/member-ledger/{member}/print', [\App\Http\Controllers\MemberLedgerController::class, 'print'])->name('member-ledger.print');
-    Route::get('/finance-analytics', [\App\Http\Controllers\FinanceAnalyticsController::class, 'index'])->name('finance.analytics');
-    Route::get('/vouchers', [\App\Http\Controllers\PaymentVoucherController::class, 'index'])->name('vouchers.index');
-    Route::get('/bank', [\App\Http\Controllers\BankTransactionController::class, 'index'])->name('bank.index');
-    Route::get('/bank/create', [\App\Http\Controllers\BankTransactionController::class, 'create'])->name('bank.create');
-    Route::post('/bank', [\App\Http\Controllers\BankTransactionController::class, 'store'])->name('bank.store');
-    Route::get('/bank/{bank}/edit', [\App\Http\Controllers\BankTransactionController::class, 'edit'])->name('bank.edit');
-    Route::put('/bank/{bank}', [\App\Http\Controllers\BankTransactionController::class, 'update'])->name('bank.update');
-    Route::delete('/bank/{bank}', [\App\Http\Controllers\BankTransactionController::class, 'destroy'])->name('bank.destroy');
-    Route::get('/vouchers/create', [\App\Http\Controllers\PaymentVoucherController::class, 'create'])->name('vouchers.create');
-    Route::post('/vouchers', [\App\Http\Controllers\PaymentVoucherController::class, 'store'])->name('vouchers.store');
-    Route::get('/vouchers/{voucher}', [\App\Http\Controllers\PaymentVoucherController::class, 'show'])->name('vouchers.show');
-    Route::get('/vouchers/{voucher}/print', [\App\Http\Controllers\PaymentVoucherController::class, 'print'])->name('vouchers.print');
-    Route::patch('/vouchers/{voucher}/approve', [\App\Http\Controllers\PaymentVoucherController::class, 'approve'])->name('vouchers.approve');
-    Route::patch('/vouchers/{voucher}/pay', [\App\Http\Controllers\PaymentVoucherController::class, 'pay'])->name('vouchers.pay');
-    Route::patch('/vouchers/{voucher}/reject', [\App\Http\Controllers\PaymentVoucherController::class, 'reject'])->name('vouchers.reject');
-    Route::get('/journals', [\App\Http\Controllers\JournalEntryController::class, 'index'])->name('finance.journals.index');
-    Route::get('/journals/create', [\App\Http\Controllers\JournalEntryController::class, 'create'])->name('finance.journals.create');
-    Route::post('/journals', [\App\Http\Controllers\JournalEntryController::class, 'store'])->name('finance.journals.store');
-    Route::get('/journals/{journal}', [\App\Http\Controllers\JournalEntryController::class, 'show'])->name('finance.journals.show');
-    Route::delete('/journals/{journal}', [\App\Http\Controllers\JournalEntryController::class, 'destroy'])->name('finance.journals.destroy');
-    Route::get('/finance-statement', [\App\Http\Controllers\FinancialReportController::class, 'statement'])->name('finance.statement');
-    Route::get('/finance-statement/pdf', [\App\Http\Controllers\FinancialReportController::class, 'statementPdf'])->name('finance.statement.pdf');
-    Route::get('/income-note', [\App\Http\Controllers\FinancialReportController::class, 'incomeNote'])->name('finance.income-note');
-    Route::get('/income-note/pdf', [\App\Http\Controllers\FinancialReportController::class, 'incomeNotePdf'])->name('finance.income-note.pdf');
-    Route::get('/expenditure-note', [\App\Http\Controllers\FinancialReportController::class, 'expenditureNote'])->name('finance.expenditure-note');
-    Route::get('/expenditure-note/pdf', [\App\Http\Controllers\FinancialReportController::class, 'expenditureNotePdf'])->name('finance.expenditure-note.pdf');
-    Route::get('/master-report/pdf', [\App\Http\Controllers\FinancialReportController::class, 'masterReportPdf'])->name('finance.master-report.pdf');
+    Route::middleware('permission:view finance')->group(function () {
+        Route::get('/financial-reports', [\App\Http\Controllers\FinancialReportController::class, 'hub'])->name('finance.reports-hub');
+        Route::get('/trial-balance', [\App\Http\Controllers\LedgerReportController::class, 'trialBalance'])->name('finance.trial-balance');
+        Route::get('/balance-sheet', [\App\Http\Controllers\LedgerReportController::class, 'balanceSheet'])->name('finance.balance-sheet');
+        Route::get('/ledger', [\App\Http\Controllers\LedgerController::class, 'index'])->name('ledger.index');
+        Route::get('/ledger/{account}', [\App\Http\Controllers\LedgerController::class, 'show'])->name('ledger.show');
+        Route::get('/member-ledger', [\App\Http\Controllers\MemberLedgerController::class, 'index'])->name('member-ledger.index');
+        Route::get('/member-ledger/{member}', [\App\Http\Controllers\MemberLedgerController::class, 'show'])->name('member-ledger.show');
+        Route::get('/member-ledger/{member}/print', [\App\Http\Controllers\MemberLedgerController::class, 'print'])->name('member-ledger.print');
+        Route::get('/finance-analytics', [\App\Http\Controllers\FinanceAnalyticsController::class, 'index'])->name('finance.analytics');
+        Route::get('/vouchers', [\App\Http\Controllers\PaymentVoucherController::class, 'index'])->name('vouchers.index');
+        Route::get('/bank', [\App\Http\Controllers\BankTransactionController::class, 'index'])->name('bank.index');
+    });
+    Route::middleware('permission:create finance')->group(function () {
+        Route::get('/bank/create', [\App\Http\Controllers\BankTransactionController::class, 'create'])->name('bank.create');
+        Route::post('/bank', [\App\Http\Controllers\BankTransactionController::class, 'store'])->name('bank.store');
+    });
+    Route::middleware('permission:edit finance')->group(function () {
+        Route::get('/bank/{bank}/edit', [\App\Http\Controllers\BankTransactionController::class, 'edit'])->name('bank.edit');
+        Route::put('/bank/{bank}', [\App\Http\Controllers\BankTransactionController::class, 'update'])->name('bank.update');
+    });
+    Route::middleware('permission:delete finance')->group(function () {
+        Route::delete('/bank/{bank}', [\App\Http\Controllers\BankTransactionController::class, 'destroy'])->name('bank.destroy');
+    });
+    Route::middleware('permission:create finance')->group(function () {
+        Route::get('/vouchers/create', [\App\Http\Controllers\PaymentVoucherController::class, 'create'])->name('vouchers.create');
+        Route::post('/vouchers', [\App\Http\Controllers\PaymentVoucherController::class, 'store'])->name('vouchers.store');
+    });
+    Route::middleware('permission:view finance')->group(function () {
+        Route::get('/vouchers/{voucher}', [\App\Http\Controllers\PaymentVoucherController::class, 'show'])->name('vouchers.show');
+        Route::get('/vouchers/{voucher}/print', [\App\Http\Controllers\PaymentVoucherController::class, 'print'])->name('vouchers.print');
+    });
+    Route::middleware('permission:edit finance')->group(function () {
+        Route::patch('/vouchers/{voucher}/approve', [\App\Http\Controllers\PaymentVoucherController::class, 'approve'])->name('vouchers.approve');
+        Route::patch('/vouchers/{voucher}/pay', [\App\Http\Controllers\PaymentVoucherController::class, 'pay'])->name('vouchers.pay');
+        Route::patch('/vouchers/{voucher}/reject', [\App\Http\Controllers\PaymentVoucherController::class, 'reject'])->name('vouchers.reject');
+        Route::middleware('permission:edit vouchers')->group(function () {
+            Route::get('/vouchers/{voucher}/edit', [\App\Http\Controllers\PaymentVoucherController::class, 'edit'])->name('vouchers.edit');
+            Route::patch('/vouchers/{voucher}', [\App\Http\Controllers\PaymentVoucherController::class, 'update'])->name('vouchers.update');
+            Route::delete('/vouchers/{voucher}', [\App\Http\Controllers\PaymentVoucherController::class, 'destroy'])->name('vouchers.destroy');
+        });
+    });
+    Route::middleware('role:Super Admin')->group(function () {
+        Route::get('/journals', [\App\Http\Controllers\JournalEntryController::class, 'index'])->name('finance.journals.index');
+        Route::get('/journals/create', [\App\Http\Controllers\JournalEntryController::class, 'create'])->name('finance.journals.create');
+        Route::post('/journals', [\App\Http\Controllers\JournalEntryController::class, 'store'])->name('finance.journals.store');
+        Route::get('/journals/{journal}', [\App\Http\Controllers\JournalEntryController::class, 'show'])->name('finance.journals.show');
+        Route::delete('/journals/{journal}', [\App\Http\Controllers\JournalEntryController::class, 'destroy'])->name('finance.journals.destroy');
+    });
+    Route::middleware('permission:view finance')->group(function () {
+        Route::get('/finance-statement', [\App\Http\Controllers\FinancialReportController::class, 'statement'])->name('finance.statement');
+        Route::get('/finance-statement/pdf', [\App\Http\Controllers\FinancialReportController::class, 'statementPdf'])->name('finance.statement.pdf');
+        Route::get('/cash-summary', [\App\Http\Controllers\FinancialReportController::class, 'cashSummary'])->name('finance.cash-summary');
+        Route::get('/income-note', [\App\Http\Controllers\FinancialReportController::class, 'incomeNote'])->name('finance.income-note');
+        Route::get('/income-note/pdf', [\App\Http\Controllers\FinancialReportController::class, 'incomeNotePdf'])->name('finance.income-note.pdf');
+        Route::get('/expenditure-note', [\App\Http\Controllers\FinancialReportController::class, 'expenditureNote'])->name('finance.expenditure-note');
+        Route::get('/expenditure-note/pdf', [\App\Http\Controllers\FinancialReportController::class, 'expenditureNotePdf'])->name('finance.expenditure-note.pdf');
+        Route::get('/master-report/pdf', [\App\Http\Controllers\FinancialReportController::class, 'masterReportPdf'])->name('finance.master-report.pdf');
+    });
     // Budget vs Actual
-    Route::get('/budget', [\App\Http\Controllers\BudgetController::class, 'report'])->name('finance.budget.report');
+    Route::middleware('permission:view finance')->group(function () {
+        Route::get('/budget', [\App\Http\Controllers\BudgetController::class, 'report'])->name('finance.budget.report');
+    });
 
     // Harvest campaigns
     Route::get('/harvests', [\App\Http\Controllers\HarvestController::class, 'index'])->name('harvests.index');

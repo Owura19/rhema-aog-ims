@@ -26,15 +26,20 @@
                         <span class="badge badge-danger" style="margin-left:8px;">Cancelled</span>
                     @endif
                 </div>
+                <div style="display:flex; gap:8px; align-items:center;">
+                @can('edit pledges')
+                <a href="{{ route('pledges.edit', $pledge) }}" class="btn-outline btn-sm" style="border-color:#c7d2fe; color:#4f46e5;"><i class="fas fa-pen"></i> Edit</a>
+                @endcan
                 @if($pledge->status !== 'Cancelled')
-                @can('create finance')
+                @canany(['manage pledges', 'create finance'])
                 <form method="POST" action="{{ route('pledges.cancel', $pledge) }}" onsubmit="return confirm('Cancel this pledge?');">
                     @csrf
                     @method('PATCH')
                     <button type="submit" class="btn-outline btn-sm" style="border-color:#fecaca; color:#dc2626;">Cancel Pledge</button>
                 </form>
-                @endcan
+                @endcanany
                 @endif
+                </div>
             </div>
             <div class="card-body">
                 <div class="grid-2" style="margin-bottom:20px;">
@@ -102,6 +107,8 @@
                             <th>Amount</th>
                             <th>Method</th>
                             <th>Notes</th>
+                            <th>Receipt</th>
+                            @can('edit pledges')<th>Actions</th>@endcan
                         </tr>
                     </thead>
                     <tbody>
@@ -111,10 +118,27 @@
                             <td style="font-weight:600; color:#16a34a;">GHS {{ number_format($payment->amount, 2) }}</td>
                             <td><span class="badge badge-gray">{{ $payment->payment_method }}</span></td>
                             <td style="font-size:13px; color:#64748b;">{{ $payment->notes ?? '—' }}</td>
+                            <td>
+                                @if($payment->transaction_id)
+                                <a href="{{ route('finance.receipt.print', $payment->transaction_id) }}" target="_blank" style="color:#2563eb; font-weight:600; font-size:13px;"><i class="fas fa-print"></i> Print</a>
+                                @else
+                                —
+                                @endif
+                            </td>
+                            @can('edit pledges')
+                            <td style="white-space:nowrap;">
+                                <a href="{{ route('pledges.payments.edit', [$pledge, $payment]) }}" style="color:#4f46e5; font-size:13px; margin-right:10px;" title="Edit"><i class="fas fa-pen"></i></a>
+                                <form method="POST" action="{{ route('pledges.payments.destroy', [$pledge, $payment]) }}" style="display:inline;" onsubmit="return confirm('Delete this payment? This cannot be undone.');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" style="background:none; border:none; color:#dc2626; cursor:pointer; font-size:13px;" title="Delete"><i class="fas fa-trash"></i></button>
+                                </form>
+                            </td>
+                            @endcan
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="4" style="text-align:center; color:#94a3b8; padding:24px;">No payments recorded yet.</td>
+                            <td colspan="6" style="text-align:center; color:#94a3b8; padding:24px;">No payments recorded yet.</td>
                         </tr>
                         @endforelse
                     </tbody>
@@ -126,7 +150,7 @@
     <!-- RIGHT: record payment -->
     <div>
         @if($pledge->status !== 'Cancelled' && $pledge->balance > 0)
-        @can('create finance')
+        @canany(['manage pledges', 'create finance'])
         <div class="card">
             <div class="card-header">
                 <div class="card-title"><i class="fas fa-plus-circle" style="color:#2563eb; margin-right:8px;"></i>Record Payment</div>
@@ -164,7 +188,7 @@
                 </div>
             </div>
         </div>
-        @endcan
+        @endcanany
         @elseif($pledge->status === 'Fulfilled')
         <div class="card">
             <div class="card-body" style="text-align:center; padding:30px;">

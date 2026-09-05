@@ -68,6 +68,13 @@
                 <button type="submit" class="btn-outline" style="border-color:#fecaca;color:#dc2626;"><i class="fas fa-times"></i> Reject</button>
             </form>
             @endif
+            @can('edit vouchers')
+            <a href="{{ route('vouchers.edit', $voucher) }}" class="btn-outline" style="border-color:#c7d2fe;color:#4f46e5;"><i class="fas fa-pen"></i> Edit</a>
+            <form method="POST" action="{{ route('vouchers.destroy', $voucher) }}" onsubmit="return confirm('Delete this voucher permanently? Its posted transaction and ledger entry will also be removed. This cannot be undone.');">
+                @csrf @method('DELETE')
+                <button type="submit" class="btn-outline" style="border-color:#fecaca;color:#dc2626;"><i class="fas fa-trash"></i> Delete</button>
+            </form>
+            @endcan
         </div>
 
         @if($voucher->status === 'Paid' && $voucher->transaction)

@@ -77,6 +77,72 @@ class PaymentVoucherController extends Controller
         return view('vouchers.show', compact('voucher'));
     }
 
+    // ── EDIT (edit vouchers permission) ─────────────────────────
+    public function edit(PaymentVoucher $voucher)
+    {
+        $accounts = \App\Models\Account::orderBy('code')->get();
+        return view('vouchers.edit', compact('voucher', 'accounts'));
+    }
+
+    public function update(Request $request, PaymentVoucher $voucher)
+    {
+        $validated = $request->validate([
+            'voucher_date'    => 'required|date',
+            'payee'           => 'required|string|max:255',
+            'description'     => 'required|string',
+            'category'        => 'required|in:Expense,Asset',
+            'account_id'      => 'required|exists:accounts,id',
+            'cash_account_id' => 'required|exists:accounts,id',
+            'amount'          => 'required|numeric|min:0.01',
+            'payment_method'  => 'required|in:Cash,Cheque,Bank Transfer,Mobile Money',
+            'cheque_number'   => 'nullable|string|max:50',
+            'notes'           => 'nullable|string',
+        ]);
+
+        $voucher->update($validated);
+
+        // If this voucher was paid, keep its transaction + ledger posting in sync
+        if ($voucher->status === 'Paid' && $voucher->transaction_id) {
+            $txn = \App\Models\Transaction::find($voucher->transaction_id);
+            if ($txn) {
+                $txn->update([
+                    'account_id'       => $voucher->account_id,
+                    'amount'           => $voucher->amount,
+                    'payer_name'       => $voucher->payee,
+                    'transaction_date' => $voucher->voucher_date,
+                    'payment_method'   => $voucher->payment_method,
+                    'cheque_number'    => $voucher->cheque_number,
+                    'description'      => "Voucher {$voucher->voucher_no}: {$voucher->description}",
+                ]);
+                // Re-post the double-entry ledger with corrected accounts/amount
+                $ledger = new LedgerService();
+                $ledger->removeForSource('transaction', $txn->id);
+                if ($voucher->account_id && $voucher->cash_account_id) {
+                    $ledger->postEntry([
+                        ['account_id' => $voucher->account_id,      'debit' => (float) $voucher->amount, 'credit' => 0],
+                        ['account_id' => $voucher->cash_account_id, 'debit' => 0, 'credit' => (float) $voucher->amount],
+                    ], $voucher->voucher_date, "Voucher {$voucher->voucher_no}: {$voucher->payee}", 'transaction', $txn->id);
+                }
+            }
+        }
+
+        return redirect()->route('vouchers.show', $voucher)->with('success', "Voucher {$voucher->voucher_no} updated.");
+    }
+
+    public function destroy(PaymentVoucher $voucher)
+    {
+        // Void the linked transaction + its ledger entry so the books stay balanced
+        if ($voucher->transaction_id) {
+            $ledger = new LedgerService();
+            $ledger->removeForSource('transaction', $voucher->transaction_id);
+            $txn = \App\Models\Transaction::find($voucher->transaction_id);
+            if ($txn) $txn->delete();
+        }
+        $no = $voucher->voucher_no;
+        $voucher->delete();
+        return redirect()->route('vouchers.index')->with('success', "Voucher {$no} deleted.");
+    }
+
     /**
      * Mark approved (after physical signatures on the printout).
      */
@@ -155,7 +221,10 @@ class PaymentVoucherController extends Controller
 
     private function nextVoucherNo(): string
     {
-        $n = PaymentVoucher::count() + 1;
+        // Derive from the highest existing number, not the row count,
+        // so deleted vouchers (gaps) never cause a duplicate.
+        $last = PaymentVoucher::selectRaw("MAX(CAST(SUBSTRING(voucher_no, 4) AS UNSIGNED)) as maxno")->value('maxno');
+        $n = ((int) $last) + 1;
         return 'PV-' . str_pad($n, 5, '0', STR_PAD_LEFT);
     }
 }
