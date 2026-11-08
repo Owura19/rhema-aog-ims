@@ -377,6 +377,9 @@
         <a href="{{ route('pledges.summary') }}" class="sidebar-link {{ request()->routeIs('pledges.summary') ? 'active' : '' }}">
             <i class="fas fa-chart-pie"></i> Pledge Summary
         </a>
+        <a href="{{ route('harvests.index') }}" class="sidebar-link {{ request()->routeIs('harvests.*') ? 'active' : '' }}">
+            <i class="fas fa-wheat-awn"></i> Harvest
+        </a>
     </div>
     @endcannot
     @endcan

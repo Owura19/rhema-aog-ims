@@ -20,9 +20,11 @@
                     @endfor
                 </select>
             </div>
+            @can('edit finance')
             <div style="margin-left:auto;">
                 <a href="{{ route('finance.budget.edit', ['year' => $year]) }}" class="btn-primary"><i class="fas fa-bullseye"></i> Set / Edit Budget</a>
             </div>
+            @endcan
         </form>
     </div>
 </div>

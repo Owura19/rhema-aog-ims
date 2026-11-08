@@ -6,7 +6,7 @@
 
 <div style="margin-bottom:16px; display:flex; justify-content:space-between; align-items:center;">
     <a href="{{ route('harvests.index') }}" style="color:#64748b; text-decoration:none; font-size:14px;"><i class="fas fa-arrow-left"></i> Back to Harvest Campaigns</a>
-    @can('create finance')
+    @can('edit finance')
     <a href="{{ route('harvests.edit', $harvest) }}" class="btn-outline btn-sm"><i class="fas fa-pen"></i> Edit Campaign</a>
     @endcan
 </div>
@@ -97,7 +97,7 @@
 <div class="card">
     <div class="card-header">
         <div class="card-title"><i class="fas fa-users" style="color:#2563eb; margin-right:8px;"></i>Harvest Pledgers ({{ $harvest->pledgers_count }})</div>
-        @can('create finance')
+        @can('manage pledges')
         <a href="{{ route('pledges.create') }}" class="btn-primary btn-sm"><i class="fas fa-plus"></i> Add Pledge</a>
         @endcan
     </div>
@@ -120,7 +120,11 @@
                 @forelse($pledges as $pledge)
                 <tr class="pledge-row" data-search="{{ strtolower($pledge->pledger_label . ' ' . $pledge->reference) }}">
                     <td>
+                        @can('view pledges')
                         <a href="{{ route('pledges.show', $pledge) }}" style="font-weight:600; color:#2563eb; text-decoration:none;">{{ $pledge->pledger_label }}</a>
+                        @else
+                        <span style="font-weight:600; color:#374151;">{{ $pledge->pledger_label }}</span>
+                        @endcan
                         <div style="font-size:11px; color:#94a3b8;">{{ $pledge->reference }}</div>
                     </td>
                     <td style="text-align:right;">{{ number_format($pledge->amount_pledged, 2) }}</td>

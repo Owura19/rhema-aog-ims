@@ -45,6 +45,10 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/members/{member}/portal-reset', [\App\Http\Controllers\MemberPortalAccessController::class, 'resetPassword'])->name('members.portal.reset');
         Route::delete('/members/{member}/portal-login', [\App\Http\Controllers\MemberPortalAccessController::class, 'revoke'])->name('members.portal.revoke');
         Route::patch('/members/{member}', [MemberController::class, 'update']);
+
+        // Member family relationships (buttons in members/show are gated by 'edit members')
+        Route::post('/members/{member}/relationships', [\App\Http\Controllers\MemberRelationshipController::class, 'store'])->name('members.relationships.store');
+        Route::delete('/members/{member}/relationships/{related}', [\App\Http\Controllers\MemberRelationshipController::class, 'destroy'])->name('members.relationships.destroy');
     });
     Route::middleware('permission:delete members')->group(function () {
         Route::delete('/members/{member}', [MemberController::class, 'destroy'])->name('members.destroy');
@@ -173,11 +177,28 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // ─────────────────────────────────────────────────────────────
-    // VISITORS — view: 'view visitors' | manage: 'manage visitors'
+    // VISITORS — view/create/edit/delete: matching 'visitors' permission
+    // Convert to member: 'create members' (it creates a member record).
     // Follow-up tracking with one-click conversion to member.
     // ─────────────────────────────────────────────────────────────
-    Route::resource('visitors', VisitorController::class);
-    Route::post('/visitors/{visitor}/convert', [VisitorController::class, 'convertToMember'])->name('visitors.convert');
+    Route::middleware('permission:create visitors')->group(function () {
+        Route::get('/visitors/create', [VisitorController::class, 'create'])->name('visitors.create');
+        Route::post('/visitors', [VisitorController::class, 'store'])->name('visitors.store');
+    });
+    Route::middleware('permission:edit visitors')->group(function () {
+        Route::get('/visitors/{visitor}/edit', [VisitorController::class, 'edit'])->name('visitors.edit');
+        Route::match(['put', 'patch'], '/visitors/{visitor}', [VisitorController::class, 'update'])->name('visitors.update');
+    });
+    Route::middleware('permission:delete visitors')->group(function () {
+        Route::delete('/visitors/{visitor}', [VisitorController::class, 'destroy'])->name('visitors.destroy');
+    });
+    Route::middleware('permission:create members')->group(function () {
+        Route::post('/visitors/{visitor}/convert', [VisitorController::class, 'convertToMember'])->name('visitors.convert');
+    });
+    Route::middleware('permission:view visitors')->group(function () {
+        Route::get('/visitors', [VisitorController::class, 'index'])->name('visitors.index');
+        Route::get('/visitors/{visitor}', [VisitorController::class, 'show'])->name('visitors.show');
+    });
 
     // ─────────────────────────────────────────────────────────────
     // USER MANAGEMENT — Super Admin only ('manage users')
@@ -244,10 +265,6 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware('permission:delete finance')->group(function () {
         Route::delete('/pledges/{pledge}', [\App\Http\Controllers\PledgeController::class, 'destroy'])->name('pledges.destroy');
     });
-
-    // Member family relationships
-    Route::post('/members/{member}/relationships', [\App\Http\Controllers\MemberRelationshipController::class, 'store'])->name('members.relationships.store');
-    Route::delete('/members/{member}/relationships/{related}', [\App\Http\Controllers\MemberRelationshipController::class, 'destroy'])->name('members.relationships.destroy');
 
     // Chart of Accounts
     Route::middleware('permission:view finance')->group(function () {
@@ -326,21 +343,36 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/expenditure-note/pdf', [\App\Http\Controllers\FinancialReportController::class, 'expenditureNotePdf'])->name('finance.expenditure-note.pdf');
         Route::get('/master-report/pdf', [\App\Http\Controllers\FinancialReportController::class, 'masterReportPdf'])->name('finance.master-report.pdf');
     });
-    // Budget vs Actual
+    // ─────────────────────────────────────────────────────────────
+    // BUDGET — report: 'view finance' | set/edit figures: 'edit finance'
+    // ─────────────────────────────────────────────────────────────
     Route::middleware('permission:view finance')->group(function () {
         Route::get('/budget', [\App\Http\Controllers\BudgetController::class, 'report'])->name('finance.budget.report');
     });
+    Route::middleware('permission:edit finance')->group(function () {
+        Route::get('/budget/edit', [\App\Http\Controllers\BudgetController::class, 'edit'])->name('finance.budget.edit');
+        Route::post('/budget', [\App\Http\Controllers\BudgetController::class, 'update'])->name('finance.budget.update');
+    });
 
-    // Harvest campaigns
-    Route::get('/harvests', [\App\Http\Controllers\HarvestController::class, 'index'])->name('harvests.index');
-    Route::get('/harvests/create', [\App\Http\Controllers\HarvestController::class, 'create'])->name('harvests.create');
-    Route::post('/harvests', [\App\Http\Controllers\HarvestController::class, 'store'])->name('harvests.store');
-    Route::get('/harvests/{harvest}/edit', [\App\Http\Controllers\HarvestController::class, 'edit'])->name('harvests.edit');
-    Route::put('/harvests/{harvest}', [\App\Http\Controllers\HarvestController::class, 'update'])->name('harvests.update');
-    Route::get('/harvests/{harvest}', [\App\Http\Controllers\HarvestController::class, 'show'])->name('harvests.show');
-    Route::delete('/harvests/{harvest}', [\App\Http\Controllers\HarvestController::class, 'destroy'])->name('harvests.destroy');
-    Route::get('/budget/edit', [\App\Http\Controllers\BudgetController::class, 'edit'])->name('finance.budget.edit');
-    Route::post('/budget', [\App\Http\Controllers\BudgetController::class, 'update'])->name('finance.budget.update');
+    // ─────────────────────────────────────────────────────────────
+    // HARVEST CAMPAIGNS — view: 'view finance' OR 'view pledges'
+    // create: 'create finance' | edit: 'edit finance' | delete: 'delete finance'
+    // ─────────────────────────────────────────────────────────────
+    Route::middleware('permission:create finance')->group(function () {
+        Route::get('/harvests/create', [\App\Http\Controllers\HarvestController::class, 'create'])->name('harvests.create');
+        Route::post('/harvests', [\App\Http\Controllers\HarvestController::class, 'store'])->name('harvests.store');
+    });
+    Route::middleware('permission:edit finance')->group(function () {
+        Route::get('/harvests/{harvest}/edit', [\App\Http\Controllers\HarvestController::class, 'edit'])->name('harvests.edit');
+        Route::match(['put', 'patch'], '/harvests/{harvest}', [\App\Http\Controllers\HarvestController::class, 'update'])->name('harvests.update');
+    });
+    Route::middleware('permission:delete finance')->group(function () {
+        Route::delete('/harvests/{harvest}', [\App\Http\Controllers\HarvestController::class, 'destroy'])->name('harvests.destroy');
+    });
+    Route::middleware('permission:view finance|view pledges')->group(function () {
+        Route::get('/harvests', [\App\Http\Controllers\HarvestController::class, 'index'])->name('harvests.index');
+        Route::get('/harvests/{harvest}', [\App\Http\Controllers\HarvestController::class, 'show'])->name('harvests.show');
+    });
 });
 
 require __DIR__.'/auth.php';

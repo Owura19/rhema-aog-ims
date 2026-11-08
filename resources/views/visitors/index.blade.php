@@ -55,9 +55,11 @@
 <div class="card">
     <div class="card-header">
         <div class="card-title"><i class="fas fa-user-friends" style="color:#2563eb; margin-right:8px;"></i>Visitors</div>
+        @can('create visitors')
         <a href="{{ route('visitors.create') }}" class="btn-primary">
             <i class="fas fa-plus"></i> Record Visitor
         </a>
+        @endcan
     </div>
 
     <!-- Filters -->
@@ -132,17 +134,23 @@
                     <td>
                         <div style="display:flex; gap:6px;">
                             <a href="{{ route('visitors.show', $visitor) }}" class="btn-outline btn-sm" title="View"><i class="fas fa-eye"></i></a>
+                            @can('edit visitors')
                             <a href="{{ route('visitors.edit', $visitor) }}" class="btn-primary btn-sm" title="Edit"><i class="fas fa-edit"></i></a>
+                            @endcan
+                            @can('create members')
                             @if(!$visitor->converted_to_member)
                             <form method="POST" action="{{ route('visitors.convert', $visitor) }}" onsubmit="return confirm('Convert {{ $visitor->full_name }} to a full member?')">
                                 @csrf
                                 <button type="submit" class="btn-primary btn-sm" style="background:#16a34a;" title="Convert to Member"><i class="fas fa-user-plus"></i></button>
                             </form>
                             @endif
+                            @endcan
+                            @can('delete visitors')
                             <form method="POST" action="{{ route('visitors.destroy', $visitor) }}" onsubmit="return confirm('Delete this visitor?')">
                                 @csrf @method('DELETE')
                                 <button type="submit" class="btn-danger btn-sm"><i class="fas fa-trash"></i></button>
                             </form>
+                            @endcan
                         </div>
                     </td>
                 </tr>
@@ -151,7 +159,9 @@
                     <td colspan="7" style="text-align:center; padding:60px; color:#94a3b8;">
                         <i class="fas fa-user-friends" style="font-size:48px; display:block; margin-bottom:16px;"></i>
                         <div style="font-size:16px; font-weight:600; margin-bottom:8px;">No visitors recorded yet</div>
+                        @can('create visitors')
                         <a href="{{ route('visitors.create') }}" class="btn-primary"><i class="fas fa-plus"></i> Record First Visitor</a>
+                        @endcan
                     </td>
                 </tr>
                 @endforelse

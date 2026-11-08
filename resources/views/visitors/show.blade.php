@@ -14,24 +14,30 @@
     </div>
     <div style="display:flex; gap:10px;">
         @if(!$visitor->converted_to_member)
+        @can('create members')
         <form method="POST" action="{{ route('visitors.convert', $visitor) }}" onsubmit="return confirm('Convert {{ $visitor->full_name }} to a full member?')">
             @csrf
             <button type="submit" class="btn-primary" style="background:#16a34a;">
                 <i class="fas fa-user-plus"></i> Convert to Member
             </button>
         </form>
+        @endcan
         @else
         <a href="{{ route('members.show', $visitor->member) }}" class="btn-primary" style="background:#16a34a;">
             <i class="fas fa-user"></i> View Member Profile
         </a>
         @endif
+        @can('edit visitors')
         <a href="{{ route('visitors.edit', $visitor) }}" class="btn-primary">
             <i class="fas fa-edit"></i> Edit
         </a>
+        @endcan
+        @can('delete visitors')
         <form method="POST" action="{{ route('visitors.destroy', $visitor) }}" onsubmit="return confirm('Delete this visitor?')">
             @csrf @method('DELETE')
             <button type="submit" class="btn-danger"><i class="fas fa-trash"></i> Delete</button>
         </form>
+        @endcan
     </div>
 </div>
 
