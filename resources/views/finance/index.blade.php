@@ -5,7 +5,7 @@
 @section('content')
 
 <!-- Stats Row -->
-<div style="display:grid; grid-template-columns:repeat(5,1fr); gap:16px; margin-bottom:28px;">
+<div id="finance-stats" style="display:grid; grid-template-columns:repeat(5,1fr); gap:16px; margin-bottom:28px;">
     <div class="stat-card">
         <div class="stat-icon" style="background:#dcfce7;">
             <i class="fas fa-arrow-up" style="color:#16a34a;"></i>
@@ -55,19 +55,21 @@
 
 <!-- Transactions Table -->
 <div class="card">
-   <div class="card-header">
+   <div class="card-header" id="finance-header">
     <div class="card-title"><i class="fas fa-money-bill-wave" style="color:#16a34a; margin-right:8px;"></i>Transactions</div>
     <div style="display:flex; gap:10px;">
         <a href="{{ route('finance.report') }}" class="btn-outline btn-sm"><i class="fas fa-chart-bar"></i> Reports</a>
         <a href="{{ route('finance.export', ['year' => now()->year]) }}" class="btn-primary btn-sm" style="background:#16a34a;">
             <i class="fas fa-file-excel"></i> Export Excel
         </a>
+        <button type="button" class="btn-outline btn-sm" onclick="window.print()"><i class="fas fa-print"></i> Print</button>
+        <a href="{{ route("finance.pdf", request()->query()) }}" class="btn-primary btn-sm" style="background:#dc2626;text-decoration:none;display:inline-flex;align-items:center;gap:6px;" target="_blank"><i class="fas fa-file-pdf"></i> Export PDF</a>
         <a href="{{ route('finance.create') }}" class="btn-primary"><i class="fas fa-plus"></i> Record Transaction</a>
     </div>
 </div>
 
     <!-- Filters -->
-    <div style="padding:16px 24px; border-bottom:1px solid #f1f5f9; background:#f8fafc;">
+    <div id="finance-filters" style="padding:16px 24px; border-bottom:1px solid #f1f5f9; background:#f8fafc;">
         <form method="GET" action="{{ route('finance.index') }}" style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
             <input type="text" name="search" value="{{ request('search') }}" placeholder="Search reference, name..." class="form-control" style="width:220px;">
             <select name="type" class="form-control" style="width:150px;">
@@ -96,6 +98,26 @@
         </form>
     </div>
 
+    <!-- Print-only header -->
+    <div id="finance-print-header" style="display:none;">
+        <h2 style="font-size:18px;font-weight:800;margin-bottom:2px;">{{ config('app.short_name') }}</h2>
+        <div style="font-size:13px;margin-bottom:2px;">Transactions</div>
+        <div style="font-size:12px;color:#475569;margin-bottom:14px;">
+            @if(request()->hasAny(['search','type','category','payment_method','date_from','date_to']))
+                Filters:
+                @if(request('search')) Search "{{ request('search') }}" @endif
+                @if(request('type')) &middot; Type: {{ request('type') }} @endif
+                @if(request('category')) &middot; Category: {{ request('category') }} @endif
+                @if(request('payment_method')) &middot; Method: {{ request('payment_method') }} @endif
+                @if(request('date_from')) &middot; From: {{ request('date_from') }} @endif
+                @if(request('date_to')) &middot; To: {{ request('date_to') }} @endif
+            @else
+                All transactions
+            @endif
+            &nbsp;&middot;&nbsp; Generated {{ now()->format('M d, Y \a\t g:i A') }}
+        </div>
+    </div>
+
     <!-- Table -->
     <div style="overflow-x:auto;">
         <table class="table">
@@ -108,7 +130,7 @@
                     <th>Method</th>
                     <th>Date</th>
                     <th>Status</th>
-                    <th>Actions</th>
+                    <th class="no-print">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -144,7 +166,7 @@
                             <span class="badge badge-danger">Cancelled</span>
                         @endif
                     </td>
-                   <td>
+                   <td class="no-print">
     <div style="display:flex; gap:6px;">
         <a href="{{ route('finance.show', $transaction) }}" class="btn-outline btn-sm" title="View"><i class="fas fa-eye"></i></a>
         <a href="{{ route('finance.receipt', ['transaction' => $transaction->id]) }}" class="btn-primary btn-sm" style="background:#16a34a;" title="Receipt" target="_blank"><i class="fas fa-file-pdf"></i></a>
@@ -171,7 +193,7 @@
     </div>
 
     @if($transactions->hasPages())
-    <div style="padding:16px 24px; border-top:1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center;">
+    <div id="finance-pagination" style="padding:16px 24px; border-top:1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center;">
         <div style="font-size:13px; color:#64748b;">
             Showing {{ $transactions->firstItem() }} to {{ $transactions->lastItem() }} of {{ $transactions->total() }} transactions
         </div>
@@ -179,5 +201,27 @@
     </div>
     @endif
 </div>
+
+<style>
+    @media print {
+        .sidebar, .topbar, #finance-filters, #finance-pagination, .no-print { display: none !important; }
+        #finance-header > div:last-child { display: none !important; }
+        #finance-print-header { display: block !important; }
+        #finance-stats { grid-template-columns: repeat(5,1fr) !important; margin-bottom: 14px !important; }
+        .stat-card { border: 1px solid #e2e8f0 !important; box-shadow: none !important; padding: 8px !important; }
+        .stat-icon { display: none !important; }
+        .stat-value { font-size: 13px !important; }
+        .stat-label { font-size: 10px !important; }
+        .card { box-shadow: none !important; border: none !important; }
+        body { background: #fff !important; }
+
+        table.table { width: 100% !important; table-layout: fixed; font-size: 11px; }
+        table.table th, table.table td {
+            white-space: normal !important;
+            word-break: break-word;
+            padding: 5px 6px !important;
+        }
+    }
+</style>
 
 @endsection

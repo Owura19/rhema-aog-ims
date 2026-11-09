@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Account;
 use App\Models\JournalLine;
+use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -65,6 +66,36 @@ class LedgerController extends Controller
      */
     public function show(Request $request, Account $account)
     {
+        [$rows, $opening, $closing, $totalDebit, $totalCredit, $from, $to] = $this->buildStatement($request, $account);
+
+        return view('ledger.show', compact('account', 'rows', 'opening', 'closing', 'totalDebit', 'totalCredit', 'from', 'to'));
+    }
+
+    /**
+     * ACCOUNT STATEMENT — PDF export with church letterhead.
+     */
+    public function exportPdf(Request $request, Account $account)
+    {
+        [$rows, $opening, $closing, $totalDebit, $totalCredit, $from, $to] = $this->buildStatement($request, $account);
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('ledger.pdf', compact('account', 'rows', 'opening', 'closing', 'totalDebit', 'totalCredit', 'from', 'to'));
+        $pdf->setPaper('a4', 'landscape');
+        $pdf->setOptions([
+            'dpi'                  => 150,
+            'defaultFont'          => 'DejaVu Sans',
+            'isRemoteEnabled'      => false,
+            'isHtml5ParserEnabled' => true,
+        ]);
+
+        $filename = 'Ledger_' . $account->code . '_' . now()->format('Y-m-d') . '.pdf';
+        return $pdf->stream($filename);
+    }
+
+    /**
+     * Shared query logic for both the on-screen statement and the PDF export.
+     */
+    private function buildStatement(Request $request, Account $account): array
+    {
         $from = $request->get('from');
         $to   = $request->get('to', now()->toDateString());
 
@@ -89,16 +120,27 @@ class LedgerController extends Controller
             ->sortBy(fn($l) => $l->entry->entry_date)
             ->values();
 
+        // Pre-fetch the real "purpose" text from source transactions in one query
+        $transactionIds = $lines->filter(fn($l) => $l->entry->source_type === 'transaction')
+            ->pluck('entry.source_id')->unique()->values();
+        $purposes = Transaction::whereIn('id', $transactionIds)->pluck('description', 'id');
+
         // Build running balance
         $isDebitNormal = in_array($account->type, ['Asset', 'Expense']);
         $running = $opening;
-        $rows = $lines->map(function ($l) use (&$running, $isDebitNormal) {
+        $rows = $lines->map(function ($l) use (&$running, $isDebitNormal, $purposes) {
             $delta = $isDebitNormal ? ($l->debit - $l->credit) : ($l->credit - $l->debit);
             $running += $delta;
+
+            $purpose = $l->entry->source_type === 'transaction'
+                ? ($purposes->get($l->entry->source_id) ?: $l->entry->description)
+                : $l->entry->description;
+
             return (object) [
                 'date'    => $l->entry->entry_date,
                 'ref'     => $l->entry->reference,
                 'desc'    => $l->entry->description,
+                'purpose' => $purpose,
                 'debit'   => (float) $l->debit,
                 'credit'  => (float) $l->credit,
                 'balance' => $running,
@@ -109,6 +151,6 @@ class LedgerController extends Controller
         $totalCredit = $lines->sum('credit');
         $closing     = $running;
 
-        return view('ledger.show', compact('account', 'rows', 'opening', 'closing', 'totalDebit', 'totalCredit', 'from', 'to'));
+        return [$rows, $opening, $closing, $totalDebit, $totalCredit, $from, $to];
     }
 }
