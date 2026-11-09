@@ -67,7 +67,7 @@
     <!-- RSVPs List -->
     <div class="card">
         <div class="card-header">
-            <div class="card-title"><i class="fas fa-list" style="color:#2563eb; margin-right:8px;"></i>RSVP List ({{ $rsvps->count() }})</div>
+            <div class="card-title"><i class="fas fa-list" style="color:#2563eb; margin-right:8px;"></i>RSVP List ({{ $confirmedRsvps }} confirmed)</div>
         </div>
         <div style="overflow-x:auto;">
             <table class="table">
