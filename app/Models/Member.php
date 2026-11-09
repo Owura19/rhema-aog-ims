@@ -71,7 +71,7 @@ class Member extends Model
 
     public function getFullNameAttribute(): string
     {
-        return trim("{$this->first_name} {$this->other_name} {$this->last_name}");
+        return trim(preg_replace('/\s+/', ' ', "{$this->first_name} {$this->other_name} {$this->last_name}"));
     }
 
     public function getAgeAttribute(): ?int
