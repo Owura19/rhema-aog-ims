@@ -6,6 +6,11 @@ use App\Http\Controllers\Api\V1\Auth\LogoutController;
 use App\Http\Controllers\Api\V1\Auth\PasswordResetController;
 use App\Http\Controllers\Api\V1\HealthController;
 use App\Http\Controllers\Api\V1\MeController;
+use App\Http\Controllers\Api\V1\Member\EventController;
+use App\Http\Controllers\Api\V1\Member\EventRsvpController;
+use App\Http\Controllers\Api\V1\Member\GivingController;
+use App\Http\Controllers\Api\V1\Member\PledgeController;
+use App\Http\Controllers\Api\V1\Member\ProfileController;
 use App\Http\Controllers\Api\V1\MePasswordController;
 use Illuminate\Support\Facades\Route;
 
@@ -49,5 +54,18 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::put('/me/password', MePasswordController::class)
             ->middleware('throttle:password-change')
             ->name('me.password');
+    });
+
+    // ── Member features: the signed-in member's own data only ───────────
+    // The member is always $request->user()->member; no route takes a member id.
+    Route::middleware(['auth:sanctum', 'active', 'member'])->group(function () {
+        Route::get('/me/profile', ProfileController::class)->name('me.profile');
+        Route::get('/me/giving', GivingController::class)->name('me.giving');
+        Route::get('/me/pledges', PledgeController::class)->name('me.pledges');
+
+        Route::get('/events', [EventController::class, 'index'])->name('events.index');
+        Route::get('/events/{event}', [EventController::class, 'show'])->where('event', '[0-9]{1,18}')->name('events.show');
+        Route::post('/events/{event}/rsvp', [EventRsvpController::class, 'store'])->where('event', '[0-9]{1,18}')->name('events.rsvp.store');
+        Route::delete('/events/{event}/rsvp', [EventRsvpController::class, 'destroy'])->where('event', '[0-9]{1,18}')->name('events.rsvp.destroy');
     });
 });
