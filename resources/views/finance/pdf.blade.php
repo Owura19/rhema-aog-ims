@@ -104,7 +104,7 @@
         <tfoot>
             <tr>
                 <td colspan="3" class="num">TOTALS</td>
-                <td class="num">GHS {{ number_format($stats['total_income'] + $stats['total_expense'], 2) }}</td>
+                <td class="num {{ $stats['net_balance'] >= 0 ? 'income' : 'expense' }}">{{ $stats['net_balance'] < 0 ? '-' : '+' }} GHS {{ number_format(abs($stats['net_balance']), 2) }}</td>
                 <td colspan="3"></td>
             </tr>
         </tfoot>
