@@ -62,5 +62,12 @@ class AppServiceProvider extends ServiceProvider
                 Limit::perMinute(100)->by('api-auth-ip:' . $request->ip()),
             ];
         });
+
+        // PUT /me/password: limits guessing of the current password.
+        RateLimiter::for('password-change', function (Request $request) {
+            $user = $request->user('sanctum');
+
+            return Limit::perMinute(5)->by('password-change:' . ($user?->getAuthIdentifier() ?? $request->ip()));
+        });
     }
 }

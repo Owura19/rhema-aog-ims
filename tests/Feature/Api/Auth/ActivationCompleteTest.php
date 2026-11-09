@@ -143,10 +143,13 @@ class ActivationCompleteTest extends TestCase
 
     public static function badPasswords(): array
     {
+        $twoByteLetter = mb_chr(0x025B, 'UTF-8');   // a letter taking 2 bytes in UTF-8
+
         return [
-            'too short'             => ['short1', 'short1'],
-            'too long (73 chars)'   => [str_repeat('a', 73), str_repeat('a', 73)],
-            'confirmation mismatch' => ['secret-pass-1', 'secret-pass-2'],
+            'too short'                          => ['short1', 'short1'],
+            'too long (73 chars)'                => [str_repeat('a', 73), str_repeat('a', 73)],
+            'too long in bytes (37 chars, 74 B)' => [str_repeat($twoByteLetter, 37), str_repeat($twoByteLetter, 37)],
+            'confirmation mismatch'              => ['secret-pass-1', 'secret-pass-2'],
         ];
     }
 

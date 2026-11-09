@@ -12,6 +12,7 @@ use App\Services\Auth\MemberPhoneDirectory;
 use App\Services\Auth\SmsCodeSender;
 use App\Services\Auth\VerificationCodes;
 use App\Support\Api\ApiError;
+use App\Support\Auth\AppPassword;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -104,7 +105,7 @@ class ActivationController extends Controller
         $data = $request->validate([
             'activation_token' => ['required', 'string', 'size:64'],
             'member_id'        => ['required', 'integer'],
-            'password'         => ['required', 'string', 'min:8', 'max:72', 'confirmed'],   // bcrypt uses only the first 72 bytes
+            'password'         => AppPassword::rules(),   // 8 characters to 72 bytes (bcrypt), confirmed
             'device_name'      => ['required', 'string', 'max:100'],
         ]);
 
