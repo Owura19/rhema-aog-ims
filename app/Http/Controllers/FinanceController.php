@@ -392,4 +392,70 @@ class FinanceController extends Controller
         }
         return view('receipts.print', compact('transaction', 'pledgeInfo'));
     }
+
+    public function exportPdf(Request $request)
+    {
+        ini_set('memory_limit', '512M');
+        $query = Transaction::with(['member', 'churchService', 'recordedBy'])->orderByDesc('id');
+
+        if ($request->filled('type')) {
+            $query->where('type', $request->type);
+        }
+        if ($request->filled('category')) {
+            $query->where('category', $request->category);
+        }
+        if ($request->filled('payment_method')) {
+            $query->where('payment_method', $request->payment_method);
+        }
+        if ($request->filled('date_from')) {
+            $query->whereDate('transaction_date', '>=', $request->date_from);
+        }
+        if ($request->filled('date_to')) {
+            $query->whereDate('transaction_date', '<=', $request->date_to);
+        }
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('reference', 'like', "%{$search}%")
+                  ->orWhere('payer_name', 'like', "%{$search}%")
+                  ->orWhereHas('member', fn($m) => $m->where('first_name', 'like', "%{$search}%")
+                      ->orWhere('last_name', 'like', "%{$search}%"));
+            });
+        }
+
+        $hasDateFilter = $request->filled('date_from') || $request->filled('date_to');
+        if (!$hasDateFilter) {
+            $query->whereYear('transaction_date', now()->year);
+        }
+
+        $transactions = $query->get();
+
+        $stats = [
+            'total_income'  => $transactions->where('category', 'Income')->sum('amount'),
+            'total_expense' => $transactions->where('category', 'Expense')->sum('amount'),
+        ];
+        $stats['net_balance'] = $stats['total_income'] - $stats['total_expense'];
+
+        if ($hasDateFilter) {
+            $rangeLabel = ($request->filled('date_from') ? \Carbon\Carbon::parse($request->date_from)->format('M d, Y') : 'Start')
+                . ' to '
+                . ($request->filled('date_to') ? \Carbon\Carbon::parse($request->date_to)->format('M d, Y') : 'Today');
+        } else {
+            $rangeLabel = 'Year ' . now()->year;
+        }
+
+        $filters = $request->only(['search', 'type', 'category', 'payment_method', 'date_from', 'date_to']);
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('finance.pdf', compact('transactions', 'stats', 'rangeLabel', 'filters'));
+        $pdf->setPaper('a4', 'landscape');
+        $pdf->setOptions([
+            'dpi'                  => 150,
+            'defaultFont'          => 'DejaVu Sans',
+            'isRemoteEnabled'      => false,
+            'isHtml5ParserEnabled' => true,
+        ]);
+
+        $filename = 'Transactions_' . now()->format('Y-m-d') . '.pdf';
+        return $pdf->stream($filename);
+    }
 }

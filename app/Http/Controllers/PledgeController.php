@@ -91,6 +91,14 @@ class PledgeController extends Controller
             ];
         })->sortByDesc('balance')->values();
 
+        if ($request->filled('payment_status')) {
+            if ($request->payment_status === 'paid') {
+                $pledges = $pledges->where('balance', '<=', 0)->values();
+            } elseif ($request->payment_status === 'owing') {
+                $pledges = $pledges->where('balance', '>', 0)->values();
+            }
+        }
+
         $totals = [
             'pledged'     => $pledges->sum('pledged'),
             'paid'        => $pledges->sum('paid'),
@@ -136,6 +144,14 @@ class PledgeController extends Controller
                     'percent' => $p->amount_pledged > 0 ? round($paid / $p->amount_pledged * 100) : 0,
                 ];
             })->sortByDesc('balance')->values();
+
+        if ($request->filled('payment_status')) {
+            if ($request->payment_status === 'paid') {
+                $pledges = $pledges->where('balance', '<=', 0)->values();
+            } elseif ($request->payment_status === 'owing') {
+                $pledges = $pledges->where('balance', '>', 0)->values();
+            }
+        }
 
         $totals = [
             'pledged'     => $pledges->sum('pledged'),

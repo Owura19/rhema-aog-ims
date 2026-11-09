@@ -1,12 +1,12 @@
 @extends('layouts.app')
 
-@section('title', 'RandyImpact AI')
+@section('title', 'Dr Patrick AI')
 
 @section('content')
 
 <div style="margin-bottom:24px; display:flex; align-items:center; justify-content:space-between;">
     <div>
-        <h2 style="font-size:24px; font-weight:800; color:#1e293b;">⚡ RandyImpact <span style="color:#e8a020;">AI</span></h2>
+        <h2 style="font-size:24px; font-weight:800; color:#1e293b;">⚡ Dr Patrick <span style="color:#e8a020;">AI</span></h2>
         <div style="font-size:13px; color:#64748b;">Bible assistant & sermon tools for Rhema Assembly of God</div>
     </div>
     <div style="display:flex; gap:10px;">
@@ -32,7 +32,7 @@
                 <textarea id="bible-question" class="form-control" rows="3" placeholder="e.g. What does the Bible say about faith? What is the meaning of John 3:16?"></textarea>
             </div>
             <button onclick="askBible()" class="btn-primary" style="width:100%;">
-                <i class="fas fa-paper-plane"></i> Ask RandyImpact AI
+                <i class="fas fa-paper-plane"></i> Ask Dr Patrick AI
             </button>
             <div id="bible-answer" style="display:none; margin-top:16px; background:#f8fafc; border-radius:8px; padding:16px; font-size:14px; color:#374151; line-height:1.8; white-space:pre-wrap;"></div>
         </div>
@@ -108,7 +108,7 @@
 <div id="loading-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center; flex-direction:column; gap:16px;">
     <div style="background:#fff; border-radius:16px; padding:32px 48px; text-align:center;">
         <div style="font-size:32px; margin-bottom:12px;">⚡</div>
-        <div style="font-size:16px; font-weight:700; color:#1e293b; margin-bottom:4px;">RandyImpact AI is thinking...</div>
+        <div style="font-size:16px; font-weight:700; color:#1e293b; margin-bottom:4px;">Dr Patrick AI is thinking...</div>
         <div id="loading-text" style="font-size:13px; color:#64748b;">Processing your request</div>
     </div>
 </div>

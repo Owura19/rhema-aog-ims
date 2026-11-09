@@ -121,6 +121,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/finance-report', [FinanceController::class, 'report'])->name('finance.report');
         Route::get('/tithe-report', [FinanceController::class, 'titheReport'])->name('finance.tithe-report');
         Route::get('/finance-export', [FinanceController::class, 'exportExcel'])->name('finance.export');
+        Route::get('/finance-export-pdf', [FinanceController::class, 'exportPdf'])->name('finance.pdf');
         Route::get('/finance/{finance}', [FinanceController::class, 'show'])->name('finance.show');
     });
     Route::middleware('permission:view finance|manage pledges')->group(function () {
@@ -273,6 +274,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/balance-sheet', [\App\Http\Controllers\LedgerReportController::class, 'balanceSheet'])->name('finance.balance-sheet');
         Route::get('/ledger', [\App\Http\Controllers\LedgerController::class, 'index'])->name('ledger.index');
         Route::get('/ledger/{account}', [\App\Http\Controllers\LedgerController::class, 'show'])->name('ledger.show');
+        Route::get('/ledger/{account}/pdf', [\App\Http\Controllers\LedgerController::class, 'exportPdf'])->name('ledger.pdf');
         Route::get('/member-ledger', [\App\Http\Controllers\MemberLedgerController::class, 'index'])->name('member-ledger.index');
         Route::get('/member-ledger/{member}', [\App\Http\Controllers\MemberLedgerController::class, 'show'])->name('member-ledger.show');
         Route::get('/member-ledger/{member}/print', [\App\Http\Controllers\MemberLedgerController::class, 'print'])->name('member-ledger.print');

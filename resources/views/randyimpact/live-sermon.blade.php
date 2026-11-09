@@ -7,7 +7,7 @@
 <div style="margin-bottom:20px; display:flex; align-items:center; justify-content:space-between;">
     <div>
         <a href="{{ route('randyimpact.index') }}" style="color:#64748b; font-size:13px; text-decoration:none;">
-            <i class="fas fa-arrow-left"></i> Back to RandyImpact AI
+            <i class="fas fa-arrow-left"></i> Back to Dr Patrick AI
         </a>
         <h2 style="font-size:20px; font-weight:700; color:#1e293b; margin-top:4px;">⚡ Live Sermon Mode</h2>
         <div style="font-size:13px; color:#64748b;">Real-time Bible verse detection, notes & summary</div>

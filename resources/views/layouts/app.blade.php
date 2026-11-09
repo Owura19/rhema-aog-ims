@@ -284,6 +284,17 @@
             .grid-4, .grid-3, .grid-2, .grid-main {
                 grid-template-columns: 1fr;
             }
+            /* Catch-all: any inline grid with multiple columns (stat card
+               rows, filter bars, etc. built without the .grid-N classes)
+               collapses to a single column on mobile so nothing overflows. */
+            [style*="grid-template-columns"] {
+                grid-template-columns: 1fr !important;
+            }
+            /* Tables and wide content: allow horizontal scroll instead of
+               forcing the whole page to overflow sideways. */
+            table {
+                min-width: 600px;
+            }
         }
     </style>
 </head>
@@ -340,7 +351,7 @@
             <i class="fas fa-globe"></i> Community
         </a>
         <a href="{{ route('randyimpact.index') }}" class="sidebar-link {{ request()->routeIs('randyimpact.*') ? 'active' : '' }}">
-            <i class="fas fa-bolt"></i> RandyImpact AI
+            <i class="fas fa-bolt"></i> Dr Patrick AI
         </a>
     </div>
 

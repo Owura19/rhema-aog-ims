@@ -94,8 +94,16 @@
                 @endforeach
             </select>
         </div>
+        <div>
+            <label style="font-size:12px; color:#64748b; display:block; margin-bottom:3px;">Payment Status</label>
+            <select name="payment_status" class="form-control" style="width:auto;">
+                <option value="">All</option>
+                <option value="paid" {{ request('payment_status')=='paid'?'selected':'' }}>Fully Paid</option>
+                <option value="owing" {{ request('payment_status')=='owing'?'selected':'' }}>Still Owing</option>
+            </select>
+        </div>
         <button type="submit" class="btn-outline btn-sm"><i class="fas fa-filter"></i> Filter</button>
-        @if(request()->hasAny(['purpose','status','date_from','date_to','harvest','service','year']))
+        @if(request()->hasAny(['purpose','status','date_from','date_to','harvest','service','year','payment_status']))
             <a href="{{ route('pledges.report') }}" style="color:#64748b; font-size:13px; align-self:center;">Clear</a>
         @endif
     </form>
