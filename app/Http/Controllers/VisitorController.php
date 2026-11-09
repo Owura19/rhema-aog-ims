@@ -142,19 +142,23 @@ class VisitorController extends Controller
             return back()->with('error', 'This visitor has already been converted to a member.');
         }
 
-        // Create member from visitor data
+        // Create member from visitor data.
+        // The two tables name two fields differently:
+        //   visitors.address  -> members.residential_address
+        //   (conversion date) -> members.date_joined
+        // Using the visitor names here was silently dropped by mass assignment.
         $member = Member::create([
-            'first_name'        => $visitor->first_name,
-            'last_name'         => $visitor->last_name,
-            'phone'             => $visitor->phone,
-            'email'             => $visitor->email,
-            'gender'            => $visitor->gender,
-            'date_of_birth'     => $visitor->date_of_birth,
-            'address'           => $visitor->address,
-            'occupation'        => $visitor->occupation,
-            'marital_status'    => $visitor->marital_status,
-            'membership_status' => 'Active',
-            'join_date'         => now(),
+            'first_name'          => $visitor->first_name,
+            'last_name'           => $visitor->last_name,
+            'phone'               => $visitor->phone,
+            'email'               => $visitor->email,
+            'gender'              => $visitor->gender,
+            'date_of_birth'       => $visitor->date_of_birth,
+            'residential_address' => $visitor->address,
+            'occupation'          => $visitor->occupation,
+            'marital_status'      => $visitor->marital_status,
+            'membership_status'   => 'Active',
+            'date_joined'         => now()->toDateString(),
         ]);
 
         // Update visitor record

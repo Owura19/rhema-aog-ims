@@ -23,9 +23,11 @@
         </form>
         @endcan
         @else
+        @if($visitor->member)
         <a href="{{ route('members.show', $visitor->member) }}" class="btn-primary" style="background:#16a34a;">
             <i class="fas fa-user"></i> View Member Profile
         </a>
+        @endif
         @endif
         @can('edit visitors')
         <a href="{{ route('visitors.edit', $visitor) }}" class="btn-primary">
