@@ -98,7 +98,7 @@ class FinanceController extends Controller
 
         if ($hasDateFilter) {
             $rangeLabel = ($request->filled('date_from') ? \Carbon\Carbon::parse($request->date_from)->format('M d, Y') : 'Start')
-                . ' \u2013 '
+                . ' – '
                 . ($request->filled('date_to') ? \Carbon\Carbon::parse($request->date_to)->format('M d, Y') : 'Today');
         } else {
             $rangeLabel = 'This Year';

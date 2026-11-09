@@ -73,7 +73,7 @@
                     </select>
                 </div>
                 <div style="margin-bottom:16px;">
-                    <label class="form-label">Service <span style="color:#94a3b8; font-weight:400;">(optional \u2014 which service was this pledge made in?)</span></label>
+                    <label class="form-label">Service <span style="color:#94a3b8; font-weight:400;">(optional — which service was this pledge made in?)</span></label>
                     <select name="church_service_id" class="form-control">
                         <option value="">— Not tied to a service —</option>
                         @foreach($services as $service)
