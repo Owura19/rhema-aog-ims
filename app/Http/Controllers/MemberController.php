@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Member;
 use App\Models\Family;
+use App\Support\MemberAppAccess;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -113,7 +114,10 @@ class MemberController extends Controller
             ->orderBy('first_name')
             ->get(['id', 'first_name', 'last_name']);
 
-        return view('members.show', compact('member', 'otherMembers'));
+        // What the "App / Portal Login" card shows
+        $appAccess = MemberAppAccess::for($member);
+
+        return view('members.show', compact('member', 'otherMembers', 'appAccess'));
     }
 
     // ── EDIT FORM ────────────────────────────────────────────────

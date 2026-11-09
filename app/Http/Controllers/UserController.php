@@ -12,7 +12,14 @@ class UserController extends Controller
 {
     public function index()
     {
-        $users = User::with('roles')->orderBy('name')->paginate(20);
+        // Staff only: any role other than Member, or no role yet (so an admin can fix it).
+        // Member-only logins (app/portal) are managed from each member's profile.
+        $users = User::with('roles')
+            ->where(fn ($q) => $q->whereDoesntHave('roles')
+                ->orWhereHas('roles', fn ($r) => $r->where('name', '!=', 'Member')))
+            ->orderBy('name')
+            ->paginate(20);
+
         return view('users.index', compact('users'));
     }
 
@@ -56,14 +63,16 @@ class UserController extends Controller
     {
         $validated = $request->validate([
             'name'     => 'required|string|max:255',
-            'email'    => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
+            // Accounts that sign in with a phone (app activation) may have no email.
+            'email'    => ['nullable', Rule::requiredIf($user->login_phone === null), 'email', 'max:255',
+                           Rule::unique('users', 'email')->ignore($user->id)],
             'phone'    => 'nullable|string|max:20',
             'role'     => ['required', Rule::exists('roles', 'name')],
             'password' => ['nullable', 'confirmed', Password::min(8)],
         ]);
 
         $user->name  = $validated['name'];
-        $user->email = $validated['email'];
+        $user->email = $validated['email'] ?? null;
         $user->phone = $validated['phone'] ?? null;
 
         // Only update password if a new one was entered

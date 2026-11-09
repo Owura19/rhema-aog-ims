@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Member;
 use App\Models\User;
+use App\Support\PhoneNumber;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -44,14 +45,12 @@ class MemberPortalAccessController extends Controller
         $user->assignRole('Member');
 
         // Show the temp password once so the admin can share it with the member
-        return back()->with('portal_created', [
-            'email'    => $member->email,
-            'password' => $tempPassword,
-        ]);
+        return back()->with('portal_created', $this->loginDetails($user, $tempPassword));
     }
 
     /**
      * Reset a member's portal password (admin action).
+     * Saving the new password also signs the member out of every app device (User model hook).
      */
     public function resetPassword(Member $member)
     {
@@ -62,10 +61,7 @@ class MemberPortalAccessController extends Controller
         $tempPassword = Str::password(10);
         $member->user->update(['password' => Hash::make($tempPassword)]);
 
-        return back()->with('portal_created', [
-            'email'    => $member->user->email,
-            'password' => $tempPassword,
-        ]);
+        return back()->with('portal_created', $this->loginDetails($member->user, $tempPassword));
     }
 
     /**
@@ -78,5 +74,15 @@ class MemberPortalAccessController extends Controller
         }
 
         return back()->with('success', 'Portal login revoked.');
+    }
+
+    /** What to show once: how this login signs in (phone or email) and the temporary password. */
+    private function loginDetails(User $user, string $tempPassword): array
+    {
+        return [
+            'login_label' => $user->login_phone ? 'Phone' : 'Email',
+            'login'       => $user->login_phone ? PhoneNumber::display($user->login_phone) : $user->email,
+            'password'    => $tempPassword,
+        ];
     }
 }

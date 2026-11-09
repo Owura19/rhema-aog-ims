@@ -37,4 +37,17 @@ final class PhoneNumber
 
         return null;
     }
+
+    /**
+     * The local form the office reads and dials: "+233241234567" → "024 123 4567".
+     * Only accepts the canonical form; anything else returns null.
+     */
+    public static function display(?string $e164): ?string
+    {
+        if ($e164 === null || ! preg_match('/^\+233([2-5]\d)(\d{3})(\d{4})$/', $e164, $m)) {
+            return null;
+        }
+
+        return "0{$m[1]} {$m[2]} {$m[3]}";
+    }
 }

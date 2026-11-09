@@ -21,10 +21,18 @@
                 @error('name') <div class="invalid-feedback">{{ $message }}</div> @enderror
             </div>
 
+            @if($user->login_phone)
             <div style="margin-bottom:18px;">
-                <label class="form-label">Email Address <span style="color:#ef4444;">*</span></label>
+                <label class="form-label">App Login Phone</label>
+                <input type="text" value="{{ \App\Support\PhoneNumber::display($user->login_phone) }}" class="form-control" readonly disabled>
+                <div style="font-size:12px; color:#64748b; margin-top:4px;">Set when the member activated the app. Email is optional for this account.</div>
+            </div>
+            @endif
+
+            <div style="margin-bottom:18px;">
+                <label class="form-label">Email Address @unless($user->login_phone)<span style="color:#ef4444;">*</span>@endunless</label>
                 <input type="email" name="email" value="{{ old('email', $user->email) }}"
-                       class="form-control @error('email') is-invalid @enderror" required>
+                       class="form-control @error('email') is-invalid @enderror" @unless($user->login_phone) required @endunless>
                 @error('email') <div class="invalid-feedback">{{ $message }}</div> @enderror
             </div>
 

@@ -52,4 +52,39 @@ class PhoneNumberTest extends TestCase
     {
         $this->assertNull(PhoneNumber::normalise($input));
     }
+
+    public static function displayable(): array
+    {
+        return [
+            'MTN 024'     => ['+233241234567', '024 123 4567'],
+            'Telecel 020' => ['+233201234567', '020 123 4567'],
+            'MTN 055'     => ['+233551234567', '055 123 4567'],
+            'landline 030'=> ['+233302123456', '030 212 3456'],
+        ];
+    }
+
+    #[DataProvider('displayable')]
+    public function test_displays_canonical_numbers_in_the_local_form(string $e164, string $expected): void
+    {
+        $this->assertSame($expected, PhoneNumber::display($e164));
+    }
+
+    public static function notDisplayable(): array
+    {
+        return [
+            'null'                     => [null],
+            'empty'                    => [''],
+            'local form, not canonical'=> ['0241234567'],
+            'too short'                => ['+23324123456'],
+            'too long'                 => ['+2332412345678'],
+            'subscriber starts with 9' => ['+233941234567'],
+            'garbage'                  => ['not a number'],
+        ];
+    }
+
+    #[DataProvider('notDisplayable')]
+    public function test_display_returns_null_for_anything_not_canonical(?string $input): void
+    {
+        $this->assertNull(PhoneNumber::display($input));
+    }
 }

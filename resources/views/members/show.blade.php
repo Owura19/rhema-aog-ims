@@ -266,14 +266,15 @@
 </div>
 
 {{-- ============================================================
-     MEMBER PORTAL LOGIN CARD
-     Paste into resources/views/members/show.blade.php,
-     in the right column (e.g. after the Family Relationships card).
+     APP / PORTAL LOGIN CARD
+     The state comes from App\Support\MemberAppAccess (same rules as app activation).
+     Status lines are visible to everyone who can view the member; the
+     create / reset / revoke buttons only to 'edit members' (their routes need it).
      ============================================================ --}}
 
 <div class="card" style="margin-top:20px;">
     <div class="card-header">
-        <div class="card-title"><i class="fas fa-right-to-bracket" style="color:#2563eb; margin-right:8px;"></i>Portal Login</div>
+        <div class="card-title"><i class="fas fa-mobile-screen" style="color:#2563eb; margin-right:8px;"></i>App / Portal Login</div>
     </div>
     <div class="card-body">
 
@@ -281,49 +282,77 @@
         @if(session('portal_created'))
         <div class="alert alert-success" style="flex-direction:column; align-items:flex-start; gap:6px;">
             <div style="font-weight:700;"><i class="fas fa-circle-check"></i> Login ready — share these with the member:</div>
-            <div style="font-size:13px;">Email: <strong>{{ session('portal_created')['email'] }}</strong></div>
+            <div style="font-size:13px;">{{ session('portal_created')['login_label'] }}: <strong>{{ session('portal_created')['login'] }}</strong></div>
             <div style="font-size:13px;">Temporary password: <strong style="font-family:monospace; background:#fff; padding:2px 8px; border-radius:5px;">{{ session('portal_created')['password'] }}</strong></div>
-            <div style="font-size:12px; color:#15803d;">This password is shown only once. The member should change it after logging in.</div>
+            <div style="font-size:12px; color:#15803d;">This password is shown only once. The member should change it after signing in.</div>
         </div>
         @endif
 
-        @if($member->user)
+        @if($appAccess->hasLogin())
             {{-- Member HAS a login --}}
             <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px;">
                 <div style="width:38px; height:38px; border-radius:10px; background:#dcfce7; color:#16a34a; display:flex; align-items:center; justify-content:center;">
                     <i class="fas fa-user-check"></i>
                 </div>
                 <div>
-                    <div style="font-weight:600; color:#1e293b; font-size:14px;">Portal access active</div>
-                    <div style="font-size:12px; color:#94a3b8;">{{ $member->user->email }}</div>
+                    @if($appAccess->state === \App\Support\MemberAppAccess::PHONE_LOGIN)
+                        <div style="font-weight:600; color:#1e293b; font-size:14px;">App access active</div>
+                        <div style="font-size:12px; color:#64748b;">Phone: {{ $appAccess->phone }}</div>
+                        @if($appAccess->user->email)
+                            <div style="font-size:12px; color:#94a3b8;">{{ $appAccess->user->email }}</div>
+                        @endif
+                        <div style="font-size:12px; color:#94a3b8;">Signed in on {{ $appAccess->devices }} {{ \Illuminate\Support\Str::plural('device', $appAccess->devices) }}</div>
+                    @else
+                        <div style="font-weight:600; color:#1e293b; font-size:14px;">Website login by email</div>
+                        <div style="font-size:12px; color:#94a3b8;">{{ $appAccess->user->email }}</div>
+                        <div style="font-size:12px; color:#64748b;">App sign-in needs a phone login — not set for this account.</div>
+                    @endif
                 </div>
             </div>
+            @can('edit members')
             <div style="display:flex; gap:8px;">
-                <form method="POST" action="{{ route('members.portal.reset', $member) }}" onsubmit="return confirm('Generate a new temporary password for this member?');">
+                <form method="POST" action="{{ route('members.portal.reset', $member) }}" onsubmit="return confirm(@js('Generate a new temporary password for this member? They will be signed out of the app on every device.'));">
                     @csrf
                     <button type="submit" class="btn-outline btn-sm"><i class="fas fa-key"></i> Reset Password</button>
                 </form>
-                <form method="POST" action="{{ route('members.portal.revoke', $member) }}" onsubmit="return confirm('Revoke this member''s portal login? They will no longer be able to sign in.');">
+                <form method="POST" action="{{ route('members.portal.revoke', $member) }}" onsubmit="return confirm(@js("Revoke this member's login? They will no longer be able to sign in to the website or the app."));">
                     @csrf
                     @method('DELETE')
                     <button type="submit" class="btn-outline btn-sm" style="border-color:#fecaca; color:#dc2626;"><i class="fas fa-ban"></i> Revoke</button>
                 </form>
             </div>
+            @endcan
         @else
-            {{-- Member has NO login --}}
-            @if(empty($member->email))
-                <div style="font-size:13px; color:#94a3b8; margin-bottom:12px;">
-                    <i class="fas fa-circle-info"></i> Add an email address to this member before creating a portal login.
-                </div>
-            @else
-                <div style="font-size:13px; color:#64748b; margin-bottom:14px;">
-                    Create a login so this member can sign in to view their own giving, pledges, and attendance.
-                </div>
-                <form method="POST" action="{{ route('members.portal.create', $member) }}" onsubmit="return confirm('Create a portal login for {{ $member->full_name }}?');">
-                    @csrf
-                    <button type="submit" class="btn-primary btn-sm"><i class="fas fa-user-plus"></i> Create Portal Login</button>
-                </form>
-            @endif
+            {{-- Member has NO login: can they activate the app themselves? --}}
+            <div style="font-size:13px; color:#64748b; margin-bottom:14px;">
+                <i class="fas fa-circle-info"></i>
+                @if($appAccess->state === \App\Support\MemberAppAccess::CAN_ACTIVATE)
+                    This member can activate the mobile app themselves with the number on record ({{ $appAccess->phone }}).
+                @elseif($appAccess->state === \App\Support\MemberAppAccess::NUMBER_TAKEN)
+                    {{ $appAccess->phone }} already belongs to another app account, so this member can't activate the app with it.
+                @elseif($appAccess->state === \App\Support\MemberAppAccess::NO_VALID_PHONE)
+                    No valid phone number on record, so this member can't activate the mobile app.
+                @else
+                    Only Active or Inactive members can activate the mobile app (status: {{ $member->membership_status }}).
+                @endif
+            </div>
+
+            {{-- Website login by email (unchanged), for editors only --}}
+            @can('edit members')
+                @if(empty($member->email))
+                    <div style="font-size:13px; color:#94a3b8; margin-bottom:12px;">
+                        Add an email address to this member before creating a website login.
+                    </div>
+                @else
+                    <div style="font-size:13px; color:#64748b; margin-bottom:14px;">
+                        Or create a website login (email) so this member can view their own giving, pledges, and attendance.
+                    </div>
+                    <form method="POST" action="{{ route('members.portal.create', $member) }}" onsubmit="return confirm(@js('Create a website login for ' . $member->full_name . '?'));">
+                        @csrf
+                        <button type="submit" class="btn-primary btn-sm"><i class="fas fa-user-plus"></i> Create Portal Login</button>
+                    </form>
+                @endif
+            @endcan
         @endif
 
     </div>

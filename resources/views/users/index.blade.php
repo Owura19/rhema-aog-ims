@@ -9,6 +9,9 @@
             <i class="fas fa-user-plus"></i> Add Staff
         </a>
     </div>
+    <div style="padding:12px 24px; font-size:13px; color:#64748b; border-bottom:1px solid #f1f5f9;">
+        <i class="fas fa-circle-info"></i> Member app and portal logins are managed from each member's profile.
+    </div>
     <div class="card-body" style="padding:0;">
         <table class="table">
             <thead>
@@ -25,7 +28,12 @@
                 @forelse($users as $user)
                 <tr>
                     <td style="font-weight:600; color:#1e293b;">{{ $user->name }}</td>
-                    <td>{{ $user->email }}</td>
+                    <td>
+                        {{ $user->email ?? '—' }}
+                        @if($user->login_phone)
+                            <div style="font-size:12px; color:#64748b;">App: {{ \App\Support\PhoneNumber::display($user->login_phone) }}</div>
+                        @endif
+                    </td>
                     <td>{{ $user->phone ?? '—' }}</td>
                     <td>
                         <span class="badge badge-info">{{ $user->getRoleNames()->first() ?? 'No role' }}</span>
@@ -53,7 +61,7 @@
                             </form>
 
                             <form method="POST" action="{{ route('users.destroy', $user) }}" style="display:inline;"
-                                  onsubmit="return confirm('Permanently delete {{ $user->name }}? This cannot be undone. Consider deactivating instead.');">
+                                  onsubmit="return confirm(@js('Permanently delete ' . $user->name . '? This cannot be undone. Consider deactivating instead.'));">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="btn-danger btn-sm">
