@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Api\Member\Concerns;
 
+use App\Models\ChurchService;
 use App\Models\Event;
 use App\Models\EventRsvp;
 use App\Models\Member;
@@ -106,6 +107,17 @@ trait MemberApiHelpers
             'is_free'       => true,
             'ticket_price'  => 0,
             'rsvp_required' => false,
+        ]);
+    }
+
+    protected function service(array $attributes = []): ChurchService
+    {
+        return ChurchService::create($attributes + [
+            'name'         => 'Sunday First Service',
+            'service_type' => 'Sunday Service',
+            'service_date' => '2026-11-15',
+            'start_time'   => '07:30',
+            'status'       => 'Scheduled',
         ]);
     }
 

@@ -6,11 +6,13 @@ use App\Http\Controllers\Api\V1\Auth\LogoutController;
 use App\Http\Controllers\Api\V1\Auth\PasswordResetController;
 use App\Http\Controllers\Api\V1\HealthController;
 use App\Http\Controllers\Api\V1\MeController;
+use App\Http\Controllers\Api\V1\Member\CalendarController;
 use App\Http\Controllers\Api\V1\Member\EventController;
 use App\Http\Controllers\Api\V1\Member\EventRsvpController;
 use App\Http\Controllers\Api\V1\Member\GivingController;
 use App\Http\Controllers\Api\V1\Member\PledgeController;
 use App\Http\Controllers\Api\V1\Member\ProfileController;
+use App\Http\Controllers\Api\V1\Member\UpcomingProgramsController;
 use App\Http\Controllers\Api\V1\MePasswordController;
 use Illuminate\Support\Facades\Route;
 
@@ -67,5 +69,9 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::get('/events/{event}', [EventController::class, 'show'])->where('event', '[0-9]{1,18}')->name('events.show');
         Route::post('/events/{event}/rsvp', [EventRsvpController::class, 'store'])->where('event', '[0-9]{1,18}')->name('events.rsvp.store');
         Route::delete('/events/{event}/rsvp', [EventRsvpController::class, 'destroy'])->where('event', '[0-9]{1,18}')->name('events.rsvp.destroy');
+
+        // Church calendar: events + services in one date-sorted feed
+        Route::get('/calendar', CalendarController::class)->name('calendar');
+        Route::get('/programs/upcoming', UpcomingProgramsController::class)->name('programs.upcoming');
     });
 });

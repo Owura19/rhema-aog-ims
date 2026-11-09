@@ -24,12 +24,14 @@ class MemberAccessTest extends TestCase
             'event'       => ['GET', '/events/1'],
             'rsvp'        => ['POST', '/events/1/rsvp'],
             'cancel rsvp' => ['DELETE', '/events/1/rsvp'],
+            'calendar'    => ['GET', '/calendar'],
+            'upcoming'    => ['GET', '/programs/upcoming'],
         ];
     }
 
     public function test_the_routes_exist_with_their_names(): void
     {
-        foreach (['me.profile', 'me.giving', 'me.pledges', 'events.index', 'events.show', 'events.rsvp.store', 'events.rsvp.destroy'] as $name) {
+        foreach (['me.profile', 'me.giving', 'me.pledges', 'events.index', 'events.show', 'events.rsvp.store', 'events.rsvp.destroy', 'calendar', 'programs.upcoming'] as $name) {
             $this->assertTrue(Route::has("api.v1.{$name}"), "missing route api.v1.{$name}");
         }
     }
