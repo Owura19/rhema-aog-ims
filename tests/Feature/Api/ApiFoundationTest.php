@@ -206,7 +206,10 @@ class ApiFoundationTest extends TestCase
         $response = $this->withToken($this->tokenFor($user))->get('/api/v1/me');
 
         $response->assertOk();
-        $this->assertSame(['id', 'name', 'member', 'roles', 'permissions'], array_keys($response->json('data')));
+        $this->assertSame(
+            ['id', 'name', 'login_phone', 'member', 'roles', 'permissions', 'token_expires_at'],
+            array_keys($response->json('data')),
+        );
         $this->assertSame(['id', 'member_code', 'full_name'], array_keys($response->json('data.member')));
         $response->assertJsonPath('data.id', $user->id);
         $response->assertJsonPath('data.member.full_name', 'Ama Mensah');
