@@ -38,17 +38,12 @@
     <div class="meta">
         <h2>Transactions</h2>
         <div class="period">
-            @if(!empty(array_filter($filters)))
-                Filters:
-                @if(!empty($filters['search'])) Search "{{ $filters['search'] }}" @endif
-                @if(!empty($filters['type'])) &middot; Type: {{ $filters['type'] }} @endif
-                @if(!empty($filters['category'])) &middot; Category: {{ $filters['category'] }} @endif
-                @if(!empty($filters['payment_method'])) &middot; Method: {{ $filters['payment_method'] }} @endif
-                @if(!empty($filters['date_from'])) &middot; From: {{ $filters['date_from'] }} @endif
-                @if(!empty($filters['date_to'])) &middot; To: {{ $filters['date_to'] }} @endif
-            @else
-                Period: {{ $rangeLabel }}
-            @endif
+            {{-- The period is always shown: with no date filter the export covers the current month only. --}}
+            Period: {{ $rangeLabel }}
+            @if(!empty($filters['search'])) &middot; Search "{{ $filters['search'] }}" @endif
+            @if(!empty($filters['type'])) &middot; Type: {{ $filters['type'] }} @endif
+            @if(!empty($filters['category'])) &middot; Category: {{ $filters['category'] }} @endif
+            @if(!empty($filters['payment_method'])) &middot; Method: {{ $filters['payment_method'] }} @endif
             &nbsp;&middot;&nbsp; {{ $transactions->count() }} transactions
             &nbsp;&middot;&nbsp; Generated {{ now()->format('M d, Y \a\t g:i A') }}
         </div>

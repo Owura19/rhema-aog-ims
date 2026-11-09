@@ -10,6 +10,13 @@ use Illuminate\Http\Request;
 
 class FinanceController extends Controller
 {
+    /**
+     * Most transactions one PDF export may contain. Dompdf needs roughly
+     * 20–35 ms per row on a laptop and production (t3.small) is slower, so
+     * keep exports well inside the time limit. Bigger selections: Export Excel.
+     */
+    public const PDF_MAX_ROWS = 400;
+
     public function index(Request $request)
     {
         $query = Transaction::with(['member', 'churchService', 'recordedBy'])->orderByDesc('id');
@@ -395,6 +402,8 @@ class FinanceController extends Controller
 
     public function exportPdf(Request $request)
     {
+        // Headroom under nginx's 60 s fastcgi_read_timeout (PHP-FPM default is 30 s).
+        set_time_limit(55);
         ini_set('memory_limit', '512M');
         $query = Transaction::with(['member', 'churchService', 'recordedBy'])->orderByDesc('id');
 
@@ -423,9 +432,21 @@ class FinanceController extends Controller
             });
         }
 
+        // No date range given: default to the CURRENT MONTH (a whole year is too big for one PDF).
         $hasDateFilter = $request->filled('date_from') || $request->filled('date_to');
         if (!$hasDateFilter) {
-            $query->whereYear('transaction_date', now()->year);
+            $query->whereBetween('transaction_date', [
+                now()->startOfMonth()->toDateString(),
+                now()->endOfMonth()->toDateString(),
+            ]);
+        }
+
+        // Refuse oversized exports before loading anything (dompdf time/memory grow with row count).
+        $count = (clone $query)->count();
+        if ($count > self::PDF_MAX_ROWS) {
+            return redirect()->route('finance.index', $request->query())->with('error',
+                'This selection has ' . number_format($count) . ' transactions — too many for a PDF (maximum '
+                . self::PDF_MAX_ROWS . '). Narrow the date range, or use Export Excel.');
         }
 
         $transactions = $query->get();
@@ -441,7 +462,7 @@ class FinanceController extends Controller
                 . ' to '
                 . ($request->filled('date_to') ? \Carbon\Carbon::parse($request->date_to)->format('M d, Y') : 'Today');
         } else {
-            $rangeLabel = 'Year ' . now()->year;
+            $rangeLabel = now()->format('F Y'); // e.g. "November 2026"
         }
 
         $filters = $request->only(['search', 'type', 'category', 'payment_method', 'date_from', 'date_to']);
