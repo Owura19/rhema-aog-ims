@@ -50,7 +50,9 @@ return [
     |
     */
 
-    'expiration' => null,
+    // Backstop: no token lives longer than 180 days. App tokens carry their own,
+    // shorter expires_at (members 90 days, staff 30 — see User::createAppToken()).
+    'expiration' => (int) env('SANCTUM_EXPIRATION', 60 * 24 * 180),
 
     /*
     |--------------------------------------------------------------------------
@@ -65,7 +67,7 @@ return [
     |
     */
 
-    'token_prefix' => env('SANCTUM_TOKEN_PREFIX', ''),
+    'token_prefix' => env('SANCTUM_TOKEN_PREFIX', 'rhema_'),
 
     /*
     |--------------------------------------------------------------------------

@@ -2,11 +2,15 @@
 
 namespace App\Providers;
 
+use App\Contracts\SmsSender;
+use App\Services\Sms\FakeSmsSender;
+use App\Services\Sms\LogSmsSender;
 use App\Support\PhoneNumber;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
+use InvalidArgumentException;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -15,7 +19,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // SMS sending (config/sms.php). A singleton, so tests can read what the fake "sent".
+        $this->app->singleton(SmsSender::class, fn () => match ($driver = config('sms.driver')) {
+            'log'   => new LogSmsSender(),
+            'fake'  => new FakeSmsSender(),
+            default => throw new InvalidArgumentException("Unknown SMS driver [{$driver}]."),
+        });
     }
 
     /**
