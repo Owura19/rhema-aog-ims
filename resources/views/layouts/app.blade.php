@@ -346,6 +346,11 @@
             <i class="fas fa-calendar-alt"></i> Events & Programs
         </a>
         @endcan
+        @can('view devotions')
+        <a href="{{ route('devotions.index') }}" class="sidebar-link {{ request()->routeIs('devotions.*') || request()->routeIs('devotion-themes.*') ? 'active' : '' }}">
+            <i class="fas fa-book-open"></i> Devotions
+        </a>
+        @endcan
         {{-- Community & RandyImpact are open to any logged-in user --}}
         <a href="{{ route('community.index') }}" class="sidebar-link {{ request()->routeIs('community.*') ? 'active' : '' }}">
             <i class="fas fa-globe"></i> Community
@@ -482,6 +487,12 @@
         @if(session('error'))
             <div class="alert alert-danger">
                 <i class="fas fa-exclamation-circle"></i> {{ session('error') }}
+            </div>
+        @endif
+
+        @if(session('warning'))
+            <div class="alert alert-warning">
+                <i class="fas fa-triangle-exclamation"></i> {{ session('warning') }}
             </div>
         @endif
 

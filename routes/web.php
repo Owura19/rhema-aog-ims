@@ -8,6 +8,8 @@ use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\BiometricDeviceController;
 use App\Http\Controllers\FinanceController;
 use App\Http\Controllers\CellGroupController;
+use App\Http\Controllers\DevotionController;
+use App\Http\Controllers\DevotionThemeController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\CommunityController;
 use App\Http\Controllers\RandyImpactAIController;
@@ -175,6 +177,34 @@ Route::middleware(['auth'])->group(function () {
         // RSVP — staff with 'view events' can add or cancel RSVPs
         Route::post('/events/{event}/rsvp', [EventController::class, 'rsvp'])->name('events.rsvp');
         Route::delete('/events/{event}/rsvp/{rsvp}', [EventController::class, 'cancelRsvp'])->name('events.cancel-rsvp');
+    });
+
+    // ─────────────────────────────────────────────────────────────
+    // DEVOTIONS — view: 'view devotions' | write + themes: 'manage devotions'
+    // | approve / withdraw: 'approve devotions'. Deleting an APPROVED devotion
+    // also needs 'approve devotions' (checked in the controller).
+    // ─────────────────────────────────────────────────────────────
+    Route::middleware('permission:manage devotions')->group(function () {
+        Route::get('/devotions/create', [DevotionController::class, 'create'])->name('devotions.create');
+        Route::post('/devotions', [DevotionController::class, 'store'])->name('devotions.store');
+        Route::get('/devotions/{devotion}/edit', [DevotionController::class, 'edit'])->whereNumber('devotion')->name('devotions.edit');
+        Route::put('/devotions/{devotion}', [DevotionController::class, 'update'])->whereNumber('devotion')->name('devotions.update');
+        Route::delete('/devotions/{devotion}', [DevotionController::class, 'destroy'])->whereNumber('devotion')->name('devotions.destroy');
+
+        Route::get('/devotion-themes', [DevotionThemeController::class, 'index'])->name('devotion-themes.index');
+        Route::get('/devotion-themes/create', [DevotionThemeController::class, 'create'])->name('devotion-themes.create');
+        Route::post('/devotion-themes', [DevotionThemeController::class, 'store'])->name('devotion-themes.store');
+        Route::get('/devotion-themes/{theme}/edit', [DevotionThemeController::class, 'edit'])->whereNumber('theme')->name('devotion-themes.edit');
+        Route::put('/devotion-themes/{theme}', [DevotionThemeController::class, 'update'])->whereNumber('theme')->name('devotion-themes.update');
+        Route::delete('/devotion-themes/{theme}', [DevotionThemeController::class, 'destroy'])->whereNumber('theme')->name('devotion-themes.destroy');
+    });
+    Route::middleware('permission:approve devotions')->group(function () {
+        Route::post('/devotions/{devotion}/approve', [DevotionController::class, 'approve'])->whereNumber('devotion')->name('devotions.approve');
+        Route::post('/devotions/{devotion}/withdraw', [DevotionController::class, 'withdraw'])->whereNumber('devotion')->name('devotions.withdraw');
+    });
+    Route::middleware('permission:view devotions')->group(function () {
+        Route::get('/devotions', [DevotionController::class, 'index'])->name('devotions.index');
+        Route::get('/devotions/{devotion}', [DevotionController::class, 'show'])->whereNumber('devotion')->name('devotions.show');
     });
 
     // ─────────────────────────────────────────────────────────────

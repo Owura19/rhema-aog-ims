@@ -90,4 +90,14 @@ class Devotion extends Model
     {
         return $this->status === self::STATUS_APPROVED;
     }
+
+    /** 'live' (approved, date reached), 'approved' (approved, date still ahead) or 'draft'. */
+    public function state(): string
+    {
+        if (! $this->isApproved()) {
+            return self::STATUS_DRAFT;
+        }
+
+        return $this->publish_date->lte(today()) ? 'live' : self::STATUS_APPROVED;
+    }
 }
