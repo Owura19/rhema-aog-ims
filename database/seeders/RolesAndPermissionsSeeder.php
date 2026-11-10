@@ -7,6 +7,15 @@ use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\PermissionRegistrar;
 
+/**
+ * The roles and permissions production has (11 roles, 32 permissions).
+ * Kept in line with production: RolesAndPermissionsSeederTest checks a fresh
+ * seed gives exactly these sets. New permissions reach production through a
+ * migration; add them here too so fresh installs match.
+ *
+ * Only adds (firstOrCreate / givePermissionTo); it never removes anything from
+ * an existing database.
+ */
 class RolesAndPermissionsSeeder extends Seeder
 {
     public function run(): void
@@ -38,6 +47,12 @@ class RolesAndPermissionsSeeder extends Seeder
             'create finance',
             'edit finance',
             'delete finance',
+            'edit vouchers',
+
+            // Pledges
+            'view pledges',
+            'manage pledges',
+            'edit pledges',
 
             // Cell Groups
             'view cell groups',
@@ -48,6 +63,12 @@ class RolesAndPermissionsSeeder extends Seeder
             'create events',
             'edit events',
             'delete events',
+
+            // Devotions (production: migration 2026_11_10_100300_add_devotion_permissions)
+            'view devotions',
+            'manage devotions',
+            'approve devotions',
+            'review translations',
 
             // Reports
             'view reports',
@@ -66,7 +87,7 @@ class RolesAndPermissionsSeeder extends Seeder
 
         // ── ROLES ─────────────────────────────────────────────────
 
-        // Super Admin — has all permissions
+        // Super Admin — has all permissions (granted explicitly: there is no Gate::before bypass)
         $superAdmin = Role::firstOrCreate(['name' => 'Super Admin']);
         $superAdmin->givePermissionTo(Permission::all());
 
@@ -82,6 +103,10 @@ class RolesAndPermissionsSeeder extends Seeder
             'view reports',
             'create events',
             'edit events',
+            'view devotions',
+            'manage devotions',
+            'approve devotions',
+            'review translations',
         ]);
 
         // Head of Department (HOD)
@@ -135,6 +160,46 @@ class RolesAndPermissionsSeeder extends Seeder
             'edit visitors',
             'view attendance',
             'manage attendance',
+        ]);
+
+        // Member — logins linked to a member record (portal / mobile app); no staff permissions
+        Role::firstOrCreate(['name' => 'Member']);
+
+        // Finance Officer
+        $financeOfficer = Role::firstOrCreate(['name' => 'Finance Officer']);
+        $financeOfficer->givePermissionTo([
+            'view finance',
+            'create finance',
+            'edit finance',
+        ]);
+
+        // Office Staff
+        $officeStaff = Role::firstOrCreate(['name' => 'Office Staff']);
+        $officeStaff->givePermissionTo([
+            'view members',
+            'create members',
+            'edit members',
+            'view attendance',
+            'view cell groups',
+            'view finance',
+            'create finance',
+            'view devotions',
+            'manage devotions',
+        ]);
+
+        // Pledge Officer
+        $pledgeOfficer = Role::firstOrCreate(['name' => 'Pledge Officer']);
+        $pledgeOfficer->givePermissionTo([
+            'view members',
+            'view pledges',
+            'manage pledges',
+        ]);
+
+        // Devotion Translator — reviews and approves devotion translations
+        $translator = Role::firstOrCreate(['name' => 'Devotion Translator']);
+        $translator->givePermissionTo([
+            'view devotions',
+            'review translations',
         ]);
     }
 }

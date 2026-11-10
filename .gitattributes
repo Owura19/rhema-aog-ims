@@ -6,6 +6,9 @@
 *.md diff=markdown
 *.php diff=php
 
+# Binary data (e.g. database/data/kjv/*.gz): never convert line endings
+*.gz binary
+
 /.github export-ignore
 CHANGELOG.md export-ignore
 .styleci.yml export-ignore
