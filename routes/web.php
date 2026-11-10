@@ -172,7 +172,7 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware('permission:view events')->group(function () {
         Route::get('/events', [EventController::class, 'index'])->name('events.index');
         Route::get('/events/{event}', [EventController::class, 'show'])->name('events.show');
-        // RSVP — any viewer can RSVP / cancel their own
+        // RSVP — staff with 'view events' can add or cancel RSVPs
         Route::post('/events/{event}/rsvp', [EventController::class, 'rsvp'])->name('events.rsvp');
         Route::delete('/events/{event}/rsvp/{rsvp}', [EventController::class, 'cancelRsvp'])->name('events.cancel-rsvp');
     });

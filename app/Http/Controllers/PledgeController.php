@@ -109,7 +109,7 @@ class PledgeController extends Controller
 
         $purposes = PledgePurpose::orderBy('name')->get();
         $harvests = \App\Models\Harvest::orderBy('name')->get();
-        $services = \App\Models\ChurchService::latest('service_date')->take(20)->get();
+        $services = \App\Models\ChurchService::forPicker($request->integer('service') ?: null)->get();   // keeps a filtered-on service listed
         $years = Pledge::selectRaw('DISTINCT YEAR(date_pledged) as y')->orderByDesc('y')->pluck('y');
         return view('pledges.report', compact('pledges', 'totals', 'purposes', 'harvests', 'services', 'years'));
     }
@@ -178,7 +178,7 @@ class PledgeController extends Controller
         $purposes = PledgePurpose::active()->orderBy('name')->get();
 
         $harvests = \App\Models\Harvest::where('status', 'Active')->orderBy('name')->get();
-        $services = \App\Models\ChurchService::latest('service_date')->take(20)->get();
+        $services = \App\Models\ChurchService::forPicker()->get();
         return view('pledges.create', compact('members', 'purposes', 'harvests', 'services'));
     }
 
@@ -237,7 +237,7 @@ class PledgeController extends Controller
         $members  = Member::orderBy('first_name')->get();
         $purposes = PledgePurpose::orderBy('name')->get();
         $harvests = \App\Models\Harvest::orderBy('name')->get();
-        $services = \App\Models\ChurchService::latest('service_date')->take(20)->get();
+        $services = \App\Models\ChurchService::forPicker($pledge->church_service_id)->get();   // keeps this record's own service listed
         return view('pledges.edit', compact('pledge', 'members', 'purposes', 'harvests', 'services'));
     }
 

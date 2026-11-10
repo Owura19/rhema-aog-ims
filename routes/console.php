@@ -21,3 +21,6 @@ Schedule::command('sanctum:prune-expired --hours=24')->daily();
 
 // Delete SMS verification codes older than a day (see PhoneVerificationCode::prunable()).
 Schedule::command('model:prune', ['--model' => [PhoneVerificationCode::class]])->daily();
+
+// Weekly church programmes (config/church_programs.php) → church_services up to 8 weeks ahead.
+Schedule::command('programs:generate-services')->dailyAt('01:00')->withoutOverlapping();

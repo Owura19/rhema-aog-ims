@@ -101,7 +101,7 @@
                     <td style="font-size:13px; color:#64748b;">{{ $event->duration }}</td>
                     <td style="font-size:13px; color:#64748b;">{{ $event->venue ?? '—' }}</td>
                     <td>
-                        <span style="font-weight:700; color:#1e293b;">{{ $event->rsvps_count }}</span>
+                        <span style="font-weight:700; color:#1e293b;">{{ (int) $event->confirmed_guests }}</span>
                         @if($event->capacity)
                             <span style="font-size:12px; color:#94a3b8;"> / {{ $event->capacity }}</span>
                         @endif
