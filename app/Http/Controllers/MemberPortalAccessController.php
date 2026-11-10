@@ -49,13 +49,18 @@ class MemberPortalAccessController extends Controller
     }
 
     /**
-     * Reset a member's portal password (admin action).
-     * Saving the new password also signs the member out of every app device (User model hook).
+     * Reset a member's website (email) portal password (admin action). Email-only logins
+     * only; a login with an app phone uses MemberAppLoginController::resetPassword.
      */
     public function resetPassword(Member $member)
     {
         if (!$member->user) {
             return back()->with('error', 'This member has no portal login yet.');
+        }
+
+        // A phone (app) login is reset from the Mobile App card: a readable password the member must change.
+        if ($member->user->login_phone !== null) {
+            return back()->with('error', 'This member has an app login. Use "Reset app password" on the Mobile App card.');
         }
 
         $tempPassword = Str::password(10);

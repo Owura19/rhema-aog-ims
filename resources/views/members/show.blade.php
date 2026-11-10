@@ -266,15 +266,15 @@
 </div>
 
 {{-- ============================================================
-     APP / PORTAL LOGIN CARD
+     WEBSITE LOGIN CARD (email portal login) and, below it, the MOBILE APP CARD
      The state comes from App\Support\MemberAppAccess (same rules as app activation).
      Status lines are visible to everyone who can view the member; the
-     create / reset / revoke buttons only to 'edit members' (their routes need it).
+     buttons only to 'edit members' (their routes need it).
      ============================================================ --}}
 
 <div class="card" style="margin-top:20px;">
     <div class="card-header">
-        <div class="card-title"><i class="fas fa-mobile-screen" style="color:#2563eb; margin-right:8px;"></i>App / Portal Login</div>
+        <div class="card-title"><i class="fas fa-globe" style="color:#2563eb; margin-right:8px;"></i>Website Login</div>
     </div>
     <div class="card-body">
 
@@ -288,33 +288,26 @@
         </div>
         @endif
 
-        @if($appAccess->hasLogin())
-            {{-- Member HAS a login --}}
+        @if($appAccess->user?->email)
+            {{-- Member HAS a website (email) login --}}
             <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px;">
                 <div style="width:38px; height:38px; border-radius:10px; background:#dcfce7; color:#16a34a; display:flex; align-items:center; justify-content:center;">
                     <i class="fas fa-user-check"></i>
                 </div>
                 <div>
-                    @if($appAccess->state === \App\Support\MemberAppAccess::PHONE_LOGIN)
-                        <div style="font-weight:600; color:#1e293b; font-size:14px;">App access active</div>
-                        <div style="font-size:12px; color:#64748b;">Phone: {{ $appAccess->phone }}</div>
-                        @if($appAccess->user->email)
-                            <div style="font-size:12px; color:#94a3b8;">{{ $appAccess->user->email }}</div>
-                        @endif
-                        <div style="font-size:12px; color:#94a3b8;">Signed in on {{ $appAccess->devices }} {{ \Illuminate\Support\Str::plural('device', $appAccess->devices) }}</div>
-                    @else
-                        <div style="font-weight:600; color:#1e293b; font-size:14px;">Website login by email</div>
-                        <div style="font-size:12px; color:#94a3b8;">{{ $appAccess->user->email }}</div>
-                        <div style="font-size:12px; color:#64748b;">App sign-in needs a phone login — not set for this account.</div>
-                    @endif
+                    <div style="font-weight:600; color:#1e293b; font-size:14px;">Website login by email</div>
+                    <div style="font-size:12px; color:#94a3b8;">{{ $appAccess->user->email }}</div>
                 </div>
             </div>
             @can('edit members')
             <div style="display:flex; gap:8px;">
-                <form method="POST" action="{{ route('members.portal.reset', $member) }}" onsubmit="return confirm(@js('Generate a new temporary password for this member? They will be signed out of the app on every device.'));">
+                @unless($appAccess->hasAppLogin())
+                {{-- A login with an app phone is reset from the Mobile App card instead. --}}
+                <form method="POST" action="{{ route('members.portal.reset', $member) }}" onsubmit="return confirm(@js('Generate a new temporary password for this member?'));">
                     @csrf
                     <button type="submit" class="btn-outline btn-sm"><i class="fas fa-key"></i> Reset Password</button>
                 </form>
+                @endunless
                 <form method="POST" action="{{ route('members.portal.revoke', $member) }}" onsubmit="return confirm(@js("Revoke this member's login? They will no longer be able to sign in to the website or the app."));">
                     @csrf
                     @method('DELETE')
@@ -322,21 +315,11 @@
                 </form>
             </div>
             @endcan
-        @else
-            {{-- Member has NO login: can they activate the app themselves? --}}
-            <div style="font-size:13px; color:#64748b; margin-bottom:14px;">
-                <i class="fas fa-circle-info"></i>
-                @if($appAccess->state === \App\Support\MemberAppAccess::CAN_ACTIVATE)
-                    This member can activate the mobile app themselves with the number on record ({{ $appAccess->phone }}).
-                @elseif($appAccess->state === \App\Support\MemberAppAccess::NUMBER_TAKEN)
-                    {{ $appAccess->phone }} already belongs to another app account, so this member can't activate the app with it.
-                @elseif($appAccess->state === \App\Support\MemberAppAccess::NO_VALID_PHONE)
-                    No valid phone number on record, so this member can't activate the mobile app.
-                @else
-                    Only Active or Inactive members can activate the mobile app (status: {{ $member->membership_status }}).
-                @endif
+        @elseif($appAccess->hasLogin())
+            <div style="font-size:13px; color:#64748b;">
+                <i class="fas fa-circle-info"></i> No website login: this member signs in to the mobile app only.
             </div>
-
+        @else
             {{-- Website login by email (unchanged), for editors only --}}
             @can('edit members')
                 @if(empty($member->email))
@@ -352,11 +335,15 @@
                         <button type="submit" class="btn-primary btn-sm"><i class="fas fa-user-plus"></i> Create Portal Login</button>
                     </form>
                 @endif
+            @else
+                <div style="font-size:13px; color:#94a3b8;">No website login.</div>
             @endcan
         @endif
 
     </div>
 </div>
+
+@include('members._app_login_card')
 
         <!-- Notes -->
         @if($member->notes)

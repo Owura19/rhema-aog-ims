@@ -25,7 +25,8 @@ use Illuminate\Support\Facades\Route;
 | the 'api' rate limiter, and route-model binding. Errors use one shape:
 | { message, code, errors? } — see App\Support\Api\ApiExceptionRenderer.
 |
-| Authenticated routes: auth:sanctum + active. Member-only routes add 'member'.
+| Authenticated routes: auth:sanctum + active + password.changed (a temporary
+| password allows only /me, /me/password and logout). Member-only routes add 'member'.
 */
 
 Route::prefix('v1')->name('api.v1.')->group(function () {
@@ -46,14 +47,14 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         // No phone here; a 64-char single-use session token. The general 'api' limit applies.
         Route::post('/activation/complete', [ActivationController::class, 'complete'])->name('activation.complete');
 
-        Route::middleware(['auth:sanctum', 'active'])->group(function () {
-            Route::post('/logout', [LogoutController::class, 'logout'])->name('logout');
+        Route::middleware(['auth:sanctum', 'active', 'password.changed'])->group(function () {
+            Route::post('/logout',[LogoutController::class, 'logout'])->name('logout');
             Route::post('/logout-all', [LogoutController::class, 'logoutAll'])->name('logout-all');
         });
     });
 
-    Route::middleware(['auth:sanctum', 'active'])->group(function () {
-        Route::get('/me', MeController::class)->name('me');
+    Route::middleware(['auth:sanctum', 'active', 'password.changed'])->group(function () {
+        Route::get('/me',MeController::class)->name('me');
         Route::put('/me/password', MePasswordController::class)
             ->middleware('throttle:password-change')
             ->name('me.password');
@@ -66,7 +67,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
 
     // ── Member features: the signed-in member's own data only ───────────
     // The member is always $request->user()->member; no route takes a member id.
-    Route::middleware(['auth:sanctum', 'active', 'member'])->group(function () {
+    Route::middleware(['auth:sanctum', 'active', 'password.changed', 'member'])->group(function () {
         Route::get('/me/profile', ProfileController::class)->name('me.profile');
         Route::get('/me/giving', GivingController::class)->name('me.giving');
         Route::get('/me/pledges', PledgeController::class)->name('me.pledges');

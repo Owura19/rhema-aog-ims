@@ -32,6 +32,7 @@ class MePasswordController extends Controller
         }
 
         $user->password = $data['password'];   // hashed by the cast
+        $user->must_change_password = false;   // a temporary password has now been replaced
         $user->save();                         // the User hook deletes every token, including this one
 
         return (new AuthTokenResource($user, $user->createAppToken($data['device_name'])))->response();
