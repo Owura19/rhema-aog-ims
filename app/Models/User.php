@@ -38,6 +38,8 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
+            // Not fillable: set only by staff actions (temporary password) and cleared by a password change.
+            'must_change_password' => 'boolean',
         ];
     }
 

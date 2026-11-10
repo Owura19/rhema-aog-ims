@@ -46,6 +46,10 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/members/{member}/portal-login', [\App\Http\Controllers\MemberPortalAccessController::class, 'create'])->name('members.portal.create');
         Route::post('/members/{member}/portal-reset', [\App\Http\Controllers\MemberPortalAccessController::class, 'resetPassword'])->name('members.portal.reset');
         Route::delete('/members/{member}/portal-login', [\App\Http\Controllers\MemberPortalAccessController::class, 'revoke'])->name('members.portal.revoke');
+        // Mobile app login given by staff (phone + temporary password)
+        Route::post('/members/{member}/app-login', [\App\Http\Controllers\MemberAppLoginController::class, 'store'])->name('members.app-login.store');
+        Route::post('/members/{member}/app-login/reset', [\App\Http\Controllers\MemberAppLoginController::class, 'resetPassword'])->name('members.app-login.reset');
+        Route::delete('/members/{member}/app-login', [\App\Http\Controllers\MemberAppLoginController::class, 'destroy'])->name('members.app-login.destroy');
         Route::patch('/members/{member}', [MemberController::class, 'update']);
 
         // Member family relationships (buttons in members/show are gated by 'edit members')

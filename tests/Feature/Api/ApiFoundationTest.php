@@ -207,7 +207,7 @@ class ApiFoundationTest extends TestCase
 
         $response->assertOk();
         $this->assertSame(
-            ['id', 'name', 'login_phone', 'member', 'roles', 'permissions', 'token_expires_at'],
+            ['id', 'name', 'login_phone', 'member', 'roles', 'permissions', 'token_expires_at', 'must_change_password'],
             array_keys($response->json('data')),
         );
         $this->assertSame(['id', 'member_code', 'full_name'], array_keys($response->json('data.member')));

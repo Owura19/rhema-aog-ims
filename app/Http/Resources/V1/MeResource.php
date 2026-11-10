@@ -31,6 +31,8 @@ class MeResource extends JsonResource
             'roles'            => $this->getRoleNames()->values(),
             'permissions'      => $this->getAllPermissions()->pluck('name')->sort()->values(),
             'token_expires_at' => $token instanceof PersonalAccessToken ? $token->expires_at?->toIso8601String() : null,
+            // true after staff issued a temporary password: the app must ask for a new one (PUT /me/password).
+            'must_change_password' => (bool) $this->must_change_password,
         ];
     }
 }

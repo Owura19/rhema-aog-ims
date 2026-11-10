@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsurePasswordChanged;
 use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\EnsureUserIsMember;
 use App\Http\Middleware\ForceJsonResponse;
@@ -25,6 +26,7 @@ return Application::configure(basePath: dirname(__DIR__))
             // Mobile API
             'active'             => EnsureUserIsActive::class,
             'member'             => EnsureUserIsMember::class,
+            'password.changed'   => EnsurePasswordChanged::class,
         ]);
 
         // Mobile API (/api/*): always JSON, and rate limited ('api' limiter in AppServiceProvider).

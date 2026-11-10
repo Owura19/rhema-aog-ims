@@ -96,6 +96,7 @@ class PasswordResetController extends Controller
             }
 
             $user->password = $data['password'];   // hashed by the cast
+            $user->must_change_password = false;   // the member chose this password themselves
             $user->save();                         // the User hook deletes every token of this user
 
             return (new AuthTokenResource($user, $user->createAppToken($data['device_name'])))->response();
