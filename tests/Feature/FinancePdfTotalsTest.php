@@ -33,8 +33,13 @@ class FinancePdfTotalsTest extends TestCase
     /** Stand-in PDF builder; ->loaded tells whether a PDF was started at all. */
     private object $pdf;
 
+    /** exportPdf() raises memory_limit (and sets a 55 s time limit); both are put back after each test. */
+    private string $originalMemoryLimit;
+
     protected function setUp(): void
     {
+        $this->originalMemoryLimit = (string) ini_get('memory_limit');
+
         parent::setUp();
 
         // Freeze "now" at 15 June 2026 so "current month" = June 2026 in every test.
@@ -74,6 +79,16 @@ class FinancePdfTotalsTest extends TestCase
             }
         };
         $this->app->instance('dompdf.wrapper', $this->pdf);
+    }
+
+    protected function tearDown(): void
+    {
+        // FinanceController::exportPdf() calls set_time_limit(55) and ini_set('memory_limit', '512M'),
+        // which would otherwise last for the rest of the test run.
+        ini_set('memory_limit', $this->originalMemoryLimit);
+        set_time_limit(0);
+
+        parent::tearDown();
     }
 
     // ── TOTALS ─────────────────────────────────────────────────────────
