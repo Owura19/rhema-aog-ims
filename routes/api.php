@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\V1\Auth\ActivationController;
 use App\Http\Controllers\Api\V1\Auth\LoginController;
 use App\Http\Controllers\Api\V1\Auth\LogoutController;
 use App\Http\Controllers\Api\V1\Auth\PasswordResetController;
+use App\Http\Controllers\Api\V1\DevotionController;
 use App\Http\Controllers\Api\V1\HealthController;
 use App\Http\Controllers\Api\V1\MeController;
 use App\Http\Controllers\Api\V1\Member\CalendarController;
@@ -56,6 +57,11 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::put('/me/password', MePasswordController::class)
             ->middleware('throttle:password-change')
             ->name('me.password');
+
+        // Daily devotions: any active login (staff without a member record too), live devotions only.
+        Route::get('/devotions/today', [DevotionController::class, 'today'])->name('devotions.today');
+        Route::get('/devotions', [DevotionController::class, 'index'])->name('devotions.index');
+        Route::get('/devotions/{date}', [DevotionController::class, 'show'])->where('date', '[0-9]{4}-[0-9]{2}-[0-9]{2}')->name('devotions.show');
     });
 
     // ── Member features: the signed-in member's own data only ───────────

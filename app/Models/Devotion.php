@@ -22,6 +22,12 @@ class Devotion extends Model
     public const SOURCE_MANUAL = 'manual';
     public const SOURCE_AI     = 'ai';
 
+    /**
+     * The English text a translation is made from, in this fixed order (sourceHash()).
+     * Never reorder: every stored translation's source_hash would stop matching.
+     */
+    public const SOURCE_FIELDS = ['title', 'scripture_reference', 'body', 'prayer', 'thought_for_the_day'];
+
     protected $fillable = [
         'publish_date',
         'title',
@@ -99,5 +105,18 @@ class Devotion extends Model
         }
 
         return $this->publish_date->lte(today()) ? 'live' : self::STATUS_APPROVED;
+    }
+
+    /**
+     * sha256 of the English text (SOURCE_FIELDS, in order, JSON-encoded so field
+     * boundaries are unambiguous). A translation stores the hash of the English it
+     * was made from; when the English changes, the hashes differ and the translation
+     * is out of date.
+     */
+    public function sourceHash(): string
+    {
+        $text = array_map(fn (string $field) => (string) $this->getAttribute($field), self::SOURCE_FIELDS);
+
+        return hash('sha256', json_encode($text, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR));
     }
 }
