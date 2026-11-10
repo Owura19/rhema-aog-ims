@@ -1,7 +1,7 @@
 {{--
     Devotion form fields, shared by create and edit.
     Expects: $devotion, $themes, $selectedTheme.
-    verse_text is never a form field: it comes from the KJV lookup.
+    verse_text is never a form field: the server fills it from the KJV when the reference is saved.
 --}}
 <div class="card" style="margin-bottom:20px;">
     <div class="card-header">
@@ -26,9 +26,10 @@
             <div>
                 <label class="form-label">Scripture reference <span style="color:red;">*</span></label>
                 <input type="text" name="scripture_reference" value="{{ old('scripture_reference', $devotion->scripture_reference) }}"
-                       placeholder="e.g. Isaiah 40:31" maxlength="255"
+                       placeholder="e.g. John 3:16-18 or Psalm 23" maxlength="255"
                        class="form-control {{ $errors->has('scripture_reference') ? 'is-invalid' : '' }}">
                 @error('scripture_reference')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                <div style="font-size:12px; color:#94a3b8; margin-top:4px;">One passage within one chapter, up to {{ config('devotions.scripture.max_verses', 30) }} verses.</div>
             </div>
 
             <div>
@@ -54,9 +55,13 @@
             <div style="grid-column:span 3;">
                 <label class="form-label">Verse (KJV)</label>
                 @if($devotion->verse_text)
-                    <div style="padding:10px 14px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; font-size:14px; color:#374151;">{{ $devotion->verse_text }}</div>
+                    <div data-field="verse" style="padding:10px 14px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; font-size:14px; color:#374151;">
+                        <div style="font-size:12px; font-weight:700; color:#2563eb; text-transform:uppercase; letter-spacing:.04em; margin-bottom:4px;">{{ $devotion->scripture_reference }}</div>
+                        {{ $devotion->verse_text }}
+                    </div>
+                    <div style="font-size:12px; color:#94a3b8; margin-top:4px;">Filled in from the KJV. Change the reference above to change the verse.</div>
                 @else
-                    <div style="font-size:13px; color:#94a3b8;"><i class="fas fa-circle-info"></i> The KJV verse fills in automatically once the reference is checked (coming soon).</div>
+                    <div style="font-size:13px; color:#94a3b8;"><i class="fas fa-circle-info"></i> The KJV verse fills in when you save, from the reference above.</div>
                 @endif
             </div>
 

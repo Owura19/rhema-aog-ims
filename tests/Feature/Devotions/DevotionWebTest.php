@@ -26,6 +26,7 @@ class DevotionWebTest extends TestCase
         parent::setUp();
         $this->travelTo(Carbon::parse('2026-11-09 10:00:00'));
         $this->seed(RolesAndPermissionsSeeder::class);
+        $this->kjvFixture();   // Isaiah 40:31 and John 3:16-17
 
         foreach (self::ROLES as $role) {
             $this->users[$role] = User::factory()->create(['name' => "{$role} User"])->assignRole($role);
@@ -233,17 +234,17 @@ class DevotionWebTest extends TestCase
             ->assertSessionMissing('warning');
     }
 
-    public function test_verse_text_is_never_taken_from_the_form(): void
+    public function test_verse_text_comes_from_the_kjv_never_from_the_form(): void
     {
         $this->as('Pastor')->post(route('devotions.store'), $this->payload(['verse_text' => 'Typed by hand']));
-        $this->assertNull(Devotion::sole()->verse_text);
 
         $devotion = Devotion::sole();
-        $devotion->forceFill(['verse_text' => 'But they that wait upon the LORD shall renew their strength'])->save();
+        $this->assertSame(self::KJV_ISAIAH_40_31, $devotion->verse_text);
 
         $this->as('Pastor')->get(route('devotions.edit', $devotion))
             ->assertOk()
             ->assertSee('But they that wait upon the LORD')
+            ->assertDontSee('Typed by hand')
             ->assertDontSee('name="verse_text"', false);
     }
 
@@ -251,7 +252,7 @@ class DevotionWebTest extends TestCase
 
     public function test_approving_records_who_and_when(): void
     {
-        $devotion = $this->devotion(['publish_date' => '2026-11-25']);
+        $devotion = $this->devotionWithVerse(['publish_date' => '2026-11-25']);
 
         $this->as('Pastor')->from(route('devotions.show', $devotion))->post(route('devotions.approve', $devotion))
             ->assertSessionHas('success', 'Devotion approved. It goes live on 25 Nov 2026.');
@@ -330,7 +331,7 @@ class DevotionWebTest extends TestCase
 
     public function test_saving_an_approved_devotion_with_no_changes_keeps_it_approved(): void
     {
-        $devotion = $this->devotion(['status' => 'approved', 'approved_by' => $this->users['Pastor']->id, 'approved_at' => now()]);
+        $devotion = $this->devotionWithVerse(['status' => 'approved', 'approved_by' => $this->users['Pastor']->id, 'approved_at' => now()]);
 
         $this->as('Office Staff')->put(route('devotions.update', $devotion), $this->unchanged($devotion))
             ->assertSessionHas('success', 'Devotion updated.');

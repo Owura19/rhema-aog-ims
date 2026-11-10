@@ -39,6 +39,11 @@ return [
         ],
     ],
 
+    'scripture' => [
+        // The longest passage a devotion may quote, for verse ranges and whole chapters alike.
+        'max_verses' => 30,
+    ],
+
     'ai' => [
         // 'anthropic' or 'groq'. `?:` so an empty DEVOTIONS_AI_PROVIDER= line still means the default.
         'provider' => env('DEVOTIONS_AI_PROVIDER') ?: 'anthropic',

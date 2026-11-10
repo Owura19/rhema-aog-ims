@@ -32,6 +32,10 @@ class Devotion extends Model
         'publish_date',
         'title',
         'scripture_reference',
+        'bible_book_id',
+        'chapter',
+        'verse_start',
+        'verse_end',
         'verse_text',
         'body',
         'prayer',
@@ -49,10 +53,14 @@ class Devotion extends Model
     ];
 
     protected $casts = [
-        'publish_date' => 'date',
-        'approved_at'  => 'datetime',
-        'no_theme'     => 'boolean',
-        'ai_edited'    => 'boolean',
+        'publish_date'  => 'date',
+        'approved_at'   => 'datetime',
+        'no_theme'      => 'boolean',
+        'ai_edited'     => 'boolean',
+        'bible_book_id' => 'integer',
+        'chapter'       => 'integer',
+        'verse_start'   => 'integer',
+        'verse_end'     => 'integer',
     ];
 
     // ── RELATIONSHIPS ──────────────────────────────────────
@@ -60,6 +68,11 @@ class Devotion extends Model
     public function theme()
     {
         return $this->belongsTo(DevotionTheme::class, 'theme_id');
+    }
+
+    public function bibleBook()
+    {
+        return $this->belongsTo(BibleBook::class, 'bible_book_id');
     }
 
     public function translations()

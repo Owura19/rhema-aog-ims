@@ -4,7 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Devotion;
 use App\Models\DevotionTheme;
+use App\Services\Bible\BibleText;
+use App\Support\Bible\InvalidReference;
+use App\Support\Bible\ReferenceParser;
+use App\Support\Bible\ScriptureReference;
 use App\Support\Devotions\Words;
+use Closure;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -18,7 +23,10 @@ use Illuminate\Validation\ValidationException;
  *  - Editing an approved devotion without 'approve devotions' returns it to draft.
  *  - Deleting is a soft delete; an approved devotion also needs 'approve devotions'.
  *  - One non-deleted devotion per date (validated, and enforced by the database).
- *  - verse_text is never taken from the form: it comes from the KJV lookup (E2).
+ *  - The scripture reference is checked (ReferenceParser) and stored in its display form
+ *    with its book, chapter and verses; verse_text is never taken from the form: it is
+ *    filled from the imported KJV when the passage changes (or is still empty).
+ *  - Approving needs a checked reference and its verse text.
  */
 class DevotionController extends Controller
 {
@@ -28,6 +36,8 @@ class DevotionController extends Controller
     private const TEXT_FIELDS = ['title', 'scripture_reference', 'body', 'prayer', 'thought_for_the_day'];
 
     private const DUPLICATE_DATE = 'There is already a devotion for this date.';
+
+    private const NEEDS_REFERENCE = 'Add a scripture reference before approving.';
 
     public function index(Request $request)
     {
@@ -68,12 +78,12 @@ class DevotionController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $data = $this->validated($request);
+        [$data, $reference] = $this->validated($request);
         $themeId = $this->themeFor($data);
         $userId = $request->user()->id;
 
         try {
-            $devotion = Devotion::create(array_merge($data, [
+            $devotion = Devotion::create(array_merge($data, $this->scripture($reference), [
                 'theme_id'   => $themeId,
                 'no_theme'   => $themeId === null,
                 'status'     => Devotion::STATUS_DRAFT,
@@ -109,12 +119,13 @@ class DevotionController extends Controller
 
     public function update(Request $request, Devotion $devotion): RedirectResponse
     {
-        $data = $this->validated($request, $devotion);
+        [$data, $reference] = $this->validated($request, $devotion);
         $themeId = $this->themeFor($data);
 
-        $devotion->fill(array_merge($data, ['theme_id' => $themeId, 'no_theme' => $themeId === null]));
-        // Only what staff can edit counts as a change (not the derived no_theme flag).
-        $changed = $devotion->isDirty(array_merge(array_keys($data), ['theme_id']));
+        $devotion->fill(array_merge($data, $this->scripture($reference, $devotion), ['theme_id' => $themeId, 'no_theme' => $themeId === null]));
+        // Only what staff can edit (and the verse it brings) counts as a change; not the derived no_theme
+        // flag or reference columns.
+        $changed = $devotion->isDirty(array_merge(array_keys($data), ['theme_id', 'verse_text']));
 
         if ($devotion->source === Devotion::SOURCE_AI && $devotion->isDirty(self::TEXT_FIELDS)) {
             $devotion->ai_edited = true;
@@ -166,6 +177,10 @@ class DevotionController extends Controller
             return back()->with('error', "This devotion can't be approved yet. Missing: " . implode(', ', $labels) . '.');
         }
 
+        if ($devotion->bible_book_id === null || trim((string) $devotion->verse_text) === '') {
+            return back()->with('error', BibleText::isImported() ? self::NEEDS_REFERENCE : BibleText::NOT_IMPORTED);
+        }
+
         $devotion->update([
             'status'      => Devotion::STATUS_APPROVED,
             'approved_by' => $request->user()->id,
@@ -196,13 +211,30 @@ class DevotionController extends Controller
 
     // ── helpers ────────────────────────────────────────────────────────
 
+    /** @return array{0: array<string, mixed>, 1: ScriptureReference} the validated fields and the checked reference */
     private function validated(Request $request, ?Devotion $devotion = null): array
     {
-        return $request->validate([
+        $reference = null;
+
+        $data = $request->validate([
             // live_publish_date is NULL for deleted devotions, so a deleted devotion never blocks its date.
             'publish_date'        => ['required', 'date_format:Y-m-d', Rule::unique('devotions', 'live_publish_date')->ignore($devotion?->id)],
             'title'               => ['required', 'string', 'max:255'],
-            'scripture_reference' => ['required', 'string', 'max:255'],
+            'scripture_reference' => ['required', 'string', 'max:255', function (string $attribute, mixed $value, Closure $fail) use (&$reference) {
+                if (! is_string($value)) {
+                    return;   // the 'string' rule reports it
+                }
+                if (! BibleText::isImported()) {
+                    $fail(BibleText::NOT_IMPORTED);   // never "book not recognised" when there is no text at all
+
+                    return;
+                }
+                try {
+                    $reference = ReferenceParser::fromConfig()->parse($value);
+                } catch (InvalidReference $e) {
+                    $fail($e->getMessage());
+                }
+            }],
             'theme_id'            => ['nullable', 'integer', Rule::exists('devotion_themes', 'id')],
             'author_name'         => ['nullable', 'string', 'max:255'],
             'body'                => ['required', 'string', 'max:20000'],
@@ -211,6 +243,41 @@ class DevotionController extends Controller
         ], [
             'publish_date.unique' => self::DUPLICATE_DATE,
         ]);
+
+        return [$data, $reference];
+    }
+
+    /**
+     * The reference in its display form with its book, chapter and verses, plus the KJV
+     * verse text when the passage changed or the devotion has no verse text yet.
+     */
+    private function scripture(ScriptureReference $reference, ?Devotion $devotion = null): array
+    {
+        $columns = [
+            'scripture_reference' => $reference->display,
+            'bible_book_id'       => $reference->bookId,
+            'chapter'             => $reference->chapter,
+            'verse_start'         => $reference->verseStart,
+            'verse_end'           => $reference->verseEnd,
+        ];
+
+        $samePassage = $devotion !== null
+            && trim((string) $devotion->verse_text) !== ''
+            && $devotion->bible_book_id === $reference->bookId
+            && $devotion->chapter === $reference->chapter
+            && $devotion->verse_start === $reference->verseStart
+            && $devotion->verse_end === $reference->verseEnd;
+
+        if ($samePassage) {
+            return $columns;
+        }
+
+        $text = BibleText::passage($reference);
+        if ($text === null) {
+            throw ValidationException::withMessages(['scripture_reference' => BibleText::NOT_IMPORTED]);   // incomplete import
+        }
+
+        return $columns + ['verse_text' => $text];
     }
 
     /** The chosen theme, or (when "Automatic" is chosen) the theme covering the date. */

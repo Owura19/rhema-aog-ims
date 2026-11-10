@@ -45,6 +45,13 @@ class KjvIntegrityTest extends TestCase
         $expected = array_map(fn ($b, $i) => [$i + 1, $b['chapters'], $b['verses'], $b['chapters']], KjvCanon::BOOKS, array_keys(KjvCanon::BOOKS));
         $this->assertSame($expected, $actual);
 
+        // Every chapter: its verse count as in KjvCanon::CHAPTER_VERSES (which ReferenceParser relies on).
+        $perChapter = [];
+        foreach (DB::table('bible_verses')->selectRaw('book_id, chapter, COUNT(*) AS verses')->groupBy('book_id', 'chapter')->orderBy('book_id')->orderBy('chapter')->get() as $row) {
+            $perChapter[KjvCanon::BOOKS[$row->book_id - 1]['code']][] = (int) $row->verses;
+        }
+        $this->assertSame(KjvCanon::CHAPTER_VERSES, $perChapter);
+
         // Spot checks, cleaned: no pilcrows, no italic brackets; ’ and — kept.
         $this->assertSame('In the beginning God created the heaven and the earth.', $this->verse('GEN', 1, 1));
         $this->assertSame('A Psalm of David. The LORD is my shepherd; I shall not want.', $this->verse('PSA', 23, 1));

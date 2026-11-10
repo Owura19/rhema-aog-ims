@@ -33,4 +33,21 @@ class KjvCanonTest extends TestCase
         $differ = array_values(array_map(fn ($b) => "{$b['ebible']}>{$b['code']}", array_filter($books, fn ($b) => $b['ebible'] !== $b['code'])));
         $this->assertSame(['SOL>SNG', 'EZE>EZK', 'JOE>JOL', 'NAH>NAM', 'MAR>MRK', 'JOH>JHN', 'PHI>PHP', 'JAM>JAS', '1JO>1JN', '2JO>2JN', '3JO>3JN'], $differ);
     }
+
+    public function test_verses_per_chapter_add_up_to_each_books_counts(): void
+    {
+        $this->assertSame(array_column(KjvCanon::BOOKS, 'code'), array_keys(KjvCanon::CHAPTER_VERSES));
+
+        foreach (KjvCanon::BOOKS as $book) {
+            $chapters = KjvCanon::CHAPTER_VERSES[$book['code']];
+            $this->assertCount($book['chapters'], $chapters, $book['name']);
+            $this->assertSame($book['verses'], array_sum($chapters), $book['name']);
+            $this->assertSame([], array_filter($chapters, fn ($verses) => ! is_int($verses) || $verses < 1), $book['name']);
+        }
+
+        $this->assertSame(36, KjvCanon::CHAPTER_VERSES['JHN'][2]);     // John 3
+        $this->assertSame(176, KjvCanon::CHAPTER_VERSES['PSA'][118]);  // Psalm 119
+        $this->assertSame(2, KjvCanon::CHAPTER_VERSES['PSA'][116]);    // Psalm 117
+        $this->assertSame([25], KjvCanon::CHAPTER_VERSES['JUD']);
+    }
 }

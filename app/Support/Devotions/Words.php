@@ -21,9 +21,10 @@ final class Words
     {
         [$min, $max] = config('devotions.limits.staff_warning.reflection_words');
         $words = self::count($body);
+        $noun = $words === 1 ? 'word' : 'words';
 
         return ($words < $min || $words > $max)
-            ? "The reflection has {$words} words; the usual length is {$min}–{$max}. It was saved anyway."
+            ? "The reflection has {$words} {$noun}; the usual length is {$min}–{$max}. It was saved anyway."
             : null;
     }
 }

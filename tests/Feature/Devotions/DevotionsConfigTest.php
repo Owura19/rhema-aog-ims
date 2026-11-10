@@ -65,5 +65,6 @@ class DevotionsConfigTest extends TestCase
         $this->assertSame([40, 80], $config['limits']['ai']['prayer_words']);
         $this->assertSame(140, $config['limits']['ai']['thought_chars']);
         $this->assertSame([200, 450], $config['limits']['staff_warning']['reflection_words']);
+        $this->assertSame(30, $config['scripture']['max_verses']);
     }
 }

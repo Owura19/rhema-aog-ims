@@ -50,7 +50,7 @@
             @if($devotion->verse_text)
                 <blockquote style="margin:10px 0 18px; padding:12px 16px; border-left:4px solid #2563eb; background:#f8fafc; font-style:italic; color:#374151;">{{ $devotion->verse_text }}</blockquote>
             @else
-                <div style="margin:8px 0 18px; font-size:13px; color:#94a3b8;"><i class="fas fa-circle-info"></i> The KJV verse fills in automatically once the reference is checked (coming soon).</div>
+                <div style="margin:8px 0 18px; font-size:13px; color:#94a3b8;"><i class="fas fa-circle-info"></i> No verse yet: edit the devotion and save its scripture reference to fill it in from the KJV.</div>
             @endif
 
             <div data-field="body" style="font-size:15px; line-height:1.8; color:#1e293b;">{!! nl2br(e($devotion->body)) !!}</div>
