@@ -45,13 +45,25 @@ class DatabaseSeederTest extends TestCase
     {
         $this->app->detectEnvironment(fn () => 'production');
 
+        // Migrations may already have created some roles/permissions (e.g. the devotion ones): snapshot them.
+        $before = $this->snapshot();
+
         // --force skips Laravel's own "are you sure?" prompt, so the seeder's guard is what is tested.
         $output = $this->seedAndCapture(['--force' => true]);
 
         $this->assertStringContainsString('DatabaseSeeder must not run in production. Nothing was changed.', $output);
         $this->assertSame(0, User::count());
-        $this->assertSame(0, Role::count());
-        $this->assertSame(0, Permission::count());
+        $this->assertSame($before, $this->snapshot());
+    }
+
+    /** @return array{roles: list<string>, permissions: list<string>, grants: int} */
+    private function snapshot(): array
+    {
+        return [
+            'roles'       => Role::orderBy('name')->pluck('name')->all(),
+            'permissions' => Permission::orderBy('name')->pluck('name')->all(),
+            'grants'      => Role::withCount('permissions')->get()->sum('permissions_count'),
+        ];
     }
 
     public function test_outside_production_both_accounts_get_different_random_passwords_printed_once(): void

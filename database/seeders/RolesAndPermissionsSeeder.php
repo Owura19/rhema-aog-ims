@@ -8,7 +8,7 @@ use Spatie\Permission\Models\Permission;
 use Spatie\Permission\PermissionRegistrar;
 
 /**
- * The roles and permissions production has (10 roles, 28 permissions).
+ * The roles and permissions production has (11 roles, 32 permissions).
  * Kept in line with production: RolesAndPermissionsSeederTest checks a fresh
  * seed gives exactly these sets. New permissions reach production through a
  * migration; add them here too so fresh installs match.
@@ -64,6 +64,12 @@ class RolesAndPermissionsSeeder extends Seeder
             'edit events',
             'delete events',
 
+            // Devotions (production: migration 2026_11_10_100300_add_devotion_permissions)
+            'view devotions',
+            'manage devotions',
+            'approve devotions',
+            'review translations',
+
             // Reports
             'view reports',
 
@@ -97,6 +103,10 @@ class RolesAndPermissionsSeeder extends Seeder
             'view reports',
             'create events',
             'edit events',
+            'view devotions',
+            'manage devotions',
+            'approve devotions',
+            'review translations',
         ]);
 
         // Head of Department (HOD)
@@ -173,6 +183,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'view cell groups',
             'view finance',
             'create finance',
+            'view devotions',
+            'manage devotions',
         ]);
 
         // Pledge Officer
@@ -181,6 +193,13 @@ class RolesAndPermissionsSeeder extends Seeder
             'view members',
             'view pledges',
             'manage pledges',
+        ]);
+
+        // Devotion Translator — reviews and approves devotion translations
+        $translator = Role::firstOrCreate(['name' => 'Devotion Translator']);
+        $translator->givePermissionTo([
+            'view devotions',
+            'review translations',
         ]);
     }
 }
