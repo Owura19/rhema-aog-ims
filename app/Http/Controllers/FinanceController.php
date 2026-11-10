@@ -110,7 +110,7 @@ class FinanceController extends Controller
     public function create()
     {
         $members  = Member::orderBy('first_name')->get();
-        $services = ChurchService::latest('service_date')->take(20)->get();
+        $services = ChurchService::forPicker()->get();
 
         // Income/Expense accounts for the "Post to Account" dropdown
         $accounts = \App\Models\Account::whereIn('type', ['Income', 'Expense'])
@@ -235,7 +235,7 @@ class FinanceController extends Controller
     {
         $transaction = $finance;
         $members     = Member::orderBy('first_name')->get();
-        $services    = ChurchService::latest('service_date')->take(20)->get();
+        $services    = ChurchService::forPicker($transaction->church_service_id)->get();   // keeps this record's own service listed
         return view('finance.edit', compact('transaction', 'members', 'services'));
     }
 

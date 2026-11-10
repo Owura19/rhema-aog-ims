@@ -54,7 +54,7 @@ class VisitorController extends Controller
 
     public function create()
     {
-        $services = ChurchService::latest('service_date')->take(20)->get();
+        $services = ChurchService::forPicker()->get();
         return view('visitors.create', compact('services'));
     }
 
@@ -94,7 +94,7 @@ class VisitorController extends Controller
 
     public function edit(Visitor $visitor)
     {
-        $services = ChurchService::latest('service_date')->take(20)->get();
+        $services = ChurchService::forPicker($visitor->church_service_id)->get();   // keeps this record's own service listed
         return view('visitors.edit', compact('visitor', 'services'));
     }
 

@@ -62,4 +62,37 @@ class ChurchService extends Model
         if ($total === 0) return 0;
         return round(($this->attendance_count / $total) * 100, 1);
     }
+
+    // ── SCOPES ─────────────────────────────────────────────
+
+    /**
+     * Services for a "which service?" dropdown: the 20 most recent dated today or
+     * earlier (newest first) — future services, such as generated weekly
+     * programmes, never crowd out today's. $includeId (the record's current
+     * service, or a filter value) is always added, so editing an old record
+     * never silently loses its service.
+     */
+    public function scopeForPicker($query, ?int $includeId = null)
+    {
+        $latest = static::query()
+            ->select('id')
+            ->where('service_date', '<=', today()->toDateString())
+            ->orderByDesc('service_date')
+            ->orderByDesc('start_time')
+            ->orderByDesc('id')
+            ->limit(20);
+
+        return $query
+            ->where(function ($q) use ($latest, $includeId) {
+                // MySQL can't LIMIT inside IN (…) directly; a derived table can.
+                $q->whereIn('id', fn ($sub) => $sub->select('id')->fromSub($latest, 'latest_services'));
+
+                if ($includeId) {
+                    $q->orWhere('id', $includeId);
+                }
+            })
+            ->orderByDesc('service_date')
+            ->orderByDesc('start_time')
+            ->orderByDesc('id');
+    }
 }
