@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\V1\Auth\ActivationController;
 use App\Http\Controllers\Api\V1\Auth\LoginController;
 use App\Http\Controllers\Api\V1\Auth\LogoutController;
 use App\Http\Controllers\Api\V1\Auth\PasswordResetController;
+use App\Http\Controllers\Api\V1\AnnouncementController;
 use App\Http\Controllers\Api\V1\BibleController;
 use App\Http\Controllers\Api\V1\Community\BlockController as CommunityBlockController;
 use App\Http\Controllers\Api\V1\Community\CommentController as CommunityCommentController;
@@ -86,6 +87,9 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::get('/sermons', [SermonController::class, 'index'])->name('sermons.index');
         Route::get('/sermons/{sermon}', [SermonController::class, 'show'])->where('sermon', '[0-9]{1,18}')->name('sermons.show');
         Route::get('/sermon-series', SermonSeriesController::class)->name('sermon-series.index');
+
+        // Announcements for Home: any active login, live ones only.
+        Route::get('/announcements', AnnouncementController::class)->name('announcements.index');
 
         // KJV reader: any active login.
         Route::get('/bible/books', [BibleController::class, 'books'])->name('bible.books');
