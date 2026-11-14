@@ -77,12 +77,15 @@ class DevotionPermissionsMigrationTest extends TestCase
     {
         $this->productionLikeRoles();
         $this->migration()->up();
+        // Other migrations (e.g. sermon permissions) also create permissions: only the devotion ones may go.
+        $others = Permission::whereNotIn('name', self::DEVOTION_PERMISSIONS)->orderBy('name')->pluck('name')->all();
 
         $this->migration()->down();
 
         $this->assertSame(0, Permission::whereIn('name', self::DEVOTION_PERMISSIONS)->count());
         $this->assertFalse(Role::where('name', 'Devotion Translator')->exists());
-        $this->assertSame(['view members'], Permission::orderBy('name')->pluck('name')->all());
+        $this->assertContains('view members', $others);
+        $this->assertSame($others, Permission::orderBy('name')->pluck('name')->all());
         $this->assertSame(['view members'], $this->permissionsOf('Super Admin'));
         $this->assertSame(['HOD', 'Office Staff', 'Pastor', 'Super Admin'], Role::orderBy('name')->pluck('name')->all());
     }
