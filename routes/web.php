@@ -11,6 +11,7 @@ use App\Http\Controllers\CellGroupController;
 use App\Http\Controllers\DevotionController;
 use App\Http\Controllers\DevotionThemeController;
 use App\Http\Controllers\EventController;
+use App\Http\Controllers\AnnouncementController;
 use App\Http\Controllers\CommunityModerationController;
 use App\Http\Controllers\RandyImpactAIController;
 use App\Http\Controllers\SermonController;
@@ -235,6 +236,18 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware('permission:view sermons')->group(function () {
         Route::get('/sermons', [SermonController::class, 'index'])->name('sermons.index');
         Route::get('/sermons/{sermon}', [SermonController::class, 'show'])->whereNumber('sermon')->name('sermons.show');
+    });
+
+    // ANNOUNCEMENTS (the app's Home) — 'manage announcements': Super Admin, Pastor, Office Staff
+    Route::middleware('permission:manage announcements')->group(function () {
+        Route::get('/announcements', [AnnouncementController::class, 'index'])->name('announcements.index');
+        Route::get('/announcements/create', [AnnouncementController::class, 'create'])->name('announcements.create');
+        Route::post('/announcements', [AnnouncementController::class, 'store'])->name('announcements.store');
+        Route::get('/announcements/{announcement}/edit', [AnnouncementController::class, 'edit'])->whereNumber('announcement')->name('announcements.edit');
+        Route::put('/announcements/{announcement}', [AnnouncementController::class, 'update'])->whereNumber('announcement')->name('announcements.update');
+        Route::delete('/announcements/{announcement}', [AnnouncementController::class, 'destroy'])->whereNumber('announcement')->name('announcements.destroy');
+        Route::post('/announcements/{announcement}/publish', [AnnouncementController::class, 'publish'])->whereNumber('announcement')->name('announcements.publish');
+        Route::post('/announcements/{announcement}/unpublish', [AnnouncementController::class, 'unpublish'])->whereNumber('announcement')->name('announcements.unpublish');
     });
 
     // COMMUNITY MODERATION (the members' app feed) — 'moderate community': Super Admin + Pastor
