@@ -13,6 +13,8 @@ use App\Http\Controllers\DevotionThemeController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\CommunityController;
 use App\Http\Controllers\RandyImpactAIController;
+use App\Http\Controllers\SermonController;
+use App\Http\Controllers\SermonSeriesController;
 use App\Http\Controllers\VisitorController;
 
 Route::get('/', function () {
@@ -209,6 +211,30 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware('permission:view devotions')->group(function () {
         Route::get('/devotions', [DevotionController::class, 'index'])->name('devotions.index');
         Route::get('/devotions/{devotion}', [DevotionController::class, 'show'])->whereNumber('devotion')->name('devotions.show');
+    });
+
+    // ─────────────────────────────────────────────────────────────
+    // SERMONS — view: 'view sermons' | write, publish, delete, series: 'manage sermons'
+    // ─────────────────────────────────────────────────────────────
+    Route::middleware('permission:manage sermons')->group(function () {
+        Route::get('/sermons/create', [SermonController::class, 'create'])->name('sermons.create');
+        Route::post('/sermons', [SermonController::class, 'store'])->name('sermons.store');
+        Route::get('/sermons/{sermon}/edit', [SermonController::class, 'edit'])->whereNumber('sermon')->name('sermons.edit');
+        Route::put('/sermons/{sermon}', [SermonController::class, 'update'])->whereNumber('sermon')->name('sermons.update');
+        Route::delete('/sermons/{sermon}', [SermonController::class, 'destroy'])->whereNumber('sermon')->name('sermons.destroy');
+        Route::post('/sermons/{sermon}/publish', [SermonController::class, 'publish'])->whereNumber('sermon')->name('sermons.publish');
+        Route::post('/sermons/{sermon}/unpublish', [SermonController::class, 'unpublish'])->whereNumber('sermon')->name('sermons.unpublish');
+
+        Route::get('/sermon-series', [SermonSeriesController::class, 'index'])->name('sermon-series.index');
+        Route::get('/sermon-series/create', [SermonSeriesController::class, 'create'])->name('sermon-series.create');
+        Route::post('/sermon-series', [SermonSeriesController::class, 'store'])->name('sermon-series.store');
+        Route::get('/sermon-series/{series}/edit', [SermonSeriesController::class, 'edit'])->whereNumber('series')->name('sermon-series.edit');
+        Route::put('/sermon-series/{series}', [SermonSeriesController::class, 'update'])->whereNumber('series')->name('sermon-series.update');
+        Route::delete('/sermon-series/{series}', [SermonSeriesController::class, 'destroy'])->whereNumber('series')->name('sermon-series.destroy');
+    });
+    Route::middleware('permission:view sermons')->group(function () {
+        Route::get('/sermons', [SermonController::class, 'index'])->name('sermons.index');
+        Route::get('/sermons/{sermon}', [SermonController::class, 'show'])->whereNumber('sermon')->name('sermons.show');
     });
 
     // ─────────────────────────────────────────────────────────────

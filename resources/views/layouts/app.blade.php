@@ -351,6 +351,11 @@
             <i class="fas fa-book-open"></i> Devotions
         </a>
         @endcan
+        @can('view sermons')
+        <a href="{{ route('sermons.index') }}" class="sidebar-link {{ request()->routeIs('sermons.*') || request()->routeIs('sermon-series.*') ? 'active' : '' }}">
+            <i class="fas fa-microphone"></i> Sermons
+        </a>
+        @endcan
         {{-- Community & RandyImpact are open to any logged-in user --}}
         <a href="{{ route('community.index') }}" class="sidebar-link {{ request()->routeIs('community.*') ? 'active' : '' }}">
             <i class="fas fa-globe"></i> Community
