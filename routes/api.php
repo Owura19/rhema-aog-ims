@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\V1\Auth\LogoutController;
 use App\Http\Controllers\Api\V1\Auth\PasswordResetController;
 use App\Http\Controllers\Api\V1\AnnouncementController;
 use App\Http\Controllers\Api\V1\BibleController;
+use App\Http\Controllers\Api\V1\DayBornController;
 use App\Http\Controllers\Api\V1\Community\BlockController as CommunityBlockController;
 use App\Http\Controllers\Api\V1\Community\CommentController as CommunityCommentController;
 use App\Http\Controllers\Api\V1\Community\ReportController as CommunityReportController;
@@ -90,6 +91,10 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
 
         // Announcements for Home: any active login, live ones only.
         Route::get('/announcements', AnnouncementController::class)->name('announcements.index');
+
+        // Day-born offering results: any active login, published weeks only (group totals, never per member).
+        Route::get('/day-born/latest', [DayBornController::class, 'latest'])->name('day-born.latest');
+        Route::get('/day-born', [DayBornController::class, 'index'])->name('day-born.index');
 
         // KJV reader: any active login.
         Route::get('/bible/books', [BibleController::class, 'books'])->name('bible.books');
