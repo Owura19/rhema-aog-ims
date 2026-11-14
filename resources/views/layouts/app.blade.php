@@ -356,6 +356,11 @@
             <i class="fas fa-microphone"></i> Sermons
         </a>
         @endcan
+        @can('manage announcements')
+        <a href="{{ route('announcements.index') }}" class="sidebar-link {{ request()->routeIs('announcements.*') ? 'active' : '' }}">
+            <i class="fas fa-bullhorn"></i> Announcements
+        </a>
+        @endcan
         @can('moderate community')
         <a href="{{ route('community-moderation.index') }}" class="sidebar-link {{ request()->routeIs('community-moderation.*') ? 'active' : '' }}">
             <i class="fas fa-shield-halved"></i> Community Moderation

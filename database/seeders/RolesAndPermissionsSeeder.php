@@ -8,7 +8,7 @@ use Spatie\Permission\Models\Permission;
 use Spatie\Permission\PermissionRegistrar;
 
 /**
- * The roles and permissions production has (11 roles, 35 permissions).
+ * The roles and permissions production has (11 roles, 36 permissions).
  * Kept in line with production: RolesAndPermissionsSeederTest checks a fresh
  * seed gives exactly these sets. New permissions reach production through a
  * migration; add them here too so fresh installs match.
@@ -77,6 +77,9 @@ class RolesAndPermissionsSeeder extends Seeder
             // Community feed (production: migration 2026_11_15_100100_add_community_moderation_permission)
             'moderate community',
 
+            // Announcements (production: migration 2026_11_16_100100_add_announcement_permission)
+            'manage announcements',
+
             // Reports
             'view reports',
 
@@ -117,6 +120,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'view sermons',
             'manage sermons',
             'moderate community',
+            'manage announcements',
         ]);
 
         // Head of Department (HOD)
@@ -197,6 +201,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'manage devotions',
             'view sermons',
             'manage sermons',
+            'manage announcements',
         ]);
 
         // Pledge Officer
