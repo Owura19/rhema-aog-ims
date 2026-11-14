@@ -11,8 +11,10 @@ use App\Http\Controllers\CellGroupController;
 use App\Http\Controllers\DevotionController;
 use App\Http\Controllers\DevotionThemeController;
 use App\Http\Controllers\EventController;
-use App\Http\Controllers\CommunityController;
+use App\Http\Controllers\CommunityModerationController;
 use App\Http\Controllers\RandyImpactAIController;
+use App\Http\Controllers\SermonController;
+use App\Http\Controllers\SermonSeriesController;
 use App\Http\Controllers\VisitorController;
 
 Route::get('/', function () {
@@ -212,6 +214,44 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // ─────────────────────────────────────────────────────────────
+    // SERMONS — view: 'view sermons' | write, publish, delete, series: 'manage sermons'
+    // ─────────────────────────────────────────────────────────────
+    Route::middleware('permission:manage sermons')->group(function () {
+        Route::get('/sermons/create', [SermonController::class, 'create'])->name('sermons.create');
+        Route::post('/sermons', [SermonController::class, 'store'])->name('sermons.store');
+        Route::get('/sermons/{sermon}/edit', [SermonController::class, 'edit'])->whereNumber('sermon')->name('sermons.edit');
+        Route::put('/sermons/{sermon}', [SermonController::class, 'update'])->whereNumber('sermon')->name('sermons.update');
+        Route::delete('/sermons/{sermon}', [SermonController::class, 'destroy'])->whereNumber('sermon')->name('sermons.destroy');
+        Route::post('/sermons/{sermon}/publish', [SermonController::class, 'publish'])->whereNumber('sermon')->name('sermons.publish');
+        Route::post('/sermons/{sermon}/unpublish', [SermonController::class, 'unpublish'])->whereNumber('sermon')->name('sermons.unpublish');
+
+        Route::get('/sermon-series', [SermonSeriesController::class, 'index'])->name('sermon-series.index');
+        Route::get('/sermon-series/create', [SermonSeriesController::class, 'create'])->name('sermon-series.create');
+        Route::post('/sermon-series', [SermonSeriesController::class, 'store'])->name('sermon-series.store');
+        Route::get('/sermon-series/{series}/edit', [SermonSeriesController::class, 'edit'])->whereNumber('series')->name('sermon-series.edit');
+        Route::put('/sermon-series/{series}', [SermonSeriesController::class, 'update'])->whereNumber('series')->name('sermon-series.update');
+        Route::delete('/sermon-series/{series}', [SermonSeriesController::class, 'destroy'])->whereNumber('series')->name('sermon-series.destroy');
+    });
+    Route::middleware('permission:view sermons')->group(function () {
+        Route::get('/sermons', [SermonController::class, 'index'])->name('sermons.index');
+        Route::get('/sermons/{sermon}', [SermonController::class, 'show'])->whereNumber('sermon')->name('sermons.show');
+    });
+
+    // COMMUNITY MODERATION (the members' app feed) — 'moderate community': Super Admin + Pastor
+    Route::middleware('permission:moderate community')->prefix('community-moderation')->name('community-moderation.')->group(function () {
+        Route::get('/', [CommunityModerationController::class, 'index'])->name('index');
+        Route::get('/members/{member}', [CommunityModerationController::class, 'member'])->whereNumber('member')->name('member');
+        Route::post('/members/{member}/ban', [CommunityModerationController::class, 'ban'])->whereNumber('member')->name('ban');
+        Route::post('/bans/{ban}/lift', [CommunityModerationController::class, 'liftBan'])->whereNumber('ban')->name('lift-ban');
+        Route::get('/photos/{photo}/{variant}', [CommunityModerationController::class, 'photo'])
+            ->where(['photo' => '[0-9]+', 'variant' => 'full|thumb'])->name('photo');
+        Route::get('/{type}/{id}', [CommunityModerationController::class, 'show'])->where(['type' => 'post|comment', 'id' => '[0-9]+'])->name('show');
+        Route::post('/{type}/{id}/hide', [CommunityModerationController::class, 'hide'])->where(['type' => 'post|comment', 'id' => '[0-9]+'])->name('hide');
+        Route::post('/{type}/{id}/unhide', [CommunityModerationController::class, 'unhide'])->where(['type' => 'post|comment', 'id' => '[0-9]+'])->name('unhide');
+        Route::post('/{type}/{id}/dismiss', [CommunityModerationController::class, 'dismiss'])->where(['type' => 'post|comment', 'id' => '[0-9]+'])->name('dismiss');
+    });
+
+    // ─────────────────────────────────────────────────────────────
     // VISITORS — view/create/edit/delete: matching 'visitors' permission
     // Convert to member: 'create members' (it creates a member record).
     // Follow-up tracking with one-click conversion to member.
@@ -249,16 +289,9 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/users/{user}', [\App\Http\Controllers\UserController::class, 'destroy'])->name('users.destroy');
     });
 
-    // ─────────────────────────────────────────────────────────────
-    // COMMUNITY — any logged-in user
-    // ─────────────────────────────────────────────────────────────
-    Route::get('/community', [CommunityController::class, 'index'])->name('community.index');
-    Route::post('/community', [CommunityController::class, 'store'])->name('community.store');
-    Route::delete('/community/{post}', [CommunityController::class, 'destroy'])->name('community.destroy');
-    Route::post('/community/{post}/like', [CommunityController::class, 'like'])->name('community.like');
-    Route::post('/community/{post}/comment', [CommunityController::class, 'comment'])->name('community.comment');
-    Route::delete('/community/comments/{comment}', [CommunityController::class, 'deleteComment'])->name('community.delete-comment');
-    Route::post('/community/{post}/pin', [CommunityController::class, 'pin'])->name('community.pin');
+    // The old staff "Community" page (CommunityController, /community) is retired: the
+    // members' feed lives in the app (api/v1/community, moderated at /community-moderation).
+    // Its tables (posts, post_likes, post_comments) and models are kept untouched.
 
     // ─────────────────────────────────────────────────────────────
     // RANDYIMPACT AI — any logged-in user

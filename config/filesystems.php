@@ -47,6 +47,17 @@ return [
             'report' => false,
         ],
 
+        // Community feed photos: private, never served directly; the API streams them
+        // through short-lived signed URLs. Moving to S3 later is a config change here.
+        'community' => [
+            'driver' => 'local',
+            'root' => storage_path('app/private/community'),
+            'visibility' => 'private',
+            'serve' => false,
+            'throw' => false,
+            'report' => false,
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),

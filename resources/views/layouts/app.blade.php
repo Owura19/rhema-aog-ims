@@ -351,10 +351,17 @@
             <i class="fas fa-book-open"></i> Devotions
         </a>
         @endcan
-        {{-- Community & RandyImpact are open to any logged-in user --}}
-        <a href="{{ route('community.index') }}" class="sidebar-link {{ request()->routeIs('community.*') ? 'active' : '' }}">
-            <i class="fas fa-globe"></i> Community
+        @can('view sermons')
+        <a href="{{ route('sermons.index') }}" class="sidebar-link {{ request()->routeIs('sermons.*') || request()->routeIs('sermon-series.*') ? 'active' : '' }}">
+            <i class="fas fa-microphone"></i> Sermons
         </a>
+        @endcan
+        @can('moderate community')
+        <a href="{{ route('community-moderation.index') }}" class="sidebar-link {{ request()->routeIs('community-moderation.*') ? 'active' : '' }}">
+            <i class="fas fa-shield-halved"></i> Community Moderation
+        </a>
+        @endcan
+        {{-- RandyImpact is open to any logged-in user. (The old Community page is retired.) --}}
         <a href="{{ route('randyimpact.index') }}" class="sidebar-link {{ request()->routeIs('randyimpact.*') ? 'active' : '' }}">
             <i class="fas fa-bolt"></i> Dr Patrick AI
         </a>

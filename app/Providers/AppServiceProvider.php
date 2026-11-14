@@ -69,5 +69,27 @@ class AppServiceProvider extends ServiceProvider
 
             return Limit::perMinute(5)->by('password-change:' . ($user?->getAuthIdentifier() ?? $request->ip()));
         });
+
+        $this->configureCommunityRateLimits();
+    }
+
+    /**
+     * Community feed limits per member (config/community.php rate_limits: [attempts, minutes]).
+     * Photos are keyed by the signed viewer id (the URL carries no token).
+     */
+    private function configureCommunityRateLimits(): void
+    {
+        foreach (['posts', 'comments', 'likes', 'reports'] as $action) {
+            RateLimiter::for("community-{$action}", function (Request $request) use ($action) {
+                [$attempts, $minutes] = config("community.rate_limits.{$action}");
+                $member = $request->user()?->member_id;
+
+                return Limit::perMinutes((int) $minutes, (int) $attempts)
+                    ->by("community-{$action}:" . ($member ?? 'ip:' . $request->ip()));
+            });
+        }
+
+        RateLimiter::for('community-photos', fn (Request $request) => Limit::perMinute(600)
+            ->by('community-photos:' . (int) $request->query('viewer')));
     }
 }

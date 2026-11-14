@@ -24,3 +24,6 @@ Schedule::command('model:prune', ['--model' => [PhoneVerificationCode::class]])-
 
 // Weekly church programmes (config/church_programs.php) → church_services up to 8 weeks ahead.
 Schedule::command('programs:generate-services')->dailyAt('01:00')->withoutOverlapping();
+
+// Community posts, comments and photos deleted more than 30 days ago (config/community.php).
+Schedule::command('community:purge-deleted')->dailyAt('02:30')->withoutOverlapping();
