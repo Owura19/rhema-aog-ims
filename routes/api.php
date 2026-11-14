@@ -4,7 +4,11 @@ use App\Http\Controllers\Api\V1\Auth\ActivationController;
 use App\Http\Controllers\Api\V1\Auth\LoginController;
 use App\Http\Controllers\Api\V1\Auth\LogoutController;
 use App\Http\Controllers\Api\V1\Auth\PasswordResetController;
+use App\Http\Controllers\Api\V1\Community\CommentController as CommunityCommentController;
+use App\Http\Controllers\Api\V1\Community\LikeController as CommunityLikeController;
 use App\Http\Controllers\Api\V1\Community\PhotoController as CommunityPhotoController;
+use App\Http\Controllers\Api\V1\Community\PostController as CommunityPostController;
+use App\Http\Controllers\Api\V1\Community\RulesController as CommunityRulesController;
 use App\Http\Controllers\Api\V1\DevotionController;
 use App\Http\Controllers\Api\V1\HealthController;
 use App\Http\Controllers\Api\V1\MeController;
@@ -96,5 +100,24 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         // Church calendar: events + services in one date-sorted feed
         Route::get('/calendar', CalendarController::class)->name('calendar');
         Route::get('/programs/upcoming', UpcomingProgramsController::class)->name('programs.upcoming');
+
+        // Community feed (config/community.php). Reading is open to every member; posting,
+        // commenting and liking need CommunityAccess (rules accepted, not banned, 18+).
+        Route::prefix('community')->name('community.')->group(function () {
+            Route::get('/rules', [CommunityRulesController::class, 'show'])->name('rules.show');
+            Route::post('/rules/accept', [CommunityRulesController::class, 'accept'])->name('rules.accept');
+
+            Route::get('/posts', [CommunityPostController::class, 'index'])->name('posts.index');
+            Route::post('/posts', [CommunityPostController::class, 'store'])->middleware('throttle:community-posts')->name('posts.store');
+            Route::get('/posts/{post}', [CommunityPostController::class, 'show'])->where('post', '[0-9]{1,18}')->name('posts.show');
+            Route::delete('/posts/{post}', [CommunityPostController::class, 'destroy'])->where('post', '[0-9]{1,18}')->name('posts.destroy');
+
+            Route::post('/posts/{post}/like', [CommunityLikeController::class, 'store'])->where('post', '[0-9]{1,18}')->middleware('throttle:community-likes')->name('posts.like');
+            Route::delete('/posts/{post}/like', [CommunityLikeController::class, 'destroy'])->where('post', '[0-9]{1,18}')->middleware('throttle:community-likes')->name('posts.unlike');
+
+            Route::get('/posts/{post}/comments', [CommunityCommentController::class, 'index'])->where('post', '[0-9]{1,18}')->name('comments.index');
+            Route::post('/posts/{post}/comments', [CommunityCommentController::class, 'store'])->where('post', '[0-9]{1,18}')->middleware('throttle:community-comments')->name('comments.store');
+            Route::delete('/comments/{comment}', [CommunityCommentController::class, 'destroy'])->where('comment', '[0-9]{1,18}')->name('comments.destroy');
+        });
     });
 });
