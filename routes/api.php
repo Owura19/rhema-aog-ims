@@ -4,7 +4,9 @@ use App\Http\Controllers\Api\V1\Auth\ActivationController;
 use App\Http\Controllers\Api\V1\Auth\LoginController;
 use App\Http\Controllers\Api\V1\Auth\LogoutController;
 use App\Http\Controllers\Api\V1\Auth\PasswordResetController;
+use App\Http\Controllers\Api\V1\Community\BlockController as CommunityBlockController;
 use App\Http\Controllers\Api\V1\Community\CommentController as CommunityCommentController;
+use App\Http\Controllers\Api\V1\Community\ReportController as CommunityReportController;
 use App\Http\Controllers\Api\V1\Community\LikeController as CommunityLikeController;
 use App\Http\Controllers\Api\V1\Community\PhotoController as CommunityPhotoController;
 use App\Http\Controllers\Api\V1\Community\PostController as CommunityPostController;
@@ -118,6 +120,12 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::get('/posts/{post}/comments', [CommunityCommentController::class, 'index'])->where('post', '[0-9]{1,18}')->name('comments.index');
             Route::post('/posts/{post}/comments', [CommunityCommentController::class, 'store'])->where('post', '[0-9]{1,18}')->middleware('throttle:community-comments')->name('comments.store');
             Route::delete('/comments/{comment}', [CommunityCommentController::class, 'destroy'])->where('comment', '[0-9]{1,18}')->name('comments.destroy');
+
+            // Safety tools: open to every member (minors and banned members too).
+            Route::post('/reports', [CommunityReportController::class, 'store'])->middleware('throttle:community-reports')->name('reports.store');
+            Route::get('/blocks', [CommunityBlockController::class, 'index'])->name('blocks.index');
+            Route::post('/blocks/{member}', [CommunityBlockController::class, 'store'])->where('member', '[0-9]{1,18}')->name('blocks.store');
+            Route::delete('/blocks/{member}', [CommunityBlockController::class, 'destroy'])->where('member', '[0-9]{1,18}')->name('blocks.destroy');
         });
     });
 });
