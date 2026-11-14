@@ -11,7 +11,6 @@ use App\Http\Controllers\CellGroupController;
 use App\Http\Controllers\DevotionController;
 use App\Http\Controllers\DevotionThemeController;
 use App\Http\Controllers\EventController;
-use App\Http\Controllers\CommunityController;
 use App\Http\Controllers\CommunityModerationController;
 use App\Http\Controllers\RandyImpactAIController;
 use App\Http\Controllers\SermonController;
@@ -290,16 +289,9 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/users/{user}', [\App\Http\Controllers\UserController::class, 'destroy'])->name('users.destroy');
     });
 
-    // ─────────────────────────────────────────────────────────────
-    // COMMUNITY — any logged-in user
-    // ─────────────────────────────────────────────────────────────
-    Route::get('/community', [CommunityController::class, 'index'])->name('community.index');
-    Route::post('/community', [CommunityController::class, 'store'])->name('community.store');
-    Route::delete('/community/{post}', [CommunityController::class, 'destroy'])->name('community.destroy');
-    Route::post('/community/{post}/like', [CommunityController::class, 'like'])->name('community.like');
-    Route::post('/community/{post}/comment', [CommunityController::class, 'comment'])->name('community.comment');
-    Route::delete('/community/comments/{comment}', [CommunityController::class, 'deleteComment'])->name('community.delete-comment');
-    Route::post('/community/{post}/pin', [CommunityController::class, 'pin'])->name('community.pin');
+    // The old staff "Community" page (CommunityController, /community) is retired: the
+    // members' feed lives in the app (api/v1/community, moderated at /community-moderation).
+    // Its tables (posts, post_likes, post_comments) and models are kept untouched.
 
     // ─────────────────────────────────────────────────────────────
     // RANDYIMPACT AI — any logged-in user
