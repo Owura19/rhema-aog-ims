@@ -13,7 +13,8 @@ use Tests\TestCase;
  * (snapshot taken from the local copy of production on 2026-11-10, plus the
  * devotion permissions and role from migration 2026_11_10_100300, the sermon
  * permissions from migration 2026_11_14_100200, 'moderate community' from
- * migration 2026_11_15_100100 and 'manage announcements' from migration 2026_11_16_100100).
+ * migration 2026_11_15_100100, 'manage announcements' from migration 2026_11_16_100100 and
+ * the 3 day-born offering permissions from migration 2026_11_17_100100).
  * When production gains a permission (via a migration), add it to the seeder
  * AND to this snapshot.
  */
@@ -27,7 +28,7 @@ class RolesAndPermissionsSeederTest extends TestCase
         'Pastor' => [
             'approve devotions', 'create events', 'edit events', 'manage announcements', 'manage devotions', 'manage sermons', 'moderate community', 'review translations',
             'view attendance', 'view cell groups', 'view devotions', 'view events',
-            'view finance', 'view members', 'view reports', 'view sermons', 'view visitors',
+            'view day-born offering', 'view finance', 'view members', 'view reports', 'view sermons', 'view visitors',
         ],
         'HOD' => [
             'create visitors', 'edit visitors', 'manage attendance', 'manage cell groups', 'view attendance',
@@ -42,13 +43,16 @@ class RolesAndPermissionsSeederTest extends TestCase
             'view attendance', 'view events', 'view members', 'view visitors',
         ],
         'Usher' => [
-            'create visitors', 'edit visitors', 'manage attendance', 'view attendance', 'view members', 'view visitors',
+            'create visitors', 'edit visitors', 'manage attendance', 'record day-born offering', 'view attendance',
+            'view day-born offering', 'view members', 'view visitors',
         ],
         'Member' => [],
-        'Finance Officer' => ['create finance', 'edit finance', 'view finance'],
+        'Finance Officer' => [
+            'create finance', 'edit finance', 'publish day-born offering', 'record day-born offering', 'view day-born offering', 'view finance',
+        ],
         'Office Staff' => [
             'create finance', 'create members', 'edit members', 'manage announcements', 'manage devotions', 'manage sermons', 'view attendance',
-            'view cell groups', 'view devotions', 'view finance', 'view members', 'view sermons',
+            'record day-born offering', 'view cell groups', 'view day-born offering', 'view devotions', 'view finance', 'view members', 'view sermons',
         ],
         'Pledge Officer' => ['manage pledges', 'view members', 'view pledges'],
         'Devotion Translator' => ['review translations', 'view devotions'],
@@ -61,8 +65,10 @@ class RolesAndPermissionsSeederTest extends TestCase
         'edit events', 'edit finance', 'edit members', 'edit pledges', 'edit visitors', 'edit vouchers',
         'manage announcements', 'manage attendance', 'manage cell groups', 'manage devotions', 'manage pledges', 'manage roles', 'manage sermons', 'manage settings', 'manage users',
         'moderate community',
+        'publish day-born offering',
+        'record day-born offering',
         'review translations',
-        'view attendance', 'view cell groups', 'view devotions', 'view events', 'view finance', 'view members', 'view pledges',
+        'view attendance', 'view cell groups', 'view day-born offering', 'view devotions', 'view events', 'view finance', 'view members', 'view pledges',
         'view reports', 'view sermons', 'view visitors',
     ];
 
@@ -95,7 +101,7 @@ class RolesAndPermissionsSeederTest extends TestCase
         $this->seed(RolesAndPermissionsSeeder::class);
 
         $this->assertSame(self::ALL_PERMISSIONS, Permission::orderBy('name')->pluck('name')->all());
-        $this->assertSame(36, Permission::count());
+        $this->assertSame(39, Permission::count());
         $this->assertSame(11, Role::count());
         $this->assertSame($this->expected(), $this->actual());
     }
@@ -117,7 +123,7 @@ class RolesAndPermissionsSeederTest extends TestCase
         $this->seed(RolesAndPermissionsSeeder::class);
         $this->seed(RolesAndPermissionsSeeder::class);
 
-        $this->assertSame(36, Permission::count());
+        $this->assertSame(39, Permission::count());
         $this->assertSame(11, Role::count());
         $this->assertSame($this->expected(), $this->actual());
     }

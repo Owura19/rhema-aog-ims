@@ -408,9 +408,25 @@
         <a href="{{ route('harvests.index') }}" class="sidebar-link {{ request()->routeIs('harvests.*') ? 'active' : '' }}">
             <i class="fas fa-wheat-awn"></i> Harvest
         </a>
+        @canany(['view day-born offering', 'record day-born offering'])
+        <a href="{{ route(auth()->user()->can('view day-born offering') ? 'day-born.index' : 'day-born.create') }}" class="sidebar-link {{ request()->routeIs('day-born.*') ? 'active' : '' }}">
+            <i class="fas fa-calendar-week"></i> Day-born Offering
+        </a>
+        @endcanany
     </div>
     @endcannot
     @endcan
+    {{-- Day-born offering for those with no other finance pages (e.g. ushers) --}}
+    @canany(['view day-born offering', 'record day-born offering'])
+    @if(! auth()->user()->can('view finance') && ! auth()->user()->can('view pledges'))
+    <div class="sidebar-section">
+        <div class="sidebar-section-label">Finance</div>
+        <a href="{{ route(auth()->user()->can('view day-born offering') ? 'day-born.index' : 'day-born.create') }}" class="sidebar-link {{ request()->routeIs('day-born.*') ? 'active' : '' }}">
+            <i class="fas fa-calendar-week"></i> Day-born Offering
+        </a>
+    </div>
+    @endif
+    @endcanany
     @can('view finance')
     <div class="sidebar-section">
         <div class="sidebar-section-label">Finance</div>
@@ -439,6 +455,11 @@
         <a href="{{ route('harvests.index') }}" class="sidebar-link {{ request()->routeIs('harvests.*') ? 'active' : '' }}">
             <i class="fas fa-wheat-awn"></i> Harvest
         </a>
+        @canany(['view day-born offering', 'record day-born offering'])
+        <a href="{{ route(auth()->user()->can('view day-born offering') ? 'day-born.index' : 'day-born.create') }}" class="sidebar-link {{ request()->routeIs('day-born.*') ? 'active' : '' }}">
+            <i class="fas fa-calendar-week"></i> Day-born Offering
+        </a>
+        @endcanany
         <a href="{{ route('accounts.index') }}" class="sidebar-link {{ request()->routeIs('accounts.*') ? 'active' : '' }}">
             <i class="fas fa-sitemap"></i> Chart of Accounts
         </a>
