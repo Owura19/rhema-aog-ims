@@ -15,6 +15,8 @@ use App\Http\Controllers\Api\V1\Member\PledgeController;
 use App\Http\Controllers\Api\V1\Member\ProfileController;
 use App\Http\Controllers\Api\V1\Member\UpcomingProgramsController;
 use App\Http\Controllers\Api\V1\MePasswordController;
+use App\Http\Controllers\Api\V1\SermonController;
+use App\Http\Controllers\Api\V1\SermonSeriesController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -63,6 +65,11 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::get('/devotions/today', [DevotionController::class, 'today'])->name('devotions.today');
         Route::get('/devotions', [DevotionController::class, 'index'])->name('devotions.index');
         Route::get('/devotions/{date}', [DevotionController::class, 'show'])->where('date', '[0-9]{4}-[0-9]{2}-[0-9]{2}')->name('devotions.show');
+
+        // Sermons: any active login, published sermons only.
+        Route::get('/sermons', [SermonController::class, 'index'])->name('sermons.index');
+        Route::get('/sermons/{sermon}', [SermonController::class, 'show'])->where('sermon', '[0-9]{1,18}')->name('sermons.show');
+        Route::get('/sermon-series', SermonSeriesController::class)->name('sermon-series.index');
     });
 
     // ── Member features: the signed-in member's own data only ───────────
