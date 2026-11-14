@@ -356,6 +356,11 @@
             <i class="fas fa-microphone"></i> Sermons
         </a>
         @endcan
+        @can('moderate community')
+        <a href="{{ route('community-moderation.index') }}" class="sidebar-link {{ request()->routeIs('community-moderation.*') ? 'active' : '' }}">
+            <i class="fas fa-shield-halved"></i> Community Moderation
+        </a>
+        @endcan
         {{-- Community & RandyImpact are open to any logged-in user --}}
         <a href="{{ route('community.index') }}" class="sidebar-link {{ request()->routeIs('community.*') ? 'active' : '' }}">
             <i class="fas fa-globe"></i> Community

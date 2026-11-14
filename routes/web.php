@@ -12,6 +12,7 @@ use App\Http\Controllers\DevotionController;
 use App\Http\Controllers\DevotionThemeController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\CommunityController;
+use App\Http\Controllers\CommunityModerationController;
 use App\Http\Controllers\RandyImpactAIController;
 use App\Http\Controllers\SermonController;
 use App\Http\Controllers\SermonSeriesController;
@@ -235,6 +236,20 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware('permission:view sermons')->group(function () {
         Route::get('/sermons', [SermonController::class, 'index'])->name('sermons.index');
         Route::get('/sermons/{sermon}', [SermonController::class, 'show'])->whereNumber('sermon')->name('sermons.show');
+    });
+
+    // COMMUNITY MODERATION (the members' app feed) — 'moderate community': Super Admin + Pastor
+    Route::middleware('permission:moderate community')->prefix('community-moderation')->name('community-moderation.')->group(function () {
+        Route::get('/', [CommunityModerationController::class, 'index'])->name('index');
+        Route::get('/members/{member}', [CommunityModerationController::class, 'member'])->whereNumber('member')->name('member');
+        Route::post('/members/{member}/ban', [CommunityModerationController::class, 'ban'])->whereNumber('member')->name('ban');
+        Route::post('/bans/{ban}/lift', [CommunityModerationController::class, 'liftBan'])->whereNumber('ban')->name('lift-ban');
+        Route::get('/photos/{photo}/{variant}', [CommunityModerationController::class, 'photo'])
+            ->where(['photo' => '[0-9]+', 'variant' => 'full|thumb'])->name('photo');
+        Route::get('/{type}/{id}', [CommunityModerationController::class, 'show'])->where(['type' => 'post|comment', 'id' => '[0-9]+'])->name('show');
+        Route::post('/{type}/{id}/hide', [CommunityModerationController::class, 'hide'])->where(['type' => 'post|comment', 'id' => '[0-9]+'])->name('hide');
+        Route::post('/{type}/{id}/unhide', [CommunityModerationController::class, 'unhide'])->where(['type' => 'post|comment', 'id' => '[0-9]+'])->name('unhide');
+        Route::post('/{type}/{id}/dismiss', [CommunityModerationController::class, 'dismiss'])->where(['type' => 'post|comment', 'id' => '[0-9]+'])->name('dismiss');
     });
 
     // ─────────────────────────────────────────────────────────────
