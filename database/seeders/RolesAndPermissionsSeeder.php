@@ -8,7 +8,7 @@ use Spatie\Permission\Models\Permission;
 use Spatie\Permission\PermissionRegistrar;
 
 /**
- * The roles and permissions production has (11 roles, 36 permissions).
+ * The roles and permissions production has (11 roles, 39 permissions).
  * Kept in line with production: RolesAndPermissionsSeederTest checks a fresh
  * seed gives exactly these sets. New permissions reach production through a
  * migration; add them here too so fresh installs match.
@@ -80,6 +80,11 @@ class RolesAndPermissionsSeeder extends Seeder
             // Announcements (production: migration 2026_11_16_100100_add_announcement_permission)
             'manage announcements',
 
+            // Day-born offering (production: migration 2026_11_17_100100_add_day_born_offering_permissions)
+            'record day-born offering',
+            'publish day-born offering',
+            'view day-born offering',
+
             // Reports
             'view reports',
 
@@ -121,6 +126,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'manage sermons',
             'moderate community',
             'manage announcements',
+            'view day-born offering',
         ]);
 
         // Head of Department (HOD)
@@ -174,6 +180,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'edit visitors',
             'view attendance',
             'manage attendance',
+            'record day-born offering',
+            'view day-born offering',
         ]);
 
         // Member — logins linked to a member record (portal / mobile app); no staff permissions
@@ -185,6 +193,9 @@ class RolesAndPermissionsSeeder extends Seeder
             'view finance',
             'create finance',
             'edit finance',
+            'record day-born offering',
+            'publish day-born offering',
+            'view day-born offering',
         ]);
 
         // Office Staff
@@ -202,6 +213,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'view sermons',
             'manage sermons',
             'manage announcements',
+            'record day-born offering',
+            'view day-born offering',
         ]);
 
         // Pledge Officer
