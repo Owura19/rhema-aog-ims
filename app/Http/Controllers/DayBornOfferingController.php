@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\DayBornExport;
 use App\Models\Account;
 use App\Models\DayBornWeek;
 use App\Services\DayBorn\DayBornRecorder;
+use App\Support\DayBorn\Report;
 use App\Support\DayBorn\Weekdays;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -12,6 +14,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use RuntimeException;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
  * Day-born offering: ushers record ONE total per day-born group per service.
@@ -142,6 +145,32 @@ class DayBornOfferingController extends Controller
         return back()->with('success', $hadFinance
             ? 'Unpublished. Its finance transaction was voided.'
             : 'Unpublished: it is a draft again and hidden from members.');
+    }
+
+    /** Monthly / yearly view from published weeks: total per group and weeks won. */
+    public function report(Request $request)
+    {
+        $data = $request->validate([
+            'year'  => ['nullable', 'integer', 'min:2000', 'max:' . (now()->year + 1)],
+            'month' => ['nullable', 'integer', 'min:1', 'max:12'],
+        ]);
+        $year = (int) ($data['year'] ?? now()->year);
+
+        return view('day-born.report', [
+            'report' => new Report($year, isset($data['month']) ? (int) $data['month'] : null),
+            'years'  => Report::years(now()->year),
+        ]);
+    }
+
+    /** The year's published weeks as .xlsx. */
+    public function export(Request $request): StreamedResponse
+    {
+        $data = $request->validate(['year' => ['nullable', 'integer', 'min:2000', 'max:' . (now()->year + 1)]]);
+        $export = new DayBornExport(new Report((int) ($data['year'] ?? now()->year)));
+
+        return response()->streamDownload(fn () => $export->write(), $export->filename(), [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ]);
     }
 
     // ── helpers ────────────────────────────────────────────────────────

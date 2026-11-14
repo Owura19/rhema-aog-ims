@@ -8,9 +8,7 @@
     <div class="card-header">
         <div class="card-title"><i class="fas fa-calendar-week" style="color:#2563eb; margin-right:8px;"></i>Day-born Offering</div>
         <div style="display:flex; gap:8px;">
-            @if(Route::has('day-born.report'))
-                <a href="{{ route('day-born.report') }}" class="btn-outline"><i class="fas fa-chart-bar"></i> Monthly / yearly</a>
-            @endif
+            <a href="{{ route('day-born.report') }}" class="btn-outline"><i class="fas fa-chart-bar"></i> Monthly / yearly</a>
             @can('record day-born offering')
                 <a href="{{ route('day-born.create') }}" class="btn-primary"><i class="fas fa-plus"></i> Enter a week</a>
             @endcan

@@ -254,6 +254,8 @@ Route::middleware(['auth'])->group(function () {
     });
     Route::middleware('permission:view day-born offering')->group(function () {
         Route::get('/day-born', [DayBornOfferingController::class, 'index'])->name('day-born.index');
+        Route::get('/day-born/report', [DayBornOfferingController::class, 'report'])->name('day-born.report');
+        Route::get('/day-born/export', [DayBornOfferingController::class, 'export'])->name('day-born.export');
         Route::get('/day-born/{week}', [DayBornOfferingController::class, 'show'])->where('week', '\d{4}-\d{2}-\d{2}')->name('day-born.show');
     });
 
