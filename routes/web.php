@@ -13,6 +13,7 @@ use App\Http\Controllers\DevotionThemeController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\AnnouncementController;
 use App\Http\Controllers\CommunityModerationController;
+use App\Http\Controllers\DayBornOfferingController;
 use App\Http\Controllers\RandyImpactAIController;
 use App\Http\Controllers\SermonController;
 use App\Http\Controllers\SermonSeriesController;
@@ -236,6 +237,24 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware('permission:view sermons')->group(function () {
         Route::get('/sermons', [SermonController::class, 'index'])->name('sermons.index');
         Route::get('/sermons/{sermon}', [SermonController::class, 'show'])->whereNumber('sermon')->name('sermons.show');
+    });
+
+    // DAY-BORN OFFERING — record: ushers, office staff, finance | publish: Finance Officer, Super Admin | view: + Pastor
+    // {week} is the service date (2026-11-15). Editing a published week also needs 'publish day-born offering'.
+    Route::middleware('permission:record day-born offering')->group(function () {
+        Route::get('/day-born/entry', [DayBornOfferingController::class, 'create'])->name('day-born.create');
+        Route::post('/day-born', [DayBornOfferingController::class, 'store'])->name('day-born.store');
+        Route::get('/day-born/{week}/edit', [DayBornOfferingController::class, 'edit'])->where('week', '\d{4}-\d{2}-\d{2}')->name('day-born.edit');
+        Route::put('/day-born/{week}', [DayBornOfferingController::class, 'update'])->where('week', '\d{4}-\d{2}-\d{2}')->name('day-born.update');
+        Route::delete('/day-born/{week}', [DayBornOfferingController::class, 'destroy'])->where('week', '\d{4}-\d{2}-\d{2}')->name('day-born.destroy');
+    });
+    Route::middleware('permission:publish day-born offering')->group(function () {
+        Route::post('/day-born/{week}/publish', [DayBornOfferingController::class, 'publish'])->where('week', '\d{4}-\d{2}-\d{2}')->name('day-born.publish');
+        Route::post('/day-born/{week}/unpublish', [DayBornOfferingController::class, 'unpublish'])->where('week', '\d{4}-\d{2}-\d{2}')->name('day-born.unpublish');
+    });
+    Route::middleware('permission:view day-born offering')->group(function () {
+        Route::get('/day-born', [DayBornOfferingController::class, 'index'])->name('day-born.index');
+        Route::get('/day-born/{week}', [DayBornOfferingController::class, 'show'])->where('week', '\d{4}-\d{2}-\d{2}')->name('day-born.show');
     });
 
     // ANNOUNCEMENTS (the app's Home) — 'manage announcements': Super Admin, Pastor, Office Staff
