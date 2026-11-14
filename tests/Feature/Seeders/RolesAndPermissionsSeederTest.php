@@ -11,8 +11,9 @@ use Tests\TestCase;
 /**
  * A fresh seed must give exactly the roles and permissions production has
  * (snapshot taken from the local copy of production on 2026-11-10, plus the
- * devotion permissions and role from migration 2026_11_10_100300 and the sermon
- * permissions from migration 2026_11_14_100200).
+ * devotion permissions and role from migration 2026_11_10_100300, the sermon
+ * permissions from migration 2026_11_14_100200 and 'moderate community' from
+ * migration 2026_11_15_100100).
  * When production gains a permission (via a migration), add it to the seeder
  * AND to this snapshot.
  */
@@ -24,7 +25,7 @@ class RolesAndPermissionsSeederTest extends TestCase
     private const EXPECTED = [
         'Super Admin' => self::ALL_PERMISSIONS,
         'Pastor' => [
-            'approve devotions', 'create events', 'edit events', 'manage devotions', 'manage sermons', 'review translations',
+            'approve devotions', 'create events', 'edit events', 'manage devotions', 'manage sermons', 'moderate community', 'review translations',
             'view attendance', 'view cell groups', 'view devotions', 'view events',
             'view finance', 'view members', 'view reports', 'view sermons', 'view visitors',
         ],
@@ -59,6 +60,7 @@ class RolesAndPermissionsSeederTest extends TestCase
         'delete events', 'delete finance', 'delete members', 'delete visitors',
         'edit events', 'edit finance', 'edit members', 'edit pledges', 'edit visitors', 'edit vouchers',
         'manage attendance', 'manage cell groups', 'manage devotions', 'manage pledges', 'manage roles', 'manage sermons', 'manage settings', 'manage users',
+        'moderate community',
         'review translations',
         'view attendance', 'view cell groups', 'view devotions', 'view events', 'view finance', 'view members', 'view pledges',
         'view reports', 'view sermons', 'view visitors',
@@ -93,7 +95,7 @@ class RolesAndPermissionsSeederTest extends TestCase
         $this->seed(RolesAndPermissionsSeeder::class);
 
         $this->assertSame(self::ALL_PERMISSIONS, Permission::orderBy('name')->pluck('name')->all());
-        $this->assertSame(34, Permission::count());
+        $this->assertSame(35, Permission::count());
         $this->assertSame(11, Role::count());
         $this->assertSame($this->expected(), $this->actual());
     }
@@ -115,7 +117,7 @@ class RolesAndPermissionsSeederTest extends TestCase
         $this->seed(RolesAndPermissionsSeeder::class);
         $this->seed(RolesAndPermissionsSeeder::class);
 
-        $this->assertSame(34, Permission::count());
+        $this->assertSame(35, Permission::count());
         $this->assertSame(11, Role::count());
         $this->assertSame($this->expected(), $this->actual());
     }
