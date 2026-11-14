@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\V1\Auth\ActivationController;
 use App\Http\Controllers\Api\V1\Auth\LoginController;
 use App\Http\Controllers\Api\V1\Auth\LogoutController;
 use App\Http\Controllers\Api\V1\Auth\PasswordResetController;
+use App\Http\Controllers\Api\V1\Community\PhotoController as CommunityPhotoController;
 use App\Http\Controllers\Api\V1\DevotionController;
 use App\Http\Controllers\Api\V1\HealthController;
 use App\Http\Controllers\Api\V1\MeController;
@@ -34,6 +35,14 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('v1')->name('api.v1.')->group(function () {
 
     Route::get('/health', HealthController::class)->name('health');
+
+    // Community photos: signed URLs only (no token, so image components can load them).
+    // Own limiter per viewer instead of the shared per-IP one: a feed page loads many photos.
+    Route::get('/community/photos/{photo}/{variant}', [CommunityPhotoController::class, 'show'])
+        ->where(['photo' => '[0-9]{1,18}', 'variant' => 'full|thumb'])
+        ->withoutMiddleware('throttle:api')
+        ->middleware(['signed:relative', 'throttle:community-photos'])
+        ->name('community.photos.show');
 
     // ── Member self-activation and phone login ──────────────────────────
     Route::prefix('auth')->name('auth.')->group(function () {
