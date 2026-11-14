@@ -26,7 +26,7 @@ use Illuminate\Http\JsonResponse;
  *   event_ended (409)                       rsvp_closed (409)
  *   community_rules_required (403, +rules_version)
  *   community_banned (403, +until)          community_not_allowed (403, +age_confirmation_possible)
- *   rules_outdated (409, +rules_version)
+ *   rules_outdated (409, +rules_version)    bible_not_imported (503)
  */
 final class ApiError
 {
