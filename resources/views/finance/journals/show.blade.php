@@ -44,6 +44,7 @@
             @endif
         </div>
 
+        <div class="table-wrap">
         <table class="table">
             <thead>
                 <tr>
@@ -72,6 +73,7 @@
                 </tr>
             </tfoot>
         </table>
+        </div>
 
         <div style="margin-top:14px;text-align:center;">
             @if($journal->is_balanced)

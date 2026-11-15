@@ -30,7 +30,7 @@
     <div class="card-header">
         <div class="card-title"><i class="fas fa-book-open" style="color:#2563eb; margin-right:8px;"></i>Devotions</div>
         @can('manage devotions')
-        <div style="display:flex; gap:8px;">
+        <div class="toolbar">
             <a href="{{ route('devotion-themes.index') }}" class="btn-outline"><i class="fas fa-tags"></i> Themes</a>
             <a href="{{ route('devotions.create') }}" class="btn-primary"><i class="fas fa-plus"></i> New Devotion</a>
         </div>
@@ -39,7 +39,7 @@
 
     <!-- Filters -->
     <div style="padding:16px 24px; border-bottom:1px solid #f1f5f9; background:#f8fafc;">
-        <form method="GET" action="{{ route('devotions.index') }}" style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
+        <form method="GET" action="{{ route('devotions.index') }}" class="filter-bar" style="align-items:center;">
             <select name="status" class="form-control" style="width:170px;">
                 <option value="">All statuses</option>
                 @foreach(['draft' => 'Draft', 'approved' => 'Approved (not yet live)', 'live' => 'Live'] as $value => $label)

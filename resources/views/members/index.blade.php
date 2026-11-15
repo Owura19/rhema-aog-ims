@@ -5,7 +5,7 @@
 @section('content')
 
 <!-- Stats Row -->
-<div class="grid-4" style="margin-bottom:28px;">
+<div class="stat-grid" style="margin-bottom:28px;">
     <div class="stat-card">
         <div class="stat-icon" style="background:#dbeafe;">
             <i class="fas fa-users" style="color:#2563eb;"></i>
@@ -55,7 +55,7 @@
 
     <!-- Filters -->
     <div style="padding:16px 24px; border-bottom:1px solid #f1f5f9; background:#f8fafc;">
-        <form method="GET" action="{{ route('members.index') }}" style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
+        <form method="GET" action="{{ route('members.index') }}" class="filter-bar" style="align-items:center;">
             <input type="text" name="search" value="{{ request('search') }}" placeholder="Search name, ID, email, phone..." class="form-control" style="width:280px;">
             <select name="status" class="form-control" style="width:160px;">
                 <option value="">All Statuses</option>

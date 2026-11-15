@@ -12,7 +12,7 @@
         <h2 style="font-size:20px; font-weight:700; color:#1e293b; margin-top:4px;">{{ $visitor->full_name }}</h2>
         <div style="font-size:13px; color:#64748b;">{{ $visitor->visit_type }} · {{ $visitor->visit_date->format('M d, Y') }}</div>
     </div>
-    <div style="display:flex; gap:10px;">
+    <div class="toolbar">
         @if(!$visitor->converted_to_member)
         @can('create members')
         <form method="POST" action="{{ route('visitors.convert', $visitor) }}" onsubmit="return confirm('Convert {{ $visitor->full_name }} to a full member?')">

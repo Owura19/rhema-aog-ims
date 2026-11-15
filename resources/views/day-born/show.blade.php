@@ -14,7 +14,7 @@
         <h2 style="font-size:20px; font-weight:700; color:#1e293b; margin-top:4px;">{{ $week->service_date->format('l j F Y') }}</h2>
         <div>@include('day-born._status', ['week' => $week])</div>
     </div>
-    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+    <div class="toolbar">
         @if(! $week->isPublished())
             @can('record day-born offering')
                 <a href="{{ route('day-born.edit', $week) }}" class="btn-outline"><i class="fas fa-edit"></i> Edit</a>
@@ -36,6 +36,7 @@
     <div>
         <div class="card" style="margin-bottom:20px;">
             <div class="card-header"><div class="card-title"><i class="fas fa-trophy" style="color:#d97706; margin-right:8px;"></i>Results</div></div>
+            <div class="table-wrap">
             <table class="table">
                 <thead>
                     <tr><th style="width:70px;">Place</th><th>Day-born group</th><th style="text-align:right;">Amount (GH₵)</th></tr>
@@ -58,6 +59,7 @@
                     </tr>
                 </tbody>
             </table>
+            </div>
             @if($week->notes)
                 <div style="padding:12px 24px; font-size:13px; color:#64748b; border-top:1px solid #f1f5f9;">{{ $week->notes }}</div>
             @endif
@@ -65,6 +67,7 @@
 
         <div class="card">
             <div class="card-header"><div class="card-title"><i class="fas fa-clock-rotate-left" style="color:#7c3aed; margin-right:8px;"></i>History</div></div>
+            <div class="table-wrap">
             <table class="table">
                 <thead>
                     <tr><th>When</th><th>Who</th><th>What</th><th style="text-align:right;">From</th><th style="text-align:right;">To</th><th>Reason</th></tr>
@@ -85,6 +88,7 @@
                     @endforeach
                 </tbody>
             </table>
+            </div>
         </div>
     </div>
 

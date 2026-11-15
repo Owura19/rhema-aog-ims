@@ -12,14 +12,14 @@
 @if(session('success'))<div class="alert alert-success" style="margin-bottom:16px;"><i class="fas fa-circle-check"></i> {{ session('success') }}</div>@endif
 
 <!-- Current balances -->
-<div class="grid-3" style="margin-bottom:22px;">
+<div class="stat-grid" style="margin-bottom:22px;">
     @foreach($accounts as $a)
     <div class="stat-card">
         <div class="stat-icon" style="background:{{ $a->code == '1200' ? '#dbeafe' : '#dcfce7' }};">
             <i class="fas {{ $a->code == '1200' ? 'fa-building-columns' : 'fa-money-bill-wave' }}" style="color:{{ $a->code == '1200' ? '#2563eb' : '#16a34a' }};"></i>
         </div>
         <div>
-            <div class="stat-value">GHS {{ number_format($balances[$a->id] ?? 0, 2) }}</div>
+            <div class="stat-value stat-money">@cedis($balances[$a->id] ?? 0)</div>
             <div class="stat-label">{{ $a->name }}</div>
         </div>
     </div>

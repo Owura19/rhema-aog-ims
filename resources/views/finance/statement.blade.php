@@ -7,7 +7,7 @@
 <!-- Date range picker -->
 <div class="card" style="margin-bottom:20px;">
     <div class="card-body">
-        <form method="GET" action="{{ route('finance.statement') }}" style="display:flex; gap:16px; flex-wrap:wrap; align-items:flex-end;">
+        <form method="GET" action="{{ route('finance.statement') }}" class="filter-bar" style="align-items:flex-end;">
             <div>
                 <label class="form-label">From</label>
                 <input type="date" name="from" value="{{ $from }}" class="form-control">
@@ -29,13 +29,13 @@
 </div>
 
 <!-- Summary -->
-<div class="grid-3" style="margin-bottom:20px;">
+<div class="stat-grid" style="margin-bottom:20px;">
     <div class="stat-card">
         <div class="stat-icon" style="background:#dcfce7;">
             <i class="fas fa-arrow-up" style="color:#16a34a;"></i>
         </div>
         <div>
-            <div class="stat-value" style="font-size:18px;">GHS {{ number_format($totalIncome, 2) }}</div>
+            <div class="stat-value stat-money">@cedis($totalIncome)</div>
             <div class="stat-label">Total Income</div>
         </div>
     </div>
@@ -44,7 +44,7 @@
             <i class="fas fa-arrow-down" style="color:#dc2626;"></i>
         </div>
         <div>
-            <div class="stat-value" style="font-size:18px;">GHS {{ number_format($totalExpense, 2) }}</div>
+            <div class="stat-value stat-money">@cedis($totalExpense)</div>
             <div class="stat-label">Total Expenditure</div>
         </div>
     </div>
@@ -53,7 +53,7 @@
             <i class="fas fa-scale-balanced" style="color:{{ $netBalance >= 0 ? '#2563eb' : '#ca8a04' }};"></i>
         </div>
         <div>
-            <div class="stat-value" style="font-size:18px; color:{{ $netBalance >= 0 ? '#16a34a' : '#dc2626' }};">GHS {{ number_format($netBalance, 2) }}</div>
+            <div class="stat-value stat-money" style="color:{{ $netBalance >= 0 ? '#16a34a' : '#dc2626' }};">@cedis($netBalance)</div>
             <div class="stat-label">Net Balance</div>
         </div>
     </div>

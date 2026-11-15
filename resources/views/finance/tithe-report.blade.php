@@ -8,8 +8,8 @@
             {{ $month ? \Carbon\Carbon::create()->month($month)->format('F') . ' ' . $year : 'Full Year ' . $year }}
         </div>
     </div>
-    <div style="display:flex; gap:10px; align-items:center;">
-        <form method="GET" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+    <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+        <form method="GET" class="filter-bar" style="align-items:center;">
             <select name="year" class="form-control" onchange="this.form.submit()" style="width:auto;">
                 @foreach($years as $y)
                     <option value="{{ $y }}" {{ $y == $year ? 'selected' : '' }}>{{ $y }}</option>
@@ -34,7 +34,7 @@
     <div class="card-body" style="display:flex; gap:32px; flex-wrap:wrap;">
         <div>
             <div style="font-size:11px; text-transform:uppercase; letter-spacing:1px; color:#94a3b8;">Total Tithe</div>
-            <div style="font-size:24px; font-weight:900; color:#16a34a;">GHS {{ number_format($grandTotal, 2) }}</div>
+            <div class="money" style="font-size:24px; font-weight:900; color:#16a34a;">@cedis($grandTotal)</div>
         </div>
         <div>
             <div style="font-size:11px; text-transform:uppercase; letter-spacing:1px; color:#94a3b8;">Members Who Paid</div>
@@ -48,6 +48,7 @@
         <div class="card-title"><i class="fas fa-hand-holding-usd" style="color:#16a34a; margin-right:8px;"></i>Tithe by Member</div>
     </div>
     <div class="card-body" style="padding:0;">
+        <div class="table-wrap">
         <table class="table" style="width:100%;">
             <thead>
                 <tr>
@@ -88,6 +89,7 @@
                 </tr>
             </tfoot>
         </table>
+        </div>
     </div>
 </div>
 @endsection

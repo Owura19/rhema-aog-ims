@@ -10,7 +10,7 @@
 </div>
 
 <!-- Stats -->
-<div class="grid-3" style="margin-bottom:28px;">
+<div class="stat-grid" style="margin-bottom:28px;">
     <div class="stat-card">
         <div class="stat-icon" style="background:#dbeafe;">
             <i class="fas fa-users" style="color:#2563eb;"></i>
@@ -34,7 +34,7 @@
             <i class="fas fa-arrow-up" style="color:#16a34a;"></i>
         </div>
         <div>
-            <div class="stat-value" style="font-size:18px;">GHS {{ number_format($stats['income_month'], 2) }}</div>
+            <div class="stat-value stat-money">@cedis($stats['income_month'])</div>
             <div class="stat-label">Income This Month</div>
         </div>
     </div>

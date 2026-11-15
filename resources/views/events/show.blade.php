@@ -12,7 +12,7 @@
         <h2 style="font-size:20px; font-weight:700; color:#1e293b; margin-top:4px;">{{ $event->title }}</h2>
         <div style="font-size:13px; color:#64748b;">{{ $event->type }} · {{ $event->duration }}</div>
     </div>
-    <div style="display:flex; gap:10px;">
+    <div class="toolbar">
         <a href="{{ route('events.edit', $event) }}" class="btn-primary">
             <i class="fas fa-edit"></i> Edit
         </a>
@@ -31,7 +31,7 @@
 @endif
 
 <!-- Stats -->
-<div class="grid-4" style="margin-bottom:24px;">
+<div class="stat-grid" style="margin-bottom:24px;">
     <div class="stat-card">
         <div class="stat-icon" style="background:#dbeafe;"><i class="fas fa-users" style="color:#2563eb;"></i></div>
         <div>
@@ -56,7 +56,7 @@
     <div class="stat-card">
         <div class="stat-icon" style="background:{{ $event->is_free ? '#dcfce7' : '#fef9c3' }};"><i class="fas fa-ticket-alt" style="color:{{ $event->is_free ? '#16a34a' : '#ca8a04' }};"></i></div>
         <div>
-            <div class="stat-value" style="font-size:18px;">{{ $event->is_free ? 'Free' : 'GHS '.number_format($event->ticket_price, 2) }}</div>
+            <div class="stat-value stat-money">{{ $event->is_free ? 'Free' : \App\Support\Cedis::format($event->ticket_price) }}</div>
             <div class="stat-label">Admission</div>
         </div>
     </div>

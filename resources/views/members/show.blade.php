@@ -11,7 +11,7 @@
         </a>
         <h2 style="font-size:20px; font-weight:700; color:#1e293b; margin-top:4px;">{{ $member->full_name }}</h2>
     </div>
-    <div style="display:flex; gap:10px;">
+    <div class="toolbar">
         <a href="{{ route('member-ledger.show', $member) }}" class="btn-outline" style="margin-right:8px;">
     <i class="fas fa-hand-holding-heart"></i> Giving Statement
 </a>

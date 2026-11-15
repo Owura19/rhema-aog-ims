@@ -5,7 +5,7 @@
 <!-- Date range picker -->
 <div class="card" style="margin-bottom:20px;">
     <div class="card-body">
-        <form method="GET" action="{{ route('finance.cash-summary') }}" style="display:flex; gap:16px; flex-wrap:wrap; align-items:flex-end;">
+        <form method="GET" action="{{ route('finance.cash-summary') }}" class="filter-bar" style="align-items:flex-end;">
             <div>
                 <label class="form-label">From</label>
                 <input type="date" name="from" value="{{ $from }}" class="form-control">
@@ -54,6 +54,7 @@
     <!-- Receipts -->
     <div style="border:1px solid #e2e8f0; border-radius:8px; overflow:hidden; margin-bottom:24px;">
         <div style="background:#16a34a; color:#fff; padding:10px 16px; font-weight:700; font-size:14px;"><i class="fas fa-arrow-down"></i> Receipts</div>
+        <div class="table-wrap">
         <table class="table" style="width:100%; margin:0;">
             <thead>
                 <tr><th>Account</th><th style="text-align:right;">Amount (GHS)</th></tr>
@@ -75,11 +76,13 @@
                 </tr>
             </tfoot>
         </table>
+        </div>
     </div>
 
     <!-- Payments -->
     <div style="border:1px solid #e2e8f0; border-radius:8px; overflow:hidden; margin-bottom:24px;">
         <div style="background:#dc2626; color:#fff; padding:10px 16px; font-weight:700; font-size:14px;"><i class="fas fa-arrow-up"></i> Cash Payments</div>
+        <div class="table-wrap">
         <table class="table" style="width:100%; margin:0;">
             <thead>
                 <tr><th>Account</th><th style="text-align:right;">Amount (GHS)</th></tr>
@@ -101,6 +104,7 @@
                 </tr>
             </tfoot>
         </table>
+        </div>
     </div>
 
     <!-- Net -->

@@ -7,7 +7,7 @@
 <!-- Date range picker -->
 <div class="card" style="margin-bottom:20px;">
     <div class="card-body">
-        <form method="GET" action="{{ route('finance.income-note') }}" style="display:flex; gap:16px; flex-wrap:wrap; align-items:flex-end;">
+        <form method="GET" action="{{ route('finance.income-note') }}" class="filter-bar" style="align-items:flex-end;">
             <div>
                 <label class="form-label">From</label>
                 <input type="date" name="from" value="{{ $from }}" class="form-control">

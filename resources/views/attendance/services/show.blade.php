@@ -20,7 +20,7 @@
 </div>
 
 <!-- Stats -->
-<div class="grid-5" style="margin-bottom:24px;">
+<div class="stat-grid" style="margin-bottom:24px;">
     <div class="stat-card">
         <div class="stat-icon" style="background:#dcfce7;"><i class="fas fa-user-check" style="color:#16a34a;"></i></div>
         <div><div class="stat-value">{{ $stats['present'] }}</div><div class="stat-label">Present</div></div>

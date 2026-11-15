@@ -14,7 +14,7 @@
                 {{ $totals['count'] }} pledges &middot; {{ $totals['fulfilled'] }} fulfilled &middot; as of {{ now()->format('M d, Y') }}
             </div>
         </div>
-        <div style="display:flex; gap:8px;">
+        <div class="toolbar">
             <a href="{{ route('pledges.report.pdf', request()->query()) }}" class="btn-primary btn-sm" style="background:#dc2626;"><i class="fas fa-file-pdf"></i> Download PDF</a>
             <button onclick="window.print()" class="btn-primary btn-sm" style="background:#1a3c5e;"><i class="fas fa-print"></i> Print</button>
         </div>
@@ -41,7 +41,7 @@
     </div>
 
     <!-- Filter bar -->
-    <form method="GET" style="display:flex; gap:10px; align-items:end; flex-wrap:wrap; margin-bottom:18px;">
+    <form method="GET" class="filter-bar" style="align-items:end; margin-bottom:18px;">
         <div>
             <label style="font-size:12px; color:#64748b; display:block; margin-bottom:3px;">Purpose</label>
             <select name="purpose" class="form-control" style="width:auto;">
@@ -110,6 +110,7 @@
 
     <!-- Report table -->
     <div style="border:1px solid #e2e8f0; border-radius:8px; overflow:hidden;">
+        <div class="table-wrap">
         <table class="table" style="width:100%; margin:0;">
             <thead>
                 <tr style="background:#1a3c5e;">
@@ -157,6 +158,7 @@
                 </tr>
             </tfoot>
         </table>
+        </div>
     </div>
 
 </div>

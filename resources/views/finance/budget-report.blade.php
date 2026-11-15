@@ -11,7 +11,7 @@
 <!-- Year selector + set budget -->
 <div class="card" style="margin-bottom:20px;">
     <div class="card-body">
-        <form method="GET" action="{{ route('finance.budget.report') }}" style="display:flex; gap:16px; flex-wrap:wrap; align-items:flex-end;">
+        <form method="GET" action="{{ route('finance.budget.report') }}" class="filter-bar" style="align-items:flex-end;">
             <div>
                 <label class="form-label">Year</label>
                 <select name="year" class="form-control" onchange="this.form.submit()" style="min-width:140px;">

@@ -12,7 +12,7 @@
         <h2 style="font-size:20px; font-weight:700; color:#1e293b; margin-top:4px;">{{ $cellgroup->name }}</h2>
         <div style="font-size:13px; color:#64748b;">{{ $cellgroup->code }} · {{ $cellgroup->type }}</div>
     </div>
-    <div style="display:flex; gap:10px;">
+    <div class="toolbar">
         <a href="{{ route('cellgroups.edit', $cellgroup) }}" class="btn-primary">
             <i class="fas fa-edit"></i> Edit
         </a>

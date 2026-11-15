@@ -34,6 +34,7 @@
             <label class="form-label">Journal Lines <span style="color:red;">*</span></label>
             <div style="font-size:12px;color:#94a3b8;margin-bottom:10px;">Each line is a debit OR a credit. Total debits must equal total credits.</div>
 
+            <div class="table-wrap">
             <table class="table" id="linesTable" style="margin-bottom:8px;">
                 <thead>
                     <tr>
@@ -60,6 +61,7 @@
                     </tr>
                 </tfoot>
             </table>
+            </div>
 
             <button type="button" class="btn-outline btn-sm" id="addLine" style="margin-bottom:20px;"><i class="fas fa-plus"></i> Add Line</button>
 

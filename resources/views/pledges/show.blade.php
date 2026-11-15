@@ -26,7 +26,7 @@
                         <span class="badge badge-danger" style="margin-left:8px;">Cancelled</span>
                     @endif
                 </div>
-                <div style="display:flex; gap:8px; align-items:center;">
+                <div class="toolbar" style="align-items:center;">
                 @can('edit pledges')
                 <a href="{{ route('pledges.edit', $pledge) }}" class="btn-outline btn-sm" style="border-color:#c7d2fe; color:#4f46e5;"><i class="fas fa-pen"></i> Edit</a>
                 @endcan
@@ -73,15 +73,15 @@
                 <div class="grid-3">
                     <div>
                         <div class="stat-label">Pledged</div>
-                        <div class="stat-value" style="font-size:18px;">GHS {{ number_format($pledge->amount_pledged, 2) }}</div>
+                        <div class="stat-value" style="font-size:18px;">@cedis($pledge->amount_pledged)</div>
                     </div>
                     <div>
                         <div class="stat-label">Paid</div>
-                        <div class="stat-value" style="font-size:18px; color:#16a34a;">GHS {{ number_format($pledge->total_paid, 2) }}</div>
+                        <div class="stat-value" style="font-size:18px; color:#16a34a;">@cedis($pledge->total_paid)</div>
                     </div>
                     <div>
                         <div class="stat-label">Balance</div>
-                        <div class="stat-value" style="font-size:18px; color:{{ $pledge->balance > 0 ? '#dc2626' : '#64748b' }};">GHS {{ number_format($pledge->balance, 2) }}</div>
+                        <div class="stat-value" style="font-size:18px; color:{{ $pledge->balance > 0 ? '#dc2626' : '#64748b' }};">@cedis($pledge->balance)</div>
                     </div>
                 </div>
 

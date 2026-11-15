@@ -278,6 +278,8 @@
         .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
         .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
         .grid-main { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+        /* Let grid columns shrink so wide tables scroll inside their card instead of pushing it off-screen. */
+        .grid-4 > *, .grid-3 > *, .grid-2 > *, .grid-main > *, [style*="grid-template-columns"] > * { min-width: 0; }
 
         @media (max-width: 1024px) {
             .grid-4 { grid-template-columns: repeat(2, 1fr); }
@@ -342,7 +344,7 @@
             .toolbar > *, .toolbar > form > * { width: 100%; justify-content: center; }
             .toolbar .toolbar-main { grid-column: 1 / -1; order: -1; }
 
-            .filter-bar { flex-direction: column; align-items: stretch; }
+            .filter-bar { flex-direction: column; align-items: stretch !important; width: 100%; }
             .filter-bar > *, .filter-bar .form-control { width: 100% !important; }
             .filter-bar > .btn-primary, .filter-bar > .btn-outline { justify-content: center; }
 

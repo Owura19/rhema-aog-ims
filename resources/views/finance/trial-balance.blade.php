@@ -11,7 +11,7 @@
 <div class="card">
     <div class="card-header">
         <div class="card-title"><i class="fas fa-scale-balanced" style="color:#2563eb;margin-right:8px;"></i>Trial Balance</div>
-        <form method="GET" style="display:flex;gap:8px;align-items:center;">
+        <form method="GET" class="filter-bar" style="align-items:center;">
             <label style="font-size:13px;color:#64748b;">As of</label>
             <input type="date" name="as_of" value="{{ $asOf }}" class="form-control" style="width:auto;padding:6px 10px;">
             <button type="submit" class="btn-primary btn-sm">Apply</button>

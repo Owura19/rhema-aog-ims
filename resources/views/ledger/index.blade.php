@@ -9,7 +9,7 @@
         <a href="{{ route('finance.reports-hub') }}" style="color:#64748b;text-decoration:none;font-size:13px;"><i class="fas fa-arrow-left"></i> Back to Financial Reports</a>
         <h2 style="font-size:20px;font-weight:700;color:#1e293b;margin-top:4px;">General Ledger</h2>
     </div>
-    <form method="GET" style="display:flex;gap:8px;align-items:center;">
+    <form method="GET" class="filter-bar" style="align-items:center;">
         <label style="font-size:13px;color:#64748b;">From</label>
         <input type="date" name="from" value="{{ $from }}" class="form-control" style="width:auto;">
         <label style="font-size:13px;color:#64748b;">To</label>

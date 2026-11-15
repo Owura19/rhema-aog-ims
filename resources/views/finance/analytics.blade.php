@@ -9,7 +9,7 @@
         <a href="{{ route('finance.index') }}" style="color:#64748b;text-decoration:none;font-size:13px;"><i class="fas fa-arrow-left"></i> Back to Finance</a>
         <h2 style="font-size:20px;font-weight:700;color:#1e293b;margin-top:4px;">Finance Analytics</h2>
     </div>
-    <form method="GET" style="display:flex;gap:8px;align-items:center;">
+    <form method="GET" class="filter-bar" style="align-items:center;">
         <label style="font-size:13px;color:#64748b;">Year</label>
         <select name="year" class="form-control" style="width:auto;" onchange="this.form.submit()">
             @foreach($years as $y)
@@ -20,11 +20,11 @@
 </div>
 
 <!-- Key figures -->
-<div class="grid-3" style="margin-bottom:24px;">
+<div class="stat-grid" style="margin-bottom:24px;">
     <div class="stat-card">
         <div class="stat-icon" style="background:#dcfce7;"><i class="fas fa-arrow-up" style="color:#16a34a;"></i></div>
         <div>
-            <div class="stat-value">GHS {{ number_format($incomeYear, 2) }}</div>
+            <div class="stat-value stat-money">@cedis($incomeYear)</div>
             <div class="stat-label">Total Income ({{ $year }})</div>
             <div style="font-size:11.5px;color:#94a3b8;margin-top:2px;">This month: GHS {{ number_format($incomeMonth, 2) }}</div>
         </div>
@@ -32,7 +32,7 @@
     <div class="stat-card">
         <div class="stat-icon" style="background:#fee2e2;"><i class="fas fa-arrow-down" style="color:#dc2626;"></i></div>
         <div>
-            <div class="stat-value">GHS {{ number_format($expenseYear, 2) }}</div>
+            <div class="stat-value stat-money">@cedis($expenseYear)</div>
             <div class="stat-label">Total Expenditure ({{ $year }})</div>
             <div style="font-size:11.5px;color:#94a3b8;margin-top:2px;">This month: GHS {{ number_format($expenseMonth, 2) }}</div>
         </div>
@@ -40,7 +40,7 @@
     <div class="stat-card">
         <div class="stat-icon" style="background:{{ $netYear >= 0 ? '#dbeafe' : '#fef3c7' }};"><i class="fas fa-scale-balanced" style="color:{{ $netYear >= 0 ? '#2563eb' : '#d97706' }};"></i></div>
         <div>
-            <div class="stat-value" style="color:{{ $netYear >= 0 ? '#16a34a' : '#dc2626' }};">GHS {{ number_format($netYear, 2) }}</div>
+            <div class="stat-value stat-money" style="color:{{ $netYear >= 0 ? '#16a34a' : '#dc2626' }};">@cedis($netYear)</div>
             <div class="stat-label">Net Balance ({{ $year }})</div>
             <div style="font-size:11.5px;color:#94a3b8;margin-top:2px;">{{ $netYear >= 0 ? 'Surplus' : 'Deficit' }}</div>
         </div>

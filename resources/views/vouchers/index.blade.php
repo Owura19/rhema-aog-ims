@@ -13,16 +13,16 @@
 @if(session('error'))<div class="alert alert-danger" style="margin-bottom:16px;"><i class="fas fa-triangle-exclamation"></i> {{ session('error') }}</div>@endif
 
 <!-- Stats -->
-<div class="grid-3" style="margin-bottom:22px;">
+<div class="stat-grid" style="margin-bottom:22px;">
     <div class="stat-card"><div class="stat-icon" style="background:#fef3c7;"><i class="fas fa-clock" style="color:#d97706;"></i></div><div><div class="stat-value">{{ $stats['pending'] }}</div><div class="stat-label">Pending Approval</div></div></div>
     <div class="stat-card"><div class="stat-icon" style="background:#dbeafe;"><i class="fas fa-circle-check" style="color:#2563eb;"></i></div><div><div class="stat-value">{{ $stats['approved'] }}</div><div class="stat-label">Approved (awaiting payment)</div></div></div>
-    <div class="stat-card"><div class="stat-icon" style="background:#dcfce7;"><i class="fas fa-money-bill-wave" style="color:#16a34a;"></i></div><div><div class="stat-value">GHS {{ number_format($stats['paid'], 2) }}</div><div class="stat-label">Total Paid</div></div></div>
+    <div class="stat-card"><div class="stat-icon" style="background:#dcfce7;"><i class="fas fa-money-bill-wave" style="color:#16a34a;"></i></div><div><div class="stat-value stat-money">@cedis($stats['paid'])</div><div class="stat-label">Total Paid</div></div></div>
 </div>
 
 <!-- Filter -->
 <div class="card" style="margin-bottom:16px;">
     <div class="card-body" style="padding:14px 18px;">
-        <form method="GET" style="display:flex;gap:10px;align-items:center;">
+        <form method="GET" class="filter-bar" style="align-items:center;">
             <label style="font-size:13px;color:#64748b;">Status</label>
             <select name="status" class="form-control" style="width:auto;" onchange="this.form.submit()">
                 <option value="">All</option>

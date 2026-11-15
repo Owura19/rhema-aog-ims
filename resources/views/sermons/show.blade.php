@@ -13,7 +13,7 @@
         <div style="font-size:13px; color:#64748b;">{{ $sermon->preached_on->format('l j F Y') }} · @include('sermons._status', ['sermon' => $sermon])</div>
     </div>
     @can('manage sermons')
-    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+    <div class="toolbar">
         <a href="{{ route('sermons.edit', $sermon) }}" class="btn-outline"><i class="fas fa-edit"></i> Edit</a>
         @if($sermon->isPublished())
             <form method="POST" action="{{ route('sermons.unpublish', $sermon) }}" onsubmit="return confirm(@js('Unpublish this sermon? It will be hidden from the app.'))">

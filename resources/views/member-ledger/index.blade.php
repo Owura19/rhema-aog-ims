@@ -9,7 +9,7 @@
         <a href="{{ route('finance.reports-hub') }}" style="color:#64748b;text-decoration:none;font-size:13px;"><i class="fas fa-arrow-left"></i> Back to Financial Reports</a>
         <h2 style="font-size:20px;font-weight:700;color:#1e293b;margin-top:4px;">Member Giving Report</h2>
     </div>
-    <form method="GET" style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;">
+    <form method="GET" class="filter-bar" style="align-items:flex-end;">
         <div><label style="font-size:12px;color:#64748b;display:block;">From</label><input type="date" name="from" value="{{ $from }}" class="form-control" style="width:auto;"></div>
         <div><label style="font-size:12px;color:#64748b;display:block;">To</label><input type="date" name="to" value="{{ $to }}" class="form-control" style="width:auto;"></div>
         <button type="submit" class="btn-primary btn-sm">Apply</button>
@@ -20,7 +20,7 @@
     <div class="card-body" style="display:flex;align-items:center;gap:14px;">
         <div class="stat-icon" style="background:#dcfce7;"><i class="fas fa-hand-holding-heart" style="color:#16a34a;"></i></div>
         <div>
-            <div class="stat-value">GHS {{ number_format($grandTotal, 2) }}</div>
+            <div class="stat-value">@cedis($grandTotal)</div>
             <div class="stat-label">Total Member Giving · {{ \Carbon\Carbon::parse($from)->format('M d, Y') }} – {{ \Carbon\Carbon::parse($to)->format('M d, Y') }}</div>
         </div>
     </div>
