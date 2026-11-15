@@ -136,24 +136,52 @@
             padding: 18px 24px;
             border-bottom: 1px solid #f1f5f9;
             display: flex; align-items: center; justify-content: space-between;
+            flex-wrap: wrap; gap: 12px;
         }
         .card-title { font-size: 15px; font-weight: 700; color: #1e293b; }
         .card-body { padding: 24px; }
         .stat-card {
             background: #fff;
             border-radius: 12px;
-            padding: 20px 24px;
+            padding: 18px 20px;
             border: 1px solid #e2e8f0;
-            display: flex; align-items: center; gap: 16px;
+            display: flex; align-items: center; gap: 14px;
+            min-width: 0;
         }
+        /* The text side of a stat card: may shrink, and is the size the amount scales to. */
+        .stat-card > :last-child { flex: 1 1 auto; min-width: 0; container-type: inline-size; }
         .stat-icon {
-            width: 52px; height: 52px;
+            width: 48px; height: 48px;
             border-radius: 12px;
             display: flex; align-items: center; justify-content: center;
-            font-size: 22px;
+            font-size: 20px; flex-shrink: 0;
         }
-        .stat-value { font-size: 26px; font-weight: 800; color: #1e293b; line-height: 1; }
-        .stat-label { font-size: 13px; color: #64748b; margin-top: 3px; }
+        .stat-value {
+            font-size: 26px; font-weight: 800; color: #1e293b; line-height: 1.15;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        /* Money on ONE line, sized to the card: about 11% of the text width, 13-24px. */
+        .stat-value.stat-money { font-size: 18px; font-size: clamp(13px, 11cqi, 24px); }
+        .stat-label { font-size: 13px; color: #64748b; margin-top: 4px; line-height: 1.3; }
+
+        /* ── Shared responsive building blocks ─────────────────────────── */
+        /* A row of stat cards that wraps instead of overflowing. */
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            gap: 16px; margin-bottom: 24px;
+        }
+        /* A row of header buttons that wraps onto a second line. */
+        .toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: flex-end; }
+        .toolbar > form { display: contents; }
+        /* Filter inputs that wrap neatly. */
+        .filter-bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+        /* Wide tables scroll inside their card, never the whole page. */
+        .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; max-width: 100%; }
+        .money { white-space: nowrap; }
+        .only-phone { display: none; }
+        /* width:100% must include padding and border, or full-width inputs/buttons spill out. */
+        .form-control, .btn-primary, .btn-accent, .btn-outline, .btn-danger, .stat-card, .card { box-sizing: border-box; }
         .btn-primary {
             background: var(--primary); color: #fff;
             padding: 9px 18px; border-radius: 8px;
@@ -260,10 +288,10 @@
         @media (max-width: 768px) {
             .sidebar {
                 transform: translateX(-100%);
-                box-shadow: 4px 0 24px rgba(0,0,0,0.25);
             }
             .sidebar.open {
                 transform: translateX(0);
+                box-shadow: 4px 0 24px rgba(0,0,0,0.25);   /* only while open: no shadow strip at the edge */
             }
             .main-content {
                 margin-left: 0;
@@ -290,11 +318,55 @@
             [style*="grid-template-columns"] {
                 grid-template-columns: 1fr !important;
             }
-            /* Tables and wide content: allow horizontal scroll instead of
-               forcing the whole page to overflow sideways. */
-            table {
+            /* Tables in a scroll wrapper keep a readable width and scroll inside it;
+               nothing else may push the page wider than the screen. */
+            .table-wrap table, [style*="overflow-x:auto"] table, [style*="overflow-x: auto"] table {
                 min-width: 600px;
             }
+            .main-content { overflow-x: clip; }
+            .topbar-user { display: none; }
+        }
+
+        /* Phones */
+        @media (max-width: 640px) {
+            .stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 12px; margin-bottom: 18px; }
+            .stat-grid .stat-card { flex-direction: column; align-items: flex-start; gap: 10px; padding: 14px; }
+            .stat-grid .stat-card > :last-child { width: 100%; }
+            .stat-grid .stat-icon { width: 36px; height: 36px; font-size: 16px; border-radius: 10px; }
+            .stat-grid .stat-value { font-size: 20px; }
+            .stat-grid .stat-value.stat-money { font-size: 15px; font-size: clamp(12px, 11cqi, 20px); }
+            .stat-label { font-size: 12px; }
+
+            .card-header { padding: 14px 16px; }
+            .toolbar { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); width: 100%; }
+            .toolbar > *, .toolbar > form > * { width: 100%; justify-content: center; }
+            .toolbar .toolbar-main { grid-column: 1 / -1; order: -1; }
+
+            .filter-bar { flex-direction: column; align-items: stretch; }
+            .filter-bar > *, .filter-bar .form-control { width: 100% !important; }
+            .filter-bar > .btn-primary, .filter-bar > .btn-outline { justify-content: center; }
+
+            .only-phone { display: block; }
+            .no-phone { display: none !important; }
+
+            /* Tables marked .table-cards become one card per row. */
+            .table-cards { min-width: 0 !important; }
+            .table-cards thead { display: none; }
+            .table-cards, .table-cards tbody, .table-cards tr, .table-cards td { display: block; width: 100%; box-sizing: border-box; }
+            .table-cards tr {
+                background: #fff; border: 1px solid #e2e8f0; border-radius: 12px;
+                margin: 12px 0; padding: 12px 14px;
+            }
+            .table-cards td { border: none !important; padding: 3px 0 !important; background: transparent !important; }
+            .table-cards td[data-label]::before {
+                content: attr(data-label); display: block;
+                font-size: 11px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: .4px;
+            }
+            .table-cards td.empty-row { text-align: center; }
+        }
+        @media (max-width: 340px) {
+            .stat-grid { grid-template-columns: 1fr !important; }
+            .toolbar { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -502,7 +574,7 @@
             <div class="topbar-title">@yield('title', 'Dashboard')</div>
         </div>
         <div class="topbar-right">
-            <div style="text-align:right;">
+            <div class="topbar-user" style="text-align:right;">
                 <div style="font-size:14px; font-weight:600; color:#1e293b;">{{ auth()->user()->name }}</div>
                 <div style="font-size:12px; color:#64748b;">{{ auth()->user()->getRoleNames()->first() }}</div>
             </div>
