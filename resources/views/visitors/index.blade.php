@@ -4,7 +4,7 @@
 
 @section('content')
 
-<div class="grid-5" style="margin-bottom:28px;">
+<div class="stat-grid" style="margin-bottom:28px;">
     <div class="stat-card">
         <div class="stat-icon" style="background:#dbeafe;">
             <i class="fas fa-user-friends" style="color:#2563eb;"></i>
@@ -64,7 +64,7 @@
 
     <!-- Filters -->
     <div style="padding:16px 24px; border-bottom:1px solid #f1f5f9; background:#f8fafc;">
-        <form method="GET" action="{{ route('visitors.index') }}" style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
+        <form method="GET" action="{{ route('visitors.index') }}" class="filter-bar" style="align-items:center;">
             <input type="text" name="search" value="{{ request('search') }}" placeholder="Search name, phone..." class="form-control" style="width:220px;">
             <select name="follow_up_status" class="form-control" style="width:170px;">
                 <option value="">All Statuses</option>

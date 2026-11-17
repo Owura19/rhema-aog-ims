@@ -18,7 +18,7 @@
 
     <!-- Filters -->
     <div style="padding:16px 24px; border-bottom:1px solid #f1f5f9; background:#f8fafc;">
-        <form method="GET" action="{{ route('attendance.index') }}" style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
+        <form method="GET" action="{{ route('attendance.index') }}" class="filter-bar" style="align-items:center;">
             <select name="service_id" class="form-control" style="width:220px;">
                 <option value="">All Services</option>
                 @foreach($services as $service)

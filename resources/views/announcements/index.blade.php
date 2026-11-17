@@ -10,7 +10,7 @@
         <a href="{{ route('announcements.create') }}" class="btn-primary"><i class="fas fa-plus"></i> New Announcement</a>
     </div>
 
-    <form method="GET" action="{{ route('announcements.index') }}" style="padding:12px 24px; display:flex; gap:10px; flex-wrap:wrap; border-bottom:1px solid #f1f5f9;">
+    <form method="GET" action="{{ route('announcements.index') }}" class="filter-bar" style="padding:12px 24px; border-bottom:1px solid #f1f5f9;">
         <select name="state" class="form-control" style="width:auto;">
             <option value="">All</option>
             @foreach(['active' => 'Showing in app', 'scheduled' => 'Scheduled', 'expired' => 'Expired', 'draft' => 'Drafts'] as $value => $label)

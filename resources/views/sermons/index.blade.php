@@ -8,14 +8,14 @@
     <div class="card-header">
         <div class="card-title"><i class="fas fa-microphone" style="color:#2563eb; margin-right:8px;"></i>Sermons</div>
         @can('manage sermons')
-            <div style="display:flex; gap:8px;">
+            <div class="toolbar">
                 <a href="{{ route('sermon-series.index') }}" class="btn-outline"><i class="fas fa-layer-group"></i> Series</a>
                 <a href="{{ route('sermons.create') }}" class="btn-primary"><i class="fas fa-plus"></i> New Sermon</a>
             </div>
         @endcan
     </div>
 
-    <form method="GET" action="{{ route('sermons.index') }}" style="padding:12px 24px; display:flex; gap:10px; flex-wrap:wrap; border-bottom:1px solid #f1f5f9;">
+    <form method="GET" action="{{ route('sermons.index') }}" class="filter-bar" style="padding:12px 24px; border-bottom:1px solid #f1f5f9;">
         <select name="status" class="form-control" style="width:auto;">
             <option value="">All statuses</option>
             <option value="draft" {{ request('status') === 'draft' ? 'selected' : '' }}>Drafts</option>

@@ -11,7 +11,7 @@
         </a>
         <h2 style="font-size:20px; font-weight:700; color:#1e293b; margin-top:4px;">Transaction {{ $transaction->reference }}</h2>
     </div>
-    <div style="display:flex; gap:10px;">
+    <div class="toolbar">
         <a href="/receipts/{{ $transaction->id }}" class="btn-primary" style="background:#16a34a;" target="_blank">
             <i class="fas fa-file-pdf"></i> View Receipt
         </a>

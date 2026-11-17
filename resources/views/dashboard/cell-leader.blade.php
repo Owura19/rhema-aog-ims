@@ -10,7 +10,7 @@
 </div>
 
 <!-- Stats -->
-<div class="grid-4" style="margin-bottom:28px;">
+<div class="stat-grid" style="margin-bottom:28px;">
     <div class="stat-card">
         <div class="stat-icon" style="background:#f3e8ff;">
             <i class="fas fa-home" style="color:#7c3aed;"></i>

@@ -5,7 +5,7 @@
 @section('content')
 
 <!-- Stats Row 1 -->
-<div class="grid-4" style="margin-bottom:20px;">
+<div class="stat-grid" style="margin-bottom:20px;">
     <div class="stat-card">
         <div class="stat-icon" style="background:#dbeafe;">
             <i class="fas fa-users" style="color:#2563eb;"></i>
@@ -45,13 +45,13 @@
 </div>
 
 <!-- Stats Row 2 -->
-<div class="grid-4" style="margin-bottom:28px;">
+<div class="stat-grid" style="margin-bottom:28px;">
     <div class="stat-card">
         <div class="stat-icon" style="background:#dcfce7;">
             <i class="fas fa-arrow-up" style="color:#16a34a;"></i>
         </div>
         <div>
-            <div class="stat-value" style="font-size:18px;">GHS {{ number_format($stats['income_month'], 2) }}</div>
+            <div class="stat-value stat-money">@cedis($stats['income_month'])</div>
             <div class="stat-label">Income This Month</div>
         </div>
     </div>
@@ -60,7 +60,7 @@
             <i class="fas fa-arrow-down" style="color:#dc2626;"></i>
         </div>
         <div>
-            <div class="stat-value" style="font-size:18px;">GHS {{ number_format($stats['expense_month'], 2) }}</div>
+            <div class="stat-value stat-money">@cedis($stats['expense_month'])</div>
             <div class="stat-label">Expenses This Month</div>
         </div>
     </div>

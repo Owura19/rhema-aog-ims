@@ -12,7 +12,7 @@
         <h2 style="font-size:20px; font-weight:700; color:#1e293b; margin-top:4px;">{{ $devotion->title }}</h2>
         <div style="font-size:13px; color:#64748b;">{{ $devotion->publish_date->format('l j F Y') }} · @include('devotions._state', ['state' => $devotion->state()])</div>
     </div>
-    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+    <div class="toolbar">
         @can('manage devotions')
             <a href="{{ route('devotions.edit', $devotion) }}" class="btn-outline"><i class="fas fa-edit"></i> Edit</a>
         @endcan

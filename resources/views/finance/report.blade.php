@@ -4,26 +4,27 @@
 
 @section('content')
 
-<div style="margin-bottom:24px; display:flex; align-items:center; justify-content:space-between;">
+<div style="margin-bottom:24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
     <div>
         <h2 style="font-size:20px; font-weight:700; color:#1e293b;">Finance Report</h2>
         <div style="font-size:13px; color:#64748b;">
             {{ $month ? \Carbon\Carbon::create()->month((int) $month)->format('F') . ' ' . $year : 'Full Year ' . $year }}
         </div>
     </div>
- <a href="{{ route('finance.export', ['year' => $year]) }}" class="btn-primary" style="background:#16a34a;">
-    <i class="fas fa-file-excel"></i> Export Excel
-</a>
-
-    <a href="{{ route('finance.create') }}" class="btn-primary">
-        <i class="fas fa-plus"></i> Record Transaction
-    </a>
+    <div class="toolbar">
+        <a href="{{ route('finance.export', ['year' => $year]) }}" class="btn-primary" style="background:#16a34a;">
+            <i class="fas fa-file-excel"></i> Export Excel
+        </a>
+        <a href="{{ route('finance.create') }}" class="btn-primary toolbar-main">
+            <i class="fas fa-plus"></i> Record Transaction
+        </a>
+    </div>
 </div>
 
 <!-- Year/Month Filter -->
 <div class="card" style="margin-bottom:24px;">
     <div class="card-body" style="padding:16px 24px;">
-        <form method="GET" action="{{ route('finance.report') }}" style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+        <form method="GET" action="{{ route('finance.report') }}" class="filter-bar" style="align-items:center;">
             <label class="form-label" style="margin:0;">Year:</label>
             <select name="year" class="form-control" style="width:120px;">
                 @for($y = now()->year; $y >= now()->year - 5; $y--)
@@ -45,13 +46,13 @@
 </div>
 
 <!-- Summary Cards -->
-<div class="grid-3" style="margin-bottom:28px;">
+<div class="stat-grid" style="margin-bottom:28px;">
     <div class="stat-card">
         <div class="stat-icon" style="background:#dcfce7;">
             <i class="fas fa-arrow-up" style="color:#16a34a;"></i>
         </div>
         <div>
-            <div class="stat-value" style="font-size:20px;">GHS {{ number_format($income, 2) }}</div>
+            <div class="stat-value stat-money">@cedis($income)</div>
             <div class="stat-label">Total Income</div>
         </div>
     </div>
@@ -60,7 +61,7 @@
             <i class="fas fa-arrow-down" style="color:#dc2626;"></i>
         </div>
         <div>
-            <div class="stat-value" style="font-size:20px;">GHS {{ number_format($expense, 2) }}</div>
+            <div class="stat-value stat-money">@cedis($expense)</div>
             <div class="stat-label">Total Expenses</div>
         </div>
     </div>
@@ -69,9 +70,7 @@
             <i class="fas fa-balance-scale" style="color:{{ $balance >= 0 ? '#16a34a' : '#dc2626' }};"></i>
         </div>
         <div>
-            <div class="stat-value" style="font-size:20px; color:{{ $balance >= 0 ? '#16a34a' : '#dc2626' }};">
-                GHS {{ number_format($balance, 2) }}
-            </div>
+            <div class="stat-value stat-money" style="color:{{ $balance >= 0 ? '#16a34a' : '#dc2626' }};">@cedis($balance)</div>
             <div class="stat-label">Net Balance</div>
         </div>
     </div>

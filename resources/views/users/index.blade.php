@@ -13,6 +13,7 @@
         <i class="fas fa-circle-info"></i> Member app and portal logins are managed from each member's profile.
     </div>
     <div class="card-body" style="padding:0;">
+        <div class="table-wrap">
         <table class="table">
             <thead>
                 <tr>
@@ -82,6 +83,7 @@
                 @endforelse
             </tbody>
         </table>
+        </div>
     </div>
     @if($users->hasPages())
         <div style="padding:16px 24px;">

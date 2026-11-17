@@ -35,7 +35,7 @@
 <!-- PDF export + Add Account -->
 <div class="card" style="margin-bottom:20px;">
     <div class="card-body" style="display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;">
-        <form method="GET" action="{{ route('finance.master-report.pdf') }}" target="_blank" style="display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap;">
+        <form method="GET" action="{{ route('finance.master-report.pdf') }}" target="_blank" class="filter-bar" style="align-items:flex-end;">
             <div>
                 <label class="form-label">From</label>
                 <input type="date" name="from" value="{{ now()->startOfYear()->toDateString() }}" class="form-control">
@@ -53,12 +53,12 @@
 </div>
 
 <!-- Summary cards -->
-<div class="grid-3" style="margin-bottom:22px;">
+<div class="stat-grid" style="margin-bottom:22px;">
     <div class="stat-card"><div class="stat-icon" style="background:#dbeafe;"><i class="fas fa-sitemap" style="color:#2563eb;"></i></div><div><div class="stat-value">{{ $counts['total'] }}</div><div class="stat-label">Total Accounts</div></div></div>
     <div class="stat-card"><div class="stat-icon" style="background:#dcfce7;"><i class="fas fa-arrow-up" style="color:#16a34a;"></i></div><div><div class="stat-value">{{ $counts['income'] }}</div><div class="stat-label">Income Accounts</div></div></div>
     <div class="stat-card"><div class="stat-icon" style="background:#fee2e2;"><i class="fas fa-arrow-down" style="color:#dc2626;"></i></div><div><div class="stat-value">{{ $counts['expense'] }}</div><div class="stat-label">Expense Accounts</div></div></div>
 </div>
-<div class="grid-3" style="margin-bottom:22px;">
+<div class="stat-grid" style="margin-bottom:22px;">
     <div class="stat-card"><div class="stat-icon" style="background:#e0f2fe;"><i class="fas fa-coins" style="color:#0284c7;"></i></div><div><div class="stat-value">{{ $counts['asset'] }}</div><div class="stat-label">Asset Accounts</div></div></div>
     <div class="stat-card"><div class="stat-icon" style="background:#fef3c7;"><i class="fas fa-file-invoice" style="color:#d97706;"></i></div><div><div class="stat-value">{{ $counts['liability'] }}</div><div class="stat-label">Liability Accounts</div></div></div>
     <div class="stat-card"><div class="stat-icon" style="background:#f3e8ff;"><i class="fas fa-scale-balanced" style="color:#7c3aed;"></i></div><div><div class="stat-value">{{ $counts['equity'] }}</div><div class="stat-label">Equity Accounts</div></div></div>

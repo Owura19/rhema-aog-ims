@@ -8,6 +8,7 @@ use App\Services\Sms\LogSmsSender;
 use App\Support\PhoneNumber;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use InvalidArgumentException;
@@ -33,6 +34,9 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureApiRateLimits();
+
+        // @cedis($amount) → "GH₵ 1,250.00" on web pages.
+        Blade::directive('cedis', fn (string $expression) => "<?php echo e(\\App\\Support\\Cedis::format({$expression})); ?>");
     }
 
     /**

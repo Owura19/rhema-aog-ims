@@ -5,13 +5,13 @@
 @section('content')
 
 <!-- Summary cards -->
-<div class="grid-4" style="margin-bottom:24px;">
+<div class="stat-grid" style="margin-bottom:24px;">
     <div class="stat-card">
         <div class="stat-icon" style="background:#dbeafe;">
             <i class="fas fa-hand-holding-heart" style="color:#2563eb;"></i>
         </div>
         <div>
-            <div class="stat-value" style="font-size:18px;">GHS {{ number_format($summary['total_pledged'], 2) }}</div>
+            <div class="stat-value stat-money">@cedis($summary['total_pledged'])</div>
             <div class="stat-label">Total Pledged</div>
         </div>
     </div>
@@ -20,7 +20,7 @@
             <i class="fas fa-check-circle" style="color:#16a34a;"></i>
         </div>
         <div>
-            <div class="stat-value" style="font-size:18px;">GHS {{ number_format($summary['total_collected'], 2) }}</div>
+            <div class="stat-value stat-money">@cedis($summary['total_collected'])</div>
             <div class="stat-label">Collected</div>
         </div>
     </div>
@@ -29,7 +29,7 @@
             <i class="fas fa-hourglass-half" style="color:#ca8a04;"></i>
         </div>
         <div>
-            <div class="stat-value" style="font-size:18px;">GHS {{ number_format($summary['outstanding'], 2) }}</div>
+            <div class="stat-value stat-money">@cedis($summary['outstanding'])</div>
             <div class="stat-label">Outstanding</div>
         </div>
     </div>
@@ -48,14 +48,16 @@
     <div class="card-header">
         <div class="card-title"><i class="fas fa-hand-holding-heart" style="color:#7c3aed; margin-right:8px;"></i>All Pledges</div>
         @canany(['manage pledges', 'create finance'])
-        <a href="{{ route('pledges.report') }}" class="btn-primary btn-sm" style="background:#1a3c5e; margin-right:8px;"><i class="fas fa-chart-bar"></i> Report</a>
-        <a href="{{ route('pledges.create') }}" class="btn-primary btn-sm"><i class="fas fa-plus"></i> New Pledge</a>
+        <div class="toolbar">
+            <a href="{{ route('pledges.report') }}" class="btn-primary btn-sm" style="background:#1a3c5e;"><i class="fas fa-chart-bar"></i> Report</a>
+            <a href="{{ route('pledges.create') }}" class="btn-primary btn-sm toolbar-main"><i class="fas fa-plus"></i> New Pledge</a>
+        </div>
         @endcanany
     </div>
 
     <!-- Filters -->
     <div style="padding:16px 24px; border-bottom:1px solid #f1f5f9;">
-        <form method="GET" action="{{ route('pledges.index') }}" style="display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end;">
+        <form method="GET" action="{{ route('pledges.index') }}" class="filter-bar" style="align-items:flex-end;">
             <div>
                 <label class="form-label">Search</label>
                 <input type="text" name="search" value="{{ request('search') }}" placeholder="Name or reference..." class="form-control" style="min-width:220px;">

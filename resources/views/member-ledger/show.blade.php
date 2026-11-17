@@ -10,8 +10,8 @@
         <h2 style="font-size:20px;font-weight:700;color:#1e293b;margin-top:4px;">{{ $member->full_name ?? ($member->first_name.' '.$member->last_name) }}</h2>
         <div style="font-size:12.5px;color:#94a3b8;">Giving Statement</div>
     </div>
-    <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;">
-        <form method="GET" style="display:flex;gap:8px;align-items:flex-end;">
+    <div class="toolbar" style="align-items:flex-end;">
+        <form method="GET" class="filter-bar" style="align-items:flex-end;">
             <div><label style="font-size:12px;color:#64748b;display:block;">From</label><input type="date" name="from" value="{{ $from }}" class="form-control" style="width:auto;"></div>
             <div><label style="font-size:12px;color:#64748b;display:block;">To</label><input type="date" name="to" value="{{ $to }}" class="form-control" style="width:auto;"></div>
             <button type="submit" class="btn-primary btn-sm">Apply</button>

@@ -12,13 +12,13 @@
 </div>
 
 <!-- Top stats -->
-<div class="grid-4" style="margin-bottom:20px;">
+<div class="stat-grid" style="margin-bottom:20px;">
     <div class="stat-card">
         <div class="stat-icon" style="background:#f3e8ff;">
             <i class="fas fa-bullseye" style="color:#7c3aed;"></i>
         </div>
         <div>
-            <div class="stat-value" style="font-size:18px;">GHS {{ number_format($harvest->target_amount, 2) }}</div>
+            <div class="stat-value stat-money">@cedis($harvest->target_amount)</div>
             <div class="stat-label">Target</div>
         </div>
     </div>
@@ -27,7 +27,7 @@
             <i class="fas fa-hand-holding-heart" style="color:#2563eb;"></i>
         </div>
         <div>
-            <div class="stat-value" style="font-size:18px;">GHS {{ number_format($harvest->total_pledged, 2) }}</div>
+            <div class="stat-value stat-money">@cedis($harvest->total_pledged)</div>
             <div class="stat-label">Total Pledged</div>
         </div>
     </div>
@@ -36,7 +36,7 @@
             <i class="fas fa-check-circle" style="color:#16a34a;"></i>
         </div>
         <div>
-            <div class="stat-value" style="font-size:18px;">GHS {{ number_format($harvest->total_paid, 2) }}</div>
+            <div class="stat-value stat-money">@cedis($harvest->total_paid)</div>
             <div class="stat-label">Collected</div>
         </div>
     </div>
@@ -45,7 +45,7 @@
             <i class="fas fa-hourglass-half" style="color:#ca8a04;"></i>
         </div>
         <div>
-            <div class="stat-value" style="font-size:18px;">GHS {{ number_format($harvest->outstanding, 2) }}</div>
+            <div class="stat-value stat-money">@cedis($harvest->outstanding)</div>
             <div class="stat-label">Outstanding</div>
         </div>
     </div>

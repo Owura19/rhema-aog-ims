@@ -15,7 +15,7 @@
 
 <div class="card" style="margin-bottom:20px;">
     <div class="card-body">
-        <form method="GET" action="{{ route('payments.index') }}" style="display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end;">
+        <form method="GET" action="{{ route('payments.index') }}" class="filter-bar" style="align-items:flex-end;">
             <div>
                 <label class="form-label">Search</label>
                 <input type="text" name="search" value="{{ request('search') }}" placeholder="Name or reference..." class="form-control" style="min-width:220px;">

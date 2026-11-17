@@ -45,7 +45,7 @@
         @endif
 
         <!-- Actions -->
-        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <div class="toolbar">
             <a href="{{ route('vouchers.print', $voucher) }}" target="_blank" class="btn-outline"><i class="fas fa-print"></i> Print Voucher</a>
 
             @if($voucher->can_approve)

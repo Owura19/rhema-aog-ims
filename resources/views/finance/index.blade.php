@@ -5,13 +5,13 @@
 @section('content')
 
 <!-- Stats Row -->
-<div id="finance-stats" style="display:grid; grid-template-columns:repeat(5,1fr); gap:16px; margin-bottom:28px;">
+<div id="finance-stats" class="stat-grid">
     <div class="stat-card">
         <div class="stat-icon" style="background:#dcfce7;">
             <i class="fas fa-arrow-up" style="color:#16a34a;"></i>
         </div>
         <div>
-            <div class="stat-value" style="font-size:18px;">GHS {{ number_format($stats['total_income'], 2) }}</div>
+            <div class="stat-value stat-money">@cedis($stats['total_income'])</div>
             <div class="stat-label">Income {{ $rangeLabel }}</div>
         </div>
     </div>
@@ -20,7 +20,7 @@
             <i class="fas fa-arrow-down" style="color:#dc2626;"></i>
         </div>
         <div>
-            <div class="stat-value" style="font-size:18px;">GHS {{ number_format($stats['total_expense'], 2) }}</div>
+            <div class="stat-value stat-money">@cedis($stats['total_expense'])</div>
             <div class="stat-label">Expenses {{ $rangeLabel }}</div>
         </div>
     </div>
@@ -29,7 +29,7 @@
             <i class="fas fa-hand-holding-heart" style="color:#2563eb;"></i>
         </div>
         <div>
-            <div class="stat-value" style="font-size:18px;">GHS {{ number_format($stats['total_tithes'], 2) }}</div>
+            <div class="stat-value stat-money">@cedis($stats['total_tithes'])</div>
             <div class="stat-label">Tithes {{ $rangeLabel }}</div>
         </div>
     </div>
@@ -38,7 +38,7 @@
             <i class="fas fa-church" style="color:#7c3aed;"></i>
         </div>
         <div>
-            <div class="stat-value" style="font-size:18px;">GHS {{ number_format($stats['total_offerings'], 2) }}</div>
+            <div class="stat-value stat-money">@cedis($stats['total_offerings'])</div>
             <div class="stat-label">Offerings {{ $rangeLabel }}</div>
         </div>
     </div>
@@ -47,7 +47,7 @@
             <i class="fas fa-balance-scale" style="color:{{ $stats['net_balance'] >= 0 ? '#16a34a' : '#dc2626' }};"></i>
         </div>
         <div>
-            <div class="stat-value" style="font-size:18px; color:{{ $stats['net_balance'] >= 0 ? '#16a34a' : '#dc2626' }};">GHS {{ number_format($stats['net_balance'], 2) }}</div>
+            <div class="stat-value stat-money" style="color:{{ $stats['net_balance'] >= 0 ? '#16a34a' : '#dc2626' }};">@cedis($stats['net_balance'])</div>
             <div class="stat-label">Net Balance</div>
         </div>
     </div>
@@ -57,20 +57,20 @@
 <div class="card">
    <div class="card-header" id="finance-header">
     <div class="card-title"><i class="fas fa-money-bill-wave" style="color:#16a34a; margin-right:8px;"></i>Transactions</div>
-    <div style="display:flex; gap:10px;">
+    <div class="toolbar">
         <a href="{{ route('finance.report') }}" class="btn-outline btn-sm"><i class="fas fa-chart-bar"></i> Reports</a>
         <a href="{{ route('finance.export', ['year' => now()->year]) }}" class="btn-primary btn-sm" style="background:#16a34a;">
             <i class="fas fa-file-excel"></i> Export Excel
         </a>
         <button type="button" class="btn-outline btn-sm" onclick="window.print()"><i class="fas fa-print"></i> Print</button>
-        <a href="{{ route("finance.pdf", request()->query()) }}" class="btn-primary btn-sm" style="background:#dc2626;text-decoration:none;display:inline-flex;align-items:center;gap:6px;" target="_blank"><i class="fas fa-file-pdf"></i> Export PDF</a>
-        <a href="{{ route('finance.create') }}" class="btn-primary"><i class="fas fa-plus"></i> Record Transaction</a>
+        <a href="{{ route("finance.pdf", request()->query()) }}" class="btn-primary btn-sm" style="background:#dc2626;" target="_blank"><i class="fas fa-file-pdf"></i> Export PDF</a>
+        <a href="{{ route('finance.create') }}" class="btn-primary toolbar-main"><i class="fas fa-plus"></i> Record Transaction</a>
     </div>
 </div>
 
     <!-- Filters -->
     <div id="finance-filters" style="padding:16px 24px; border-bottom:1px solid #f1f5f9; background:#f8fafc;">
-        <form method="GET" action="{{ route('finance.index') }}" style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
+        <form method="GET" action="{{ route('finance.index') }}" class="filter-bar">
             <input type="text" name="search" value="{{ request('search') }}" placeholder="Search reference, name..." class="form-control" style="width:220px;">
             <select name="type" class="form-control" style="width:150px;">
                 <option value="">All Types</option>
@@ -118,9 +118,9 @@
         </div>
     </div>
 
-    <!-- Table -->
-    <div style="overflow-x:auto;">
-        <table class="table">
+    <!-- Table (desktop: scrolls inside the card; phone: one card per transaction) -->
+    <div class="table-wrap">
+        <table class="table table-cards tx-cards">
             <thead>
                 <tr>
                     <th>Reference</th>
@@ -136,28 +136,28 @@
             <tbody>
                 @forelse($transactions as $transaction)
                 <tr>
-                    <td>
-                        <span style="font-family:monospace; font-size:13px; background:#f1f5f9; padding:3px 8px; border-radius:4px;">{{ $transaction->reference }}</span>
+                    <td class="tx-ref">
+                        <span style="font-family:monospace; font-size:13px; background:#f1f5f9; padding:3px 8px; border-radius:4px; white-space:nowrap;">{{ $transaction->reference }}</span>
                     </td>
-                    <td>
+                    <td class="tx-payer">
                         <div style="font-weight:600; font-size:13px;">{{ $transaction->payer_label }}</div>
                         @if($transaction->churchService)
                             <div style="font-size:11px; color:#94a3b8;">{{ $transaction->churchService->name }}</div>
                         @endif
                     </td>
-                    <td>
+                    <td class="tx-type">
                         <span class="badge {{ $transaction->category === 'Income' ? 'badge-success' : 'badge-danger' }}">
                             {{ $transaction->type }}
                         </span>
                     </td>
-                    <td>
-                        <span style="font-weight:700; font-size:15px; color:{{ $transaction->category === 'Income' ? '#16a34a' : '#dc2626' }};">
-                            {{ $transaction->category === 'Expense' ? '-' : '+' }} GHS {{ number_format($transaction->amount, 2) }}
+                    <td class="tx-amount">
+                        <span class="money" style="font-weight:700; font-size:15px; color:{{ $transaction->category === 'Income' ? '#16a34a' : '#dc2626' }};">
+                            {{ $transaction->category === 'Expense' ? '-' : '+' }} @cedis($transaction->amount)
                         </span>
                     </td>
-                    <td style="font-size:13px; color:#64748b;">{{ $transaction->payment_method }}</td>
-                    <td style="font-size:13px; color:#64748b;">{{ $transaction->transaction_date->format('M d, Y') }}</td>
-                    <td>
+                    <td class="tx-method" style="font-size:13px; color:#64748b;">{{ $transaction->payment_method }}</td>
+                    <td class="tx-date" style="font-size:13px; color:#64748b; white-space:nowrap;">{{ $transaction->transaction_date->format('M d, Y') }}</td>
+                    <td class="tx-status">
                         @if($transaction->status === 'Confirmed')
                             <span class="badge badge-success">Confirmed</span>
                         @elseif($transaction->status === 'Pending')
@@ -166,22 +166,22 @@
                             <span class="badge badge-danger">Cancelled</span>
                         @endif
                     </td>
-                   <td class="no-print">
-    <div style="display:flex; gap:6px;">
-        <a href="{{ route('finance.show', $transaction) }}" class="btn-outline btn-sm" title="View"><i class="fas fa-eye"></i></a>
-        <a href="{{ route('finance.receipt', ['transaction' => $transaction->id]) }}" class="btn-primary btn-sm" style="background:#16a34a;" title="Receipt" target="_blank"><i class="fas fa-file-pdf"></i></a>
-        <a href="{{ route('finance.receipt.print', $transaction) }}" class="btn-outline btn-sm" title="Print" target="_blank"><i class="fas fa-print"></i></a>
-        <a href="{{ route('finance.edit', $transaction) }}" class="btn-primary btn-sm" title="Edit"><i class="fas fa-edit"></i></a>
-        <form method="POST" action="{{ route('finance.destroy', $transaction) }}" onsubmit="return confirm('Delete this transaction?')">
-            @csrf @method('DELETE')
-            <button type="submit" class="btn-danger btn-sm" title="Delete"><i class="fas fa-trash"></i></button>
-        </form>
-    </div>
-</td>
+                    <td class="no-print tx-actions">
+                        <div class="tx-action-row">
+                            <a href="{{ route('finance.show', $transaction) }}" class="btn-outline btn-sm" title="View" aria-label="View"><i class="fas fa-eye"></i></a>
+                            <a href="{{ route('finance.receipt', ['transaction' => $transaction->id]) }}" class="btn-primary btn-sm" style="background:#16a34a;" title="Receipt" aria-label="Receipt" target="_blank"><i class="fas fa-file-pdf"></i></a>
+                            <a href="{{ route('finance.receipt.print', $transaction) }}" class="btn-outline btn-sm" title="Print" aria-label="Print" target="_blank"><i class="fas fa-print"></i></a>
+                            <a href="{{ route('finance.edit', $transaction) }}" class="btn-primary btn-sm" title="Edit" aria-label="Edit"><i class="fas fa-edit"></i></a>
+                            <form method="POST" action="{{ route('finance.destroy', $transaction) }}" onsubmit="return confirm('Delete this transaction?')">
+                                @csrf @method('DELETE')
+                                <button type="submit" class="btn-danger btn-sm" title="Delete" aria-label="Delete"><i class="fas fa-trash"></i></button>
+                            </form>
+                        </div>
+                    </td>
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="8" style="text-align:center; padding:60px; color:#94a3b8;">
+                    <td colspan="8" class="empty-row" style="text-align:center; padding:60px; color:#94a3b8;">
                         <i class="fas fa-money-bill-wave" style="font-size:48px; display:block; margin-bottom:16px;"></i>
                         <div style="font-size:16px; font-weight:600; margin-bottom:8px;">No transactions yet</div>
                         <a href="{{ route('finance.create') }}" class="btn-primary"><i class="fas fa-plus"></i> Record First Transaction</a>
@@ -193,7 +193,7 @@
     </div>
 
     @if($transactions->hasPages())
-    <div id="finance-pagination" style="padding:16px 24px; border-top:1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center;">
+    <div id="finance-pagination" style="padding:16px 24px; border-top:1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
         <div style="font-size:13px; color:#64748b;">
             Showing {{ $transactions->firstItem() }} to {{ $transactions->lastItem() }} of {{ $transactions->total() }} transactions
         </div>
@@ -203,6 +203,37 @@
 </div>
 
 <style>
+    .tx-action-row { display: flex; gap: 6px; }
+
+    /* Phone: each transaction is a card — reference + status, payer, type + amount, method + date, actions. */
+    @media (max-width: 640px) {
+        #finance-filters { padding: 14px 16px !important; }
+        .tx-cards tr {
+            display: grid !important;
+            grid-template-columns: minmax(0, 1fr) auto;
+            grid-template-areas:
+                "ref status"
+                "payer payer"
+                "type amount"
+                "method date"
+                "actions actions";
+            gap: 6px 10px; align-items: center;
+        }
+        .tx-cards .tx-ref { grid-area: ref; }
+        .tx-cards .tx-status { grid-area: status; justify-self: end; width: auto !important; }
+        .tx-cards .tx-payer { grid-area: payer; }
+        .tx-cards .tx-type { grid-area: type; }
+        .tx-cards .tx-amount { grid-area: amount; justify-self: end; width: auto !important; }
+        .tx-cards .tx-amount .money { font-size: 17px !important; }
+        .tx-cards .tx-method { grid-area: method; }
+        .tx-cards .tx-date { grid-area: date; justify-self: end; width: auto !important; }
+        .tx-cards .tx-actions { grid-area: actions; border-top: 1px solid #f1f5f9 !important; padding-top: 8px !important; margin-top: 2px; }
+        .tx-cards .tx-action-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+        .tx-cards .tx-action-row > *, .tx-cards .tx-action-row form > button { width: 100%; justify-content: center; }
+        .tx-cards .empty-row { grid-column: 1 / -1; padding: 40px 0 !important; }
+        #finance-pagination { padding: 14px 16px !important; }
+    }
+
     @media print {
         .sidebar, .topbar, #finance-filters, #finance-pagination, .no-print { display: none !important; }
         #finance-header > div:last-child { display: none !important; }

@@ -8,7 +8,7 @@
 
 <div class="card" style="margin-bottom:20px;">
     <div class="card-body">
-        <form method="GET" action="{{ route('pledges.summary') }}" style="display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end;">
+        <form method="GET" action="{{ route('pledges.summary') }}" class="filter-bar" style="align-items:flex-end;">
             <div>
                 <label class="form-label">Campaign</label>
                 <select name="harvest" class="form-control" style="min-width:220px;" onchange="this.form.submit()">

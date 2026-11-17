@@ -18,7 +18,7 @@
 </div>
 
 <div class="card" style="margin-bottom:20px;">
-    <form method="GET" action="{{ route('day-born.report') }}" style="padding:12px 24px; display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+    <form method="GET" action="{{ route('day-born.report') }}" class="filter-bar" style="padding:12px 24px; align-items:center;">
         <select name="year" class="form-control" style="width:auto;">
             @foreach($years as $y)
                 <option value="{{ $y }}" {{ $report->year === $y ? 'selected' : '' }}>{{ $y }}</option>
@@ -38,6 +38,7 @@
 <div class="grid-main">
     <div class="card">
         <div class="card-header"><div class="card-title"><i class="fas fa-trophy" style="color:#d97706; margin-right:8px;"></i>Day-born groups</div></div>
+        <div class="table-wrap">
         <table class="table">
             <thead>
                 <tr><th style="width:70px;">Place</th><th>Group</th><th style="text-align:right;">Total (GH₵)</th><th style="text-align:right;">Weeks won</th></tr>
@@ -62,10 +63,12 @@
                 </tr>
             </tbody>
         </table>
+        </div>
     </div>
 
     <div class="card">
         <div class="card-header"><div class="card-title">Weeks</div></div>
+        <div class="table-wrap">
         <table class="table">
             <thead><tr><th>Date</th><th>Winner</th><th style="text-align:right;">Total</th></tr></thead>
             <tbody>
@@ -80,6 +83,7 @@
                 @endforelse
             </tbody>
         </table>
+        </div>
     </div>
 </div>
 

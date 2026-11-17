@@ -4,7 +4,7 @@
 
 @section('content')
 
-<div class="grid-4" style="margin-bottom:28px;">
+<div class="stat-grid" style="margin-bottom:28px;">
     <div class="stat-card">
         <div class="stat-icon" style="background:#dbeafe;">
             <i class="fas fa-calendar-alt" style="color:#2563eb;"></i>
@@ -53,7 +53,7 @@
 
     <!-- Filters -->
     <div style="padding:16px 24px; border-bottom:1px solid #f1f5f9; background:#f8fafc;">
-        <form method="GET" action="{{ route('events.index') }}" style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
+        <form method="GET" action="{{ route('events.index') }}" class="filter-bar" style="align-items:center;">
             <select name="type" class="form-control" style="width:180px;">
                 <option value="">All Types</option>
                 @foreach(['Convention','Crusade','Wedding','Funeral','Dedication','Anniversary','Conference','Outreach','Youth Program','Children Program','Special Service','Other'] as $type)
