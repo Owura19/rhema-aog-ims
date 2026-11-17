@@ -3,10 +3,14 @@
 namespace App\Services;
 
 use App\Models\Harvest;
+use App\Models\HarvestLinkEvent;
+use App\Models\Member;
 use App\Models\Pledge;
 use App\Models\PledgePayment;
 use App\Models\PledgePurpose;
 use App\Models\Transaction;
+use App\Services\Harvest\HarvestLinkException;
+use App\Services\Harvest\NameMatcher;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -73,43 +77,153 @@ class HarvestLinker
     }
 
     /**
-     * Record the transaction as a payment on the right pledge. Throws if it can't be resolved
-     * (callers validate with resolve() first).
+     * Record the transaction as a payment on the right pledge (Record / Edit Transaction form).
+     * Throws if it can't be resolved (callers validate with resolve() first).
      */
     public function link(Transaction $transaction, Harvest $harvest, ?int $chosenPledgeId = null, ?string $note = null): PledgePayment
     {
         return DB::transaction(function () use ($transaction, $harvest, $chosenPledgeId, $note) {
             $resolved = $this->resolve($harvest, $transaction->member_id, $transaction->payer_name, $chosenPledgeId);
             if ($resolved['error']) {
-                throw new \DomainException($resolved['error']);
+                throw new HarvestLinkException($resolved['error']);
             }
 
-            $pledge = $resolved['pledge'] ?? $this->newGiverPledge($harvest, $transaction);
+            $target = $resolved['pledge'] && ! $resolved['pledge']->isGiver() ? $resolved['pledge'] : 'giver';
+
+            return $this->linkTo($transaction, $harvest, $target, auth()->id() ?? $transaction->recorded_by, HarvestLinkEvent::SOURCE_FINANCE_FORM, $note);
+        });
+    }
+
+    /**
+     * Link a transaction to the pledge Finance chose ('giver' = the payer's giver pledge, made if
+     * needed). The payment points at the existing transaction, so no transaction or ledger entry
+     * is created. A name-only pledge that matches the member by name is given the member.
+     */
+    public function linkTo(Transaction $transaction, Harvest $harvest, Pledge|string $target, ?int $userId, string $source, ?string $note = null): PledgePayment
+    {
+        return DB::transaction(function () use ($transaction, $harvest, $target, $userId, $source, $note) {
+            // Lock the transaction so two people can't link it at once
+            $tx = Transaction::whereKey($transaction->id)->lockForUpdate()->first();
+            if (! $tx) {
+                throw new HarvestLinkException("{$transaction->reference} has been voided.");
+            }
+            if ($tx->type !== 'Harvest' || $tx->status !== 'Confirmed') {
+                throw new HarvestLinkException("{$tx->reference} is no longer a Confirmed Harvest transaction.");
+            }
+            if (PledgePayment::where('transaction_id', $tx->id)->exists()) {
+                throw new HarvestLinkException("{$tx->reference} is already linked to a pledge.");
+            }
+            if ($harvest->status === 'Cancelled') {
+                throw new HarvestLinkException("{$harvest->name} is cancelled.");
+            }
+
+            $giverCreated = $memberClaimed = false;
+            if ($target === 'giver') {
+                $pledge = $this->pledgesFor($harvest, $tx->member_id, $tx->payer_name)->first(fn (Pledge $p) => $p->isGiver());
+                if (! $pledge) {
+                    $pledge = $this->newGiverPledge($harvest, $tx);
+                    $giverCreated = true;
+                }
+            } else {
+                $pledge = Pledge::whereKey($target->id)->lockForUpdate()->first();
+                if (! $pledge || $pledge->status === 'Cancelled' || (int) $pledge->harvest_id !== (int) $harvest->id) {
+                    throw new HarvestLinkException("{$target->reference} is not an open pledge on {$harvest->name}.");
+                }
+                $memberClaimed = $this->claimIfNameMatch($pledge, $tx);
+            }
 
             // transaction_id is set up front, so PledgePayment's created hook does NOT
             // make another transaction or ledger entry. It tops up a giver pledge and
             // refreshes the pledge status.
-            return PledgePayment::create([
+            $payment = PledgePayment::create([
                 'pledge_id'      => $pledge->id,
-                'amount'         => $transaction->amount,
-                'payment_date'   => $transaction->transaction_date,
-                'payment_method' => $transaction->payment_method,
-                'transaction_id' => $transaction->id,
-                'notes'          => $note ?? "Recorded in Finance as {$transaction->reference}",
-                'recorded_by'    => $transaction->recorded_by,
+                'amount'         => $tx->amount,
+                'payment_date'   => $tx->transaction_date,
+                'payment_method' => $tx->payment_method,
+                'transaction_id' => $tx->id,
+                'notes'          => $note ?? "Recorded in Finance as {$tx->reference}",
+                'recorded_by'    => $userId ?? $tx->recorded_by,
             ]);
+
+            HarvestLinkEvent::create([
+                'action' => 'link', 'source' => $source, 'transaction_id' => $tx->id, 'pledge_payment_id' => $payment->id,
+                'pledge_id' => $pledge->id, 'harvest_id' => $harvest->id, 'giver_created' => $giverCreated,
+                'member_claimed' => $memberClaimed, 'user_id' => $userId,
+            ]);
+
+            return $payment;
         });
     }
 
-    /** Remove the pledge payment(s) made through this transaction; the transaction itself stays. */
+    /** Remove the pledge payment(s) made through this transaction (form edits); the transaction stays. */
     public function unlink(Transaction $transaction): void
     {
         DB::transaction(function () use ($transaction) {
-            PledgePayment::where('transaction_id', $transaction->id)->get()->each(function (PledgePayment $payment) {
-                $payment->keepTransaction = true;
-                $payment->delete();
+            PledgePayment::with('pledge')->where('transaction_id', $transaction->id)->get()->each(function (PledgePayment $payment) use ($transaction) {
+                $this->removePayment($payment, $transaction->id, auth()->id(), HarvestLinkEvent::SOURCE_FINANCE_FORM, false);
             });
         });
+    }
+
+    /**
+     * Undo a link made on the review page: the pledge payment goes (and an emptied giver pledge),
+     * the transaction and its ledger entry stay. A member given to a name-only pledge by that
+     * link is taken off again.
+     */
+    public function unlinkPayment(PledgePayment $payment, ?int $userId): void
+    {
+        DB::transaction(function () use ($payment, $userId) {
+            $payment = PledgePayment::with('pledge')->whereKey($payment->id)->lockForUpdate()->first();
+            $link = $payment ? HarvestLinkEvent::activeReviewLink($payment->id) : null;
+            if (! $link) {
+                throw new HarvestLinkException('Only links made on the Link payments page can be undone here.');
+            }
+
+            $unclaim = false;
+            if ($link->member_claimed && $payment->pledge) {
+                $tx = Transaction::withTrashed()->find($payment->transaction_id);
+                $unclaim = $tx && (int) $payment->pledge->member_id === (int) $tx->member_id;
+            }
+
+            $this->removePayment($payment, $payment->transaction_id, $userId, HarvestLinkEvent::SOURCE_REVIEW, $unclaim);
+        });
+    }
+
+    private function removePayment(PledgePayment $payment, ?int $transactionId, ?int $userId, string $source, bool $unclaim): void
+    {
+        $pledge = $payment->pledge;
+        if ($unclaim && $pledge) {
+            $pledge->member_id = null;
+            $pledge->save();
+        }
+
+        $payment->keepTransaction = true;
+        $payment->delete();   // hooks: giver pledge reduced (or removed when emptied), status refreshed
+
+        HarvestLinkEvent::create([
+            'action' => 'unlink', 'source' => $source, 'transaction_id' => $transactionId, 'pledge_payment_id' => $payment->id,
+            'pledge_id' => $pledge?->id, 'harvest_id' => $pledge?->harvest_id, 'member_claimed' => $unclaim, 'user_id' => $userId,
+        ]);
+    }
+
+    /** A name-only pledge that matches the paying member by name becomes that member's. */
+    private function claimIfNameMatch(Pledge $pledge, Transaction $tx): bool
+    {
+        if ($tx->member_id) {
+            if ((int) $pledge->member_id === (int) $tx->member_id) {
+                return false;
+            }
+            if ($pledge->member_id === null && ($member = Member::find($tx->member_id)) && NameMatcher::matchesMember($member, $pledge->pledger_name)) {
+                $pledge->member_id = $member->id;
+                $pledge->save();
+
+                return true;
+            }
+        } elseif ($pledge->member_id === null && NameMatcher::same($pledge->pledger_name, $tx->payer_name)) {
+            return false;
+        }
+
+        throw new HarvestLinkException("{$pledge->reference} is not this payer's pledge.");
     }
 
     /**
