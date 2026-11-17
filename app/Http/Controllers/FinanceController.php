@@ -155,26 +155,32 @@ class FinanceController extends Controller
         ]);
 
         $harvest = Harvest::findOrFail($request->integer('harvest_id'));
-        $pledges = $linker->pledgesFor($harvest, $request->integer('member_id') ?: null, $request->input('payer_name'));
-        $real = $pledges->reject->isGiver();
+        ['own' => $own, 'name' => $byName] = $linker->candidates($harvest, $request->integer('member_id') ?: null, $request->input('payer_name'));
+        $real = $own->reject->isGiver();
+
+        // single: their one pledge is used. choose: staff must pick (several, or only name
+        // matches, which a person must confirm). giver: nothing to pick.
+        $rule = $real->count() === 1 ? 'single' : ($real->count() > 1 || $byName->isNotEmpty() ? 'choose' : 'giver');
+        $row  = fn ($p, string $match) => [
+            'id'        => $p->id,
+            'reference' => $p->reference,
+            'pledged'   => (float) $p->amount_pledged,
+            'paid'      => $p->total_paid,
+            'balance'   => $p->balance,
+            'giver'     => $p->isGiver(),
+            'match'     => $p->isGiver() ? 'giver' : $match,
+        ];
 
         return response()->json([
-            'rule'    => $real->count() === 1 ? 'single' : ($real->count() > 1 ? 'choose' : 'giver'),
-            'pledges' => $pledges->map(fn ($p) => [
-                'id'        => $p->id,
-                'reference' => $p->reference,
-                'pledged'   => (float) $p->amount_pledged,
-                'paid'      => $p->total_paid,
-                'balance'   => $p->balance,
-                'giver'     => $p->isGiver(),
-            ])->values(),
+            'rule'    => $rule,
+            'pledges' => $own->map(fn ($p) => $row($p, 'own'))->concat($byName->map(fn ($p) => $row($p, 'name')))->values(),
         ]);
     }
 
     /**
      * For harvest money: the harvest and pledge to record it against, or a validation error.
      *
-     * @return array{0: ?Harvest, 1: ?int}
+     * @return array{0: ?Harvest, 1: int|string|null} the pledge: an id, 'giver', or null (decide)
      */
     private function harvestTarget(Request $request, array $validated, HarvestLinker $linker, ?Transaction $existing = null): array
     {
@@ -183,7 +189,10 @@ class FinanceController extends Controller
         }
 
         $harvest  = Harvest::findOrFail($validated['harvest_id']);
-        $pledgeId = $request->integer('pledge_id') ?: null;
+        $pledgeId = match (true) {
+            $request->input('pledge_id') === 'giver' => 'giver',
+            default                                  => $request->integer('pledge_id') ?: null,
+        };
 
         if ($validated['status'] === 'Confirmed') {
             $memberId  = $validated['member_id'] ?? null;
@@ -209,7 +218,7 @@ class FinanceController extends Controller
     {
         $validated = $request->validate([
             'harvest_id'           => ['nullable', 'required_if:type,Harvest', Rule::exists('harvests', 'id')->where('status', 'Active')],
-            'pledge_id'            => 'nullable|integer',
+            'pledge_id'            => ['nullable', 'regex:/^([0-9]+|giver)$/'],
             'type'                 => 'required|in:Tithe,Offering,Project Offering,Harvest,First Fruit,Seed,Pledge,Donation,Expense,Other',
             'subcategory'          => 'nullable|string|max:100',
             'account_id'           => 'nullable|exists:accounts,id',
@@ -345,7 +354,7 @@ class FinanceController extends Controller
             'harvest_id'           => ['nullable', 'required_if:type,Harvest', Rule::exists('harvests', 'id')->where(
                 fn ($q) => $q->where('status', 'Active')->when($current, fn ($q) => $q->orWhere('id', $current))
             )],
-            'pledge_id'            => 'nullable|integer',
+            'pledge_id'            => ['nullable', 'regex:/^([0-9]+|giver)$/'],
             'type'                 => 'required|in:Tithe,Offering,Project Offering,Harvest,First Fruit,Seed,Pledge,Donation,Expense,Other',
             'subcategory'          => 'nullable|string|max:100',
             'category'             => 'required|in:Income,Expense',
