@@ -7,9 +7,14 @@
 <div class="card">
     <div class="card-header">
         <div class="card-title"><i class="fas fa-wheat-awn" style="color:#ca8a04; margin-right:8px;"></i>Harvest Campaigns</div>
-        @can('create finance')
-        <a href="{{ route('harvests.create') }}" class="btn-primary btn-sm"><i class="fas fa-plus"></i> New Harvest</a>
-        @endcan
+        <div class="toolbar">
+            @can('edit finance')
+            <a href="{{ route('harvests.link-payments') }}" class="btn-outline btn-sm"><i class="fas fa-link"></i> Link payments</a>
+            @endcan
+            @can('create finance')
+            <a href="{{ route('harvests.create') }}" class="btn-primary btn-sm toolbar-main"><i class="fas fa-plus"></i> New Harvest</a>
+            @endcan
+        </div>
     </div>
     <div style="overflow-x:auto;">
         <table class="table">

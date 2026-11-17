@@ -4,10 +4,13 @@
 
 @section('content')
 
-<div style="margin-bottom:16px; display:flex; justify-content:space-between; align-items:center;">
+<div style="margin-bottom:16px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
     <a href="{{ route('harvests.index') }}" style="color:#64748b; text-decoration:none; font-size:14px;"><i class="fas fa-arrow-left"></i> Back to Harvest Campaigns</a>
     @can('edit finance')
-    <a href="{{ route('harvests.edit', $harvest) }}" class="btn-outline btn-sm"><i class="fas fa-pen"></i> Edit Campaign</a>
+    <div class="toolbar">
+        <a href="{{ route('harvests.link-payments', ['harvest' => $harvest->id]) }}" class="btn-outline btn-sm"><i class="fas fa-link"></i> Link payments</a>
+        <a href="{{ route('harvests.edit', $harvest) }}" class="btn-outline btn-sm"><i class="fas fa-pen"></i> Edit Campaign</a>
+    </div>
     @endcan
 </div>
 
