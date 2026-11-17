@@ -301,11 +301,6 @@ class HarvestLinker
         return $purpose->id;
     }
 
-    public static function normaliseName(?string $name): string
-    {
-        return mb_strtolower(trim(preg_replace('/\s+/', ' ', (string) $name)));
-    }
-
     private function stillFits(PledgePayment $payment, Transaction $transaction, Harvest $harvest, int|string|null $chosenPledgeId): bool
     {
         $pledge = $payment->pledge;
