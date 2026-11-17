@@ -16,7 +16,7 @@ use Tests\TestCase;
 
 /**
  * Guards on the routes that used to be reachable by ANY logged-in user:
- * harvests, budget edit/save, visitors, and member relationships (20 routes).
+ * harvests (incl. Link payments), budget edit/save, visitors, and member relationships (24 routes).
  *
  * The test DB has no production roles, so setUp() recreates them with the
  * exact role -> permission sets that production has today.
@@ -63,6 +63,11 @@ class RoutePermissionsTest extends TestCase
         'harvests.edit'    => ['GET',    ['harvest'], [self::SUPER_ADMIN]],
         'harvests.update'  => ['PUT',    ['harvest'], [self::SUPER_ADMIN]],
         'harvests.destroy' => ['DELETE', ['harvest'], [self::SUPER_ADMIN]],
+        // Link payments (Finance confirms harvest links) — 'edit finance'
+        'harvests.link-payments'         => ['GET',    [],          [self::SUPER_ADMIN]],
+        'harvests.link-payments.preview' => ['POST',   [],          [self::SUPER_ADMIN]],
+        'harvests.link-payments.store'   => ['POST',   [],          [self::SUPER_ADMIN]],
+        'harvests.link-payments.unlink'  => ['DELETE', ['payment'], [self::SUPER_ADMIN]],
 
         // Budget — report: 'view finance' | edit/save: 'edit finance'
         'finance.budget.report' => ['GET',  [], [self::SUPER_ADMIN, self::OFFICE_STAFF]],
@@ -125,7 +130,7 @@ class RoutePermissionsTest extends TestCase
 
         $expected = collect(array_keys(self::ROUTES))->sort()->values()->all();
 
-        $this->assertCount(20, $expected);
+        $this->assertCount(24, $expected);
         $this->assertSame($expected, $registered);
 
         foreach (self::ROUTES as $name => [$method]) {
@@ -200,6 +205,18 @@ class RoutePermissionsTest extends TestCase
                 'member', 'related' => Member::create([
                     'first_name' => 'Test',
                     'last_name'  => ucfirst($param),
+                ]),
+                'payment' => \App\Models\PledgePayment::create([
+                    'pledge_id'      => \App\Models\Pledge::create([
+                        'pledger_name'      => 'Test Pledger',
+                        'pledge_purpose_id' => \App\Models\PledgePurpose::where('name', 'Harvest')->value('id'),
+                        'amount_pledged'    => 100,
+                        'date_pledged'      => '2026-11-01',
+                        'status'            => 'Active',
+                    ])->id,
+                    'amount'         => 10,
+                    'payment_date'   => '2026-11-01',
+                    'payment_method' => 'Cash',
                 ]),
             };
         }

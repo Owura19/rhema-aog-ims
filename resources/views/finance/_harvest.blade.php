@@ -62,8 +62,12 @@
                 : 'No pledge on this harvest. It will be recorded as a harvest giver (a pledge equal to what was given).'));
             return;
         }
+        const ownReal = real.filter(p => p.match === 'own');
         if (data.rule === 'choose') {
-            box.appendChild(text('div', 'More than one pledge: choose the one this money is for.', 'color:#b45309; margin-bottom:6px;'));
+            box.appendChild(text('div', ownReal.length > 1
+                ? 'More than one pledge: choose the one this money is for.'
+                : 'No pledge is recorded under this member, but these match their name. Choose one to confirm (it is put under the member), or record the money as a harvest giver.',
+                'color:#b45309; margin-bottom:6px;'));
         }
         const table = document.createElement('table');
         table.className = 'table';
@@ -71,19 +75,30 @@
         const head = table.createTHead().insertRow();
         ['', 'Pledge', 'Pledged', 'Paid', 'Balance'].forEach(h => head.appendChild(text('th', h)));
         const body = table.createTBody();
-        real.forEach(p => {
+        const addRow = (value, label, cells, checked) => {
             const row   = body.insertRow();
             const radio = document.createElement('input');
-            radio.type = 'radio'; radio.name = 'pledge_id'; radio.value = p.id;
-            radio.checked = data.rule === 'single' || String(p.id) === String(selected);
-            radio.setAttribute('aria-label', 'Pledge ' + p.reference);
-            radio.addEventListener('change', () => { selected = String(p.id); });
+            radio.type = 'radio'; radio.name = 'pledge_id'; radio.value = value;
+            radio.checked = checked;
+            radio.setAttribute('aria-label', label);
+            radio.addEventListener('change', () => { selected = String(value); });
             row.insertCell().appendChild(radio);
-            row.appendChild(text('td', p.reference, 'font-family:monospace;'));
-            row.appendChild(text('td', money(p.pledged), 'white-space:nowrap;'));
-            row.appendChild(text('td', money(p.paid), 'white-space:nowrap;'));
-            row.appendChild(text('td', money(p.balance), 'white-space:nowrap;'));
+            cells.forEach(c => row.appendChild(c));
+        };
+        real.forEach(p => {
+            const ref = text('td', p.reference, 'font-family:monospace;');
+            if (p.match === 'name') ref.appendChild(text('span', ' name match: check', 'font-family:inherit; color:#b45309; font-size:11px;'));
+            addRow(p.id, 'Pledge ' + p.reference, [ref,
+                text('td', money(p.pledged), 'white-space:nowrap;'),
+                text('td', money(p.paid), 'white-space:nowrap;'),
+                text('td', money(p.balance), 'white-space:nowrap;')],
+                (data.rule === 'single' && p.match === 'own') || String(p.id) === String(selected));
         });
+        if (ownReal.length === 0) {
+            const cell = text('td', giver ? 'Record as a harvest giver (adds to ' + giver.reference + ')' : 'Record as a harvest giver (no pledge)');
+            cell.colSpan = 4;
+            addRow('giver', 'Record as a harvest giver', [cell], selected === 'giver');
+        }
         const wrap = document.createElement('div');
         wrap.className = 'table-wrap';
         wrap.appendChild(table);

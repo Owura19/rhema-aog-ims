@@ -465,6 +465,14 @@ Route::middleware(['auth'])->group(function () {
     // HARVEST CAMPAIGNS — view: 'view finance' OR 'view pledges'
     // create: 'create finance' | edit: 'edit finance' | delete: 'delete finance'
     // ─────────────────────────────────────────────────────────────
+    // Link payments: Finance confirms which campaign/pledge each Harvest transaction is for.
+    // (Registered before /harvests/{harvest} so "link-payments" isn't read as a harvest.)
+    Route::middleware('permission:edit finance')->group(function () {
+        Route::get('/harvests/link-payments', [\App\Http\Controllers\HarvestReviewController::class, 'index'])->name('harvests.link-payments');
+        Route::post('/harvests/link-payments/preview', [\App\Http\Controllers\HarvestReviewController::class, 'preview'])->name('harvests.link-payments.preview');
+        Route::post('/harvests/link-payments', [\App\Http\Controllers\HarvestReviewController::class, 'store'])->name('harvests.link-payments.store');
+        Route::delete('/harvests/link-payments/{payment}', [\App\Http\Controllers\HarvestReviewController::class, 'unlink'])->whereNumber('payment')->name('harvests.link-payments.unlink');
+    });
     Route::middleware('permission:create finance')->group(function () {
         Route::get('/harvests/create', [\App\Http\Controllers\HarvestController::class, 'create'])->name('harvests.create');
         Route::post('/harvests', [\App\Http\Controllers\HarvestController::class, 'store'])->name('harvests.store');

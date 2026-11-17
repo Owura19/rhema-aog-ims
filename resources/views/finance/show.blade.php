@@ -66,7 +66,8 @@
                     <td style="padding:14px 20px; font-size:12px; color:#94a3b8; font-weight:600; text-transform:uppercase;">Payment Method</td>
                     <td style="padding:14px 20px; font-size:14px; color:#1e293b;">{{ $transaction->payment_method }}</td>
                 </tr>
-                @if($linkedPledge = \App\Models\PledgePayment::with('pledge.harvest')->where('transaction_id', $transaction->id)->first()?->pledge)
+                @php($linkedPayment = \App\Models\PledgePayment::with('pledge.harvest')->where('transaction_id', $transaction->id)->first())
+                @if($linkedPledge = $linkedPayment?->pledge)
                 <tr style="border-bottom:1px solid #f1f5f9;">
                     <td style="padding:14px 20px; font-size:12px; color:#94a3b8; font-weight:600; text-transform:uppercase;">Pledge</td>
                     <td style="padding:14px 20px; font-size:14px; color:#1e293b;">
@@ -81,6 +82,15 @@
                         @if($linkedPledge->isGiver())
                             <span class="badge badge-info" style="margin-left:6px;">Harvest giver</span>
                         @endif
+                        @can('edit finance')
+                            @if(\App\Models\HarvestLinkEvent::activeReviewLink($linkedPayment->id))
+                                <form method="POST" action="{{ route('harvests.link-payments.unlink', $linkedPayment) }}" style="display:inline-block; margin-left:8px;"
+                                      onsubmit="return confirm('Unlink this payment from {{ $linkedPledge->reference }}? This transaction stays as it is.');">
+                                    @csrf @method('DELETE')
+                                    <button type="submit" class="btn-outline btn-sm"><i class="fas fa-link-slash"></i> Unlink</button>
+                                </form>
+                            @endif
+                        @endcan
                     </td>
                 </tr>
                 @endif
