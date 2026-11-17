@@ -160,15 +160,25 @@
             font-size: 26px; font-weight: 800; color: #1e293b; line-height: 1.15;
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
-        /* Money on ONE line, sized to the card: about 11% of the text width, 13-24px. */
-        .stat-value.stat-money { font-size: 18px; font-size: clamp(13px, 11cqi, 24px); }
+        /* Money on ONE line, sized to the card: about 11% of the text width, 11-24px. */
+        .stat-value.stat-money { font-size: 18px; font-size: clamp(11px, 11cqi, 24px); }
         .stat-label { font-size: 13px; color: #64748b; margin-top: 4px; line-height: 1.3; }
 
         /* ── Shared responsive building blocks ─────────────────────────── */
+        /* Stat cards in a grid are a size container. A narrow card (5 across on a laptop; the query
+           measures the card's content box) puts its icon above the text, so the amount gets the card's
+           full width and stays on one line at a readable size. flex-basis 0 keeps wider cards side by
+           side; 100% makes the text wrap below the icon. */
+        .stat-grid .stat-card { flex-wrap: wrap; container-type: inline-size; }
+        .stat-grid .stat-card > :last-child { flex: 1 1 0; }
+        @container (max-width: 170px) {
+            .stat-grid .stat-card > :last-child { flex-basis: 100%; }
+            .stat-grid .stat-icon { width: 40px; height: 40px; font-size: 17px; border-radius: 10px; }
+        }
         /* A row of stat cards that wraps instead of overflowing. */
         .stat-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: 16px; margin-bottom: 24px;
         }
         /* A row of header buttons that wraps onto a second line. */
@@ -333,7 +343,8 @@
         @media (max-width: 640px) {
             .stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 12px; margin-bottom: 18px; }
             .stat-grid .stat-card { flex-direction: column; align-items: flex-start; gap: 10px; padding: 14px; }
-            .stat-grid .stat-card > :last-child { width: 100%; }
+            .stat-grid .stat-card { flex-wrap: nowrap; }
+            .stat-grid .stat-card > :last-child { width: 100%; flex: 0 0 auto; }
             .stat-grid .stat-icon { width: 36px; height: 36px; font-size: 16px; border-radius: 10px; }
             .stat-grid .stat-value { font-size: 20px; }
             .stat-grid .stat-value.stat-money { font-size: 15px; font-size: clamp(12px, 11cqi, 20px); }
