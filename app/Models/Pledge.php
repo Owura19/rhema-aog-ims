@@ -9,6 +9,15 @@ class Pledge extends Model
 {
     use SoftDeletes;
 
+    /**
+     * Notes on a "giver pledge": harvest money from someone who made no pledge.
+     * Its amount_pledged always equals what was paid (PledgePayment hooks keep it so).
+     */
+    public const GIVER_NOTE = 'Harvest giver (from Finance)';
+
+    /** Giver pledges from Finance and the older importer both start with this. */
+    public const GIVER_PREFIX = 'Harvest giver';
+
     protected $fillable = [
         'reference',
         'member_id',
@@ -92,6 +101,12 @@ class Pledge extends Model
     }
 
     // ── HELPERS ─────────────────────────────────────────────────
+
+    /** A pledge that only exists to hold harvest money from someone who made no pledge. */
+    public function isGiver(): bool
+    {
+        return str_starts_with((string) $this->notes, self::GIVER_PREFIX);
+    }
 
     /**
      * Recalculate status based on payments and save if it changed.

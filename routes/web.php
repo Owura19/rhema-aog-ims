@@ -122,6 +122,10 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/finance/create', [FinanceController::class, 'create'])->name('finance.create');
         Route::post('/finance', [FinanceController::class, 'store'])->name('finance.store');
     });
+    // Pledge picker for harvest money on the Record / Edit Transaction forms
+    Route::middleware('permission:create finance|edit finance')->group(function () {
+        Route::get('/finance/harvest-pledges', [FinanceController::class, 'harvestPledges'])->name('finance.harvest-pledges');
+    });
     Route::middleware('permission:edit finance')->group(function () {
         Route::get('/finance/{finance}/edit', [FinanceController::class, 'edit'])->name('finance.edit');
         Route::put('/finance/{finance}', [FinanceController::class, 'update'])->name('finance.update');

@@ -89,6 +89,12 @@ class Transaction extends Model
         // its journal entry (matches how vouchers already behave).
         static::deleted(function ($transaction) {
             (new \App\Services\LedgerService())->removeForSource('transaction', $transaction->id);
+
+            // A pledge payment recorded through this transaction goes with it, so the
+            // pledge (and harvest) totals never count money Finance has voided. The
+            // payment's own deleted hook won't touch this transaction again: it is
+            // already soft-deleted, so $payment->transaction no longer loads.
+            PledgePayment::where('transaction_id', $transaction->id)->get()->each->delete();
         });
     }
 
