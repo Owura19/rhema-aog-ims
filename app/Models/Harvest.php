@@ -39,11 +39,31 @@ class Harvest extends Model
 
     public function getTotalPaidAttribute(): float
     {
-        // Sum of all payments across this harvest's pledges
+        // Payments on this harvest's pledges. Cancelled pledges are left out,
+        // the same as in Total Pledged, so Outstanding compares like with like.
         return (float) \App\Models\PledgePayment::whereIn(
             'pledge_id',
-            $this->pledges()->pluck('id')
+            $this->pledges()->where('status', '!=', 'Cancelled')->pluck('id')
         )->sum('amount');
+    }
+
+    // ── PERIOD (pledge_opens..harvest_date, or the whole year when unset) ──
+
+    public function periodStart(): \Illuminate\Support\Carbon
+    {
+        return ($this->pledge_opens ?? \Illuminate\Support\Carbon::create($this->year, 1, 1))->copy()->startOfDay();
+    }
+
+    public function periodEnd(): \Illuminate\Support\Carbon
+    {
+        return ($this->harvest_date ?? \Illuminate\Support\Carbon::create($this->year, 12, 31))->copy()->startOfDay();
+    }
+
+    public function coversDate(\DateTimeInterface|string $date): bool
+    {
+        $day = \Illuminate\Support\Carbon::parse($date)->startOfDay();
+
+        return $day->betweenIncluded($this->periodStart(), $this->periodEnd());
     }
 
     public function getOutstandingAttribute(): float

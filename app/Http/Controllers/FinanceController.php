@@ -5,8 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\Transaction;
 use App\Models\Member;
 use App\Models\ChurchService;
+use App\Models\Harvest;
 use App\Exports\FinanceExport;
+use App\Services\HarvestLinker;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class FinanceController extends Controller
 {
@@ -132,12 +136,80 @@ class FinanceController extends Controller
             ->orderBy('sort_order')
             ->get();
 
-        return view('finance.create', compact('members', 'services', 'accounts', 'cashAccounts', 'balanceSheetAccounts'));
+        $harvests = Harvest::where('status', 'Active')->orderByDesc('year')->orderBy('name')->get();
+
+        return view('finance.create', compact('members', 'services', 'accounts', 'cashAccounts', 'balanceSheetAccounts', 'harvests'));
     }
 
-    public function store(Request $request)
+    /**
+     * Pledge picker for harvest money: the payer's pledges on a harvest (JSON).
+     * rule: "single" (goes to that pledge), "choose" (staff must pick), "giver" (no pledge:
+     * recorded as a harvest giver).
+     */
+    public function harvestPledges(Request $request, HarvestLinker $linker)
+    {
+        $request->validate([
+            'harvest_id' => 'required|exists:harvests,id',
+            'member_id'  => 'nullable|integer',
+            'payer_name' => 'nullable|string|max:255',
+        ]);
+
+        $harvest = Harvest::findOrFail($request->integer('harvest_id'));
+        $pledges = $linker->pledgesFor($harvest, $request->integer('member_id') ?: null, $request->input('payer_name'));
+        $real = $pledges->reject->isGiver();
+
+        return response()->json([
+            'rule'    => $real->count() === 1 ? 'single' : ($real->count() > 1 ? 'choose' : 'giver'),
+            'pledges' => $pledges->map(fn ($p) => [
+                'id'        => $p->id,
+                'reference' => $p->reference,
+                'pledged'   => (float) $p->amount_pledged,
+                'paid'      => $p->total_paid,
+                'balance'   => $p->balance,
+                'giver'     => $p->isGiver(),
+            ])->values(),
+        ]);
+    }
+
+    /**
+     * For harvest money: the harvest and pledge to record it against, or a validation error.
+     *
+     * @return array{0: ?Harvest, 1: ?int}
+     */
+    private function harvestTarget(Request $request, array $validated, HarvestLinker $linker, ?Transaction $existing = null): array
+    {
+        if (($validated['type'] ?? null) !== 'Harvest' || empty($validated['harvest_id'])) {
+            return [null, null];
+        }
+
+        $harvest  = Harvest::findOrFail($validated['harvest_id']);
+        $pledgeId = $request->integer('pledge_id') ?: null;
+
+        if ($validated['status'] === 'Confirmed') {
+            $memberId  = $validated['member_id'] ?? null;
+            $payerName = $validated['payer_name'] ?? null;
+
+            // Editing: keep the pledge it is already on when that is still one of the payer's
+            if (! $pledgeId && $existing && ($current = $linker->linkedPayment($existing))) {
+                if ($linker->pledgesFor($harvest, $memberId, $payerName)->contains('id', $current->pledge_id)) {
+                    $pledgeId = $current->pledge_id;
+                }
+            }
+
+            $resolved = $linker->resolve($harvest, $memberId, $payerName, $pledgeId);
+            if ($resolved['error']) {
+                throw \Illuminate\Validation\ValidationException::withMessages(['pledge_id' => $resolved['error']]);
+            }
+        }
+
+        return [$harvest, $pledgeId];
+    }
+
+    public function store(Request $request, HarvestLinker $linker)
     {
         $validated = $request->validate([
+            'harvest_id'           => ['nullable', 'required_if:type,Harvest', Rule::exists('harvests', 'id')->where('status', 'Active')],
+            'pledge_id'            => 'nullable|integer',
             'type'                 => 'required|in:Tithe,Offering,Project Offering,Harvest,First Fruit,Seed,Pledge,Donation,Expense,Other',
             'subcategory'          => 'nullable|string|max:100',
             'account_id'           => 'nullable|exists:accounts,id',
@@ -159,10 +231,13 @@ class FinanceController extends Controller
 
         $validated['recorded_by'] = auth()->id();
 
+        // Harvest money: which harvest/pledge it goes to (checked before anything is saved)
+        [$harvest, $pledgeId] = $this->harvestTarget($request, $validated, $linker);
+
         // Pull out fields that aren't columns on transactions
         $cashAccountId = $request->input('cash_account_id');
         $direction     = $request->input('direction');
-        unset($validated['cash_account_id'], $validated['direction']);
+        unset($validated['cash_account_id'], $validated['direction'], $validated['harvest_id'], $validated['pledge_id']);
 
         // Asset/Liability transactions store as Income or Expense category on the
         // transaction record (based on money direction), but post to the ledger
@@ -174,50 +249,65 @@ class FinanceController extends Controller
             $validated['category'] = ($direction === 'in') ? 'Income' : 'Expense';
         }
 
-        $finance = Transaction::create($validated);
+        // The transaction, its ledger entry and (for harvest money) its pledge payment
+        // are saved together or not at all.
+        DB::beginTransaction();
+        try {
+            $finance = Transaction::create($validated);
 
-        // ── DOUBLE-ENTRY POSTING ─────────────────────────────────
-        if ($finance->account_id && $cashAccountId && $finance->status === 'Confirmed') {
-            $ledger = new \App\Services\LedgerService();
-            $desc = "{$finance->type} — " . ($finance->reference ?? 'Transaction');
+            // ── DOUBLE-ENTRY POSTING ─────────────────────────────────
+            if ($finance->account_id && $cashAccountId && $finance->status === 'Confirmed') {
+                $ledger = new \App\Services\LedgerService();
+                $desc = "{$finance->type} — " . ($finance->reference ?? 'Transaction');
 
-            if ($balanceSheetType) {
-                // ASSET or LIABILITY movement
-                $amount = (float) $finance->amount;
-                if ($direction === 'in') {
-                    // Money in: debit cash/bank, credit the balance-sheet account
-                    $ledger->postEntry([
-                        ['account_id' => $cashAccountId,        'debit' => $amount, 'credit' => 0],
-                        ['account_id' => $finance->account_id,  'debit' => 0,       'credit' => $amount],
-                    ], $finance->transaction_date, $desc, 'transaction', $finance->id);
+                if ($balanceSheetType) {
+                    // ASSET or LIABILITY movement
+                    $amount = (float) $finance->amount;
+                    if ($direction === 'in') {
+                        // Money in: debit cash/bank, credit the balance-sheet account
+                        $ledger->postEntry([
+                            ['account_id' => $cashAccountId,        'debit' => $amount, 'credit' => 0],
+                            ['account_id' => $finance->account_id,  'debit' => 0,       'credit' => $amount],
+                        ], $finance->transaction_date, $desc, 'transaction', $finance->id);
+                    } else {
+                        // Money out: debit the balance-sheet account, credit cash/bank
+                        $ledger->postEntry([
+                            ['account_id' => $finance->account_id,  'debit' => $amount, 'credit' => 0],
+                            ['account_id' => $cashAccountId,        'debit' => 0,       'credit' => $amount],
+                        ], $finance->transaction_date, $desc, 'transaction', $finance->id);
+                    }
+                } elseif ($finance->category === 'Income') {
+                    $ledger->postIncome(
+                        (float) $finance->amount,
+                        $finance->account_id,
+                        $cashAccountId,
+                        $finance->transaction_date,
+                        $desc,
+                        'transaction',
+                        $finance->id
+                    );
                 } else {
-                    // Money out: debit the balance-sheet account, credit cash/bank
-                    $ledger->postEntry([
-                        ['account_id' => $finance->account_id,  'debit' => $amount, 'credit' => 0],
-                        ['account_id' => $cashAccountId,        'debit' => 0,       'credit' => $amount],
-                    ], $finance->transaction_date, $desc, 'transaction', $finance->id);
+                    $ledger->postExpense(
+                        (float) $finance->amount,
+                        $finance->account_id,
+                        $cashAccountId,
+                        $finance->transaction_date,
+                        $desc,
+                        'transaction',
+                        $finance->id
+                    );
                 }
-            } elseif ($finance->category === 'Income') {
-                $ledger->postIncome(
-                    (float) $finance->amount,
-                    $finance->account_id,
-                    $cashAccountId,
-                    $finance->transaction_date,
-                    $desc,
-                    'transaction',
-                    $finance->id
-                );
-            } else {
-                $ledger->postExpense(
-                    (float) $finance->amount,
-                    $finance->account_id,
-                    $cashAccountId,
-                    $finance->transaction_date,
-                    $desc,
-                    'transaction',
-                    $finance->id
-                );
             }
+
+            // Harvest money: record it on the payer's harvest pledge (no extra transaction)
+            if ($harvest && $finance->status === 'Confirmed') {
+                $linker->link($finance, $harvest, $pledgeId);
+            }
+
+            DB::commit();
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            throw $e;
         }
 
         return redirect()->route('finance.show', $finance)
@@ -231,17 +321,31 @@ class FinanceController extends Controller
         return view('finance.show', compact('transaction'));
     }
 
-    public function edit(Transaction $finance)
+    public function edit(Transaction $finance, HarvestLinker $linker)
     {
         $transaction = $finance;
         $members     = Member::orderBy('first_name')->get();
         $services    = ChurchService::forPicker($transaction->church_service_id)->get();   // keeps this record's own service listed
-        return view('finance.edit', compact('transaction', 'members', 'services'));
+
+        // Harvest money: the pledge it is on now, and the harvests it may be moved to
+        $linked   = $linker->linkedPayment($transaction);
+        $harvests = Harvest::where('status', 'Active')
+            ->when($linked?->pledge?->harvest_id, fn ($q, $id) => $q->orWhere('id', $id))
+            ->orderByDesc('year')->orderBy('name')->get();
+
+        return view('finance.edit', compact('transaction', 'members', 'services', 'harvests', 'linked'));
     }
 
-    public function update(Request $request, Transaction $finance)
+    public function update(Request $request, Transaction $finance, HarvestLinker $linker)
     {
+        $current = $linker->linkedPayment($finance)?->pledge?->harvest_id;
+
         $validated = $request->validate([
+            // an Active harvest, or the one it is already recorded against
+            'harvest_id'           => ['nullable', 'required_if:type,Harvest', Rule::exists('harvests', 'id')->where(
+                fn ($q) => $q->where('status', 'Active')->when($current, fn ($q) => $q->orWhere('id', $current))
+            )],
+            'pledge_id'            => 'nullable|integer',
             'type'                 => 'required|in:Tithe,Offering,Project Offering,Harvest,First Fruit,Seed,Pledge,Donation,Expense,Other',
             'subcategory'          => 'nullable|string|max:100',
             'category'             => 'required|in:Income,Expense',
@@ -258,7 +362,19 @@ class FinanceController extends Controller
             'description'          => 'nullable|string',
         ]);
 
-        $finance->update($validated);
+        [$harvest, $pledgeId] = $this->harvestTarget($request, $validated, $linker, $finance);
+        unset($validated['harvest_id'], $validated['pledge_id']);
+
+        DB::transaction(function () use ($finance, $validated, $linker, $harvest, $pledgeId) {
+            $finance->update($validated);
+
+            // Keep the harvest pledge payment in step: amount/date/method follow the
+            // transaction; a new member, harvest or pledge moves it; anything that is no
+            // longer Confirmed harvest money loses it.
+            if ($harvest || $linker->linkedPayment($finance)) {
+                $linker->sync($finance, $harvest, $pledgeId);
+            }
+        });
 
         return redirect()->route('finance.show', $finance)
             ->with('success', "Transaction {$finance->reference} updated successfully!");
@@ -266,11 +382,10 @@ class FinanceController extends Controller
 
     public function destroy(Transaction $finance)
     {
-        // Remove any double-entry journal tied to this transaction
-        (new \App\Services\LedgerService())->removeForSource('transaction', $finance->id);
-
         $ref = $finance->reference;
-        $finance->delete();
+
+        // The model's deleted hook removes the ledger entry and any linked pledge payment.
+        DB::transaction(fn () => $finance->delete());
         return redirect()->route('finance.index')
             ->with('success', "Transaction {$ref} deleted.");
     }

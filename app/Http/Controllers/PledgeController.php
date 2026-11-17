@@ -7,6 +7,7 @@ use App\Models\PledgePayment;
 use App\Models\PledgePurpose;
 use App\Models\Member;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class PledgeController extends Controller
 {
@@ -189,13 +190,13 @@ class PledgeController extends Controller
             'member_id'         => 'nullable|exists:members,id',
             'pledger_name'      => 'nullable|string|max:255',
             'pledge_purpose_id' => 'required|exists:pledge_purposes,id',
-            'harvest_id'        => 'nullable|exists:harvests,id',
+            'harvest_id'        => ['nullable', 'exists:harvests,id', $this->harvestRequiredFor($request)],
             'church_service_id' => 'nullable|exists:church_services,id',
             'amount_pledged'    => 'required|numeric|min:0.01',
             'date_pledged'      => 'required|date',
             'target_date'       => 'nullable|date|after_or_equal:date_pledged',
             'notes'             => 'nullable|string',
-        ]);
+        ], ['harvest_id.required' => 'Choose the Harvest campaign: this pledge is for the harvest.']);
 
         // Must have either a member or a name
         if (empty($validated['member_id']) && empty($validated['pledger_name'])) {
@@ -248,14 +249,14 @@ class PledgeController extends Controller
             'member_id'         => 'nullable|exists:members,id',
             'pledger_name'      => 'nullable|string|max:255',
             'pledge_purpose_id' => 'required|exists:pledge_purposes,id',
-            'harvest_id'        => 'nullable|exists:harvests,id',
+            'harvest_id'        => ['nullable', 'exists:harvests,id', $this->harvestRequiredFor($request)],
             'church_service_id' => 'nullable|exists:church_services,id',
             'amount_pledged'    => 'required|numeric|min:0.01',
             'date_pledged'      => 'required|date',
             'target_date'       => 'nullable|date|after_or_equal:date_pledged',
             'status'            => 'required|in:Active,Fulfilled,Cancelled',
             'notes'             => 'nullable|string',
-        ]);
+        ], ['harvest_id.required' => 'Choose the Harvest campaign: this pledge is for the harvest.']);
         if (empty($validated['member_id']) && empty($validated['pledger_name'])) {
             return back()->withInput()->withErrors([
                 'pledger_name' => 'Select a member or enter a pledger name.',
@@ -420,5 +421,11 @@ class PledgeController extends Controller
         $harvests = \App\Models\Harvest::orderBy('name')->get();
 
         return view('pledges.summary-by-service', compact('rows', 'grand', 'harvests', 'harvestId'));
+    }
+
+    /** A pledge whose purpose is a harvest purpose must say which harvest campaign. */
+    private function harvestRequiredFor(Request $request): \Illuminate\Validation\Rules\RequiredIf
+    {
+        return Rule::requiredIf(fn () => (bool) PledgePurpose::find($request->input('pledge_purpose_id'))?->isHarvest());
     }
 }

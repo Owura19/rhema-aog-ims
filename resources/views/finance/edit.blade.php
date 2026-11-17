@@ -66,7 +66,7 @@
             <div>
     <label class="form-label">Transaction Type <span style="color:red;">*</span></label>
     <select name="type" class="form-control" onchange="setCategory(this.value); showSubcategory(this.value)">
-        @foreach(['Tithe','Offering','First Fruit','Seed','Pledge','Donation','Expense','Other'] as $type)
+        @foreach(['Tithe','Offering','Project Offering','Harvest','First Fruit','Seed','Pledge','Donation','Expense','Other'] as $type)
             <option value="{{ $type }}" {{ old('type', $transaction->type) == $type ? 'selected' : '' }}>{{ $type }}</option>
         @endforeach
     </select>
@@ -118,6 +118,13 @@
         </div>
     </div>
 </div>
+
+@include('finance._harvest', [
+    'harvests'        => $harvests,
+    'initialType'     => $transaction->type,
+    'selectedHarvest' => $linked?->pledge?->harvest_id,
+    'selectedPledge'  => $linked?->pledge_id,
+])
 
 <!-- Payment Details -->
 <div class="card" style="margin-bottom:20px;">

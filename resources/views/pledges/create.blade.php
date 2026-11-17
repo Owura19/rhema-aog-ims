@@ -64,13 +64,14 @@
                         </select>
                     </div>
                     <div style="margin-bottom:16px;">
-                    <label class="form-label">Part of a Harvest campaign? <span style="color:#94a3b8; font-weight:400;">(optional)</span></label>
-                    <select name="harvest_id" class="form-control">
+                    <label class="form-label">Harvest campaign <span style="color:#94a3b8; font-weight:400;">(required when the purpose is Harvest)</span></label>
+                    <select name="harvest_id" class="form-control {{ $errors->has('harvest_id') ? 'is-invalid' : '' }}">
                         <option value="">— Not a harvest pledge —</option>
                         @foreach($harvests as $harvest)
                         <option value="{{ $harvest->id }}" {{ old('harvest_id')==$harvest->id ? 'selected' : '' }}>{{ $harvest->name }}</option>
                         @endforeach
                     </select>
+                    @error('harvest_id')<div class="invalid-feedback" style="display:block;">{{ $message }}</div>@enderror
                 </div>
                 <div style="margin-bottom:16px;">
                     <label class="form-label">Service <span style="color:#94a3b8; font-weight:400;">(optional — which service was this pledge made in?)</span></label>

@@ -5,6 +5,13 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class PledgePayment extends Model
 {
     use SoftDeletes;
+
+    /**
+     * Set to true before delete() when the finance transaction must survive, e.g. a Harvest
+     * transaction edited into something else. Not a column.
+     */
+    public bool $keepTransaction = false;
+
     protected $fillable = [
         'pledge_id',
         'amount',
@@ -89,14 +96,42 @@ class PledgePayment extends Model
                     $payment->saveQuietly();
                 }
             }
-            optional($payment->pledge)->refreshStatus();
+            $pledge = $payment->pledge;
+            if ($pledge && $pledge->isGiver()) {
+                // A giver pledge's pledged amount is what was given.
+                $pledge->amount_pledged = (float) $pledge->amount_pledged + (float) $payment->amount;
+                $pledge->save();
+            }
+            optional($pledge)->refreshStatus();
+        });
+        static::updated(function ($payment) {
+            $pledge = $payment->pledge;
+            if ($pledge && $pledge->isGiver() && $payment->wasChanged('amount')) {
+                $delta = (float) $payment->amount - (float) $payment->getOriginal('amount');
+                $pledge->amount_pledged = (float) $pledge->amount_pledged + $delta;
+                $pledge->save();
+            }
+            optional($pledge)->refreshStatus();
         });
         static::deleted(function ($payment) {
-            // Also void the linked finance transaction so totals stay correct
-            if ($payment->transaction) {
+            // Also void the linked finance transaction so totals stay correct.
+            // (Already-voided transactions don't load here, so this never loops
+            // back from Transaction's own deleted hook.)
+            if (! $payment->keepTransaction && $payment->transaction) {
                 $payment->transaction->delete();
             }
-            optional($payment->pledge)->refreshStatus();
+            $pledge = $payment->pledge;
+            if ($pledge && $pledge->isGiver()) {
+                $pledge->amount_pledged = max(0, (float) $pledge->amount_pledged - (float) $payment->amount);
+                if ($pledge->amount_pledged <= 0 && ! $pledge->payments()->exists()) {
+                    $pledge->save();
+                    $pledge->delete();   // nothing left on it
+
+                    return;
+                }
+                $pledge->save();
+            }
+            optional($pledge)->refreshStatus();
         });
     }
 }

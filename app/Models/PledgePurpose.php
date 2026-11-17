@@ -23,6 +23,12 @@ class PledgePurpose extends Model
         return $this->hasMany(Pledge::class);
     }
 
+    /** "Harvest", "Harvest 2026", ... — pledges for these must name a harvest campaign. */
+    public function isHarvest(): bool
+    {
+        return stripos((string) $this->name, 'harvest') !== false;
+    }
+
     // ── SCOPES ──────────────────────────────────────────────────
 
     public function scopeActive($query)

@@ -168,6 +168,8 @@
     </div>
 </div>
 
+@include('finance._harvest', ['harvests' => $harvests, 'initialType' => ''])
+
 <!-- Payment Details -->
 <div class="card" style="margin-bottom:20px;" id="payment-details">
     <div class="card-header">
