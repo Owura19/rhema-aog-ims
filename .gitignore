@@ -27,3 +27,9 @@ Thumbs.db
 
 storage/framework/views/*
 !storage/framework/views/.gitkeep
+
+# Device user lists and match reviews contain member names: no CSV is ever committed
+users.csv
+*.csv
+/storage/app/private/biometric-match/
+
