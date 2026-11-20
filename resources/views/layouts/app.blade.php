@@ -545,6 +545,9 @@
             <i class="fas fa-calendar-week"></i> Day-born Offering
         </a>
         @endcanany
+        <a href="{{ route('loans.index') }}" class="sidebar-link {{ request()->routeIs('loans.*') ? 'active' : '' }}">
+            <i class="fas fa-landmark"></i> Loans
+        </a>
         <a href="{{ route('accounts.index') }}" class="sidebar-link {{ request()->routeIs('accounts.*') ? 'active' : '' }}">
             <i class="fas fa-sitemap"></i> Chart of Accounts
         </a>

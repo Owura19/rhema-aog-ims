@@ -109,7 +109,9 @@ class LedgerService
 
     private function nextReference(): string
     {
-        $n = JournalEntry::count() + 1;
+        // From the highest id, not the count: entries are removed and re-posted when a
+        // transaction is edited or voided, and a count would hand out a used number again.
+        $n = (int) JournalEntry::max('id') + 1;
         return 'JE-' . str_pad($n, 5, '0', STR_PAD_LEFT);
     }
 }

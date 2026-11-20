@@ -16,7 +16,7 @@ use Tests\TestCase;
 
 /**
  * Guards on the routes that used to be reachable by ANY logged-in user:
- * harvests (incl. Link payments), budget edit/save, visitors, and member relationships (24 routes).
+ * harvests (incl. Link payments), budget edit/save, visitors, member relationships, and loans (34 routes).
  *
  * The test DB has no production roles, so setUp() recreates them with the
  * exact role -> permission sets that production has today.
@@ -87,6 +87,18 @@ class RoutePermissionsTest extends TestCase
         // Member relationships — 'edit members'
         'members.relationships.store'   => ['POST',   ['member'],            [self::SUPER_ADMIN, self::OFFICE_STAFF]],
         'members.relationships.destroy' => ['DELETE', ['member', 'related'], [self::SUPER_ADMIN, self::OFFICE_STAFF]],
+
+        // Loans — view/export: 'view finance' | create/edit/adjust/recalculate: 'edit finance'
+        'loans.index'       => ['GET',  [],       [self::SUPER_ADMIN, self::OFFICE_STAFF]],
+        'loans.show'        => ['GET',  ['loan'], [self::SUPER_ADMIN, self::OFFICE_STAFF]],
+        'loans.export'      => ['GET',  ['loan'], [self::SUPER_ADMIN, self::OFFICE_STAFF]],
+        'loans.create'      => ['GET',  [],       [self::SUPER_ADMIN]],
+        'loans.preview'     => ['POST', [],       [self::SUPER_ADMIN]],
+        'loans.store'       => ['POST', [],       [self::SUPER_ADMIN]],
+        'loans.edit'        => ['GET',  ['loan'], [self::SUPER_ADMIN]],
+        'loans.update'      => ['PUT',  ['loan'], [self::SUPER_ADMIN]],
+        'loans.adjust'      => ['POST', ['loan'], [self::SUPER_ADMIN]],
+        'loans.recalculate' => ['POST', ['loan'], [self::SUPER_ADMIN]],
     ];
 
     protected function setUp(): void
@@ -123,14 +135,14 @@ class RoutePermissionsTest extends TestCase
     public function test_route_table_matches_registered_routes(): void
     {
         $registered = collect(Route::getRoutes()->getRoutes())
-            ->filter(fn ($route) => preg_match('#^(harvests|visitors|budget)(/|$)#', $route->uri())
+            ->filter(fn ($route) => preg_match('#^(harvests|visitors|budget|loans)(/|$)#', $route->uri())
                 || preg_match('#^members/\{member\}/relationships#', $route->uri()))
             ->map(fn ($route) => $route->getName())
             ->sort()->values()->all();
 
         $expected = collect(array_keys(self::ROUTES))->sort()->values()->all();
 
-        $this->assertCount(24, $expected);
+        $this->assertCount(34, $expected);
         $this->assertSame($expected, $registered);
 
         foreach (self::ROUTES as $name => [$method]) {
@@ -163,7 +175,7 @@ class RoutePermissionsTest extends TestCase
 
         foreach (self::ROUTES as $name => [$method, $params, $allowedRoles]) {
             $response = $this->actingAs($user)->call($method, $this->urlFor($name, $params));
-            $status   = $response->status();
+            $status   = $response->getStatusCode();   // (works for streamed downloads too)
 
             if (in_array($role, $allowedRoles, true)) {
                 // Allowed: anything except 403 (redirects / validation errors are fine), but never a server error.
@@ -205,6 +217,18 @@ class RoutePermissionsTest extends TestCase
                 'member', 'related' => Member::create([
                     'first_name' => 'Test',
                     'last_name'  => ucfirst($param),
+                ]),
+                // A paid-off loan, so fixtures never compete for the same counted types
+                'loan' => \App\Models\Loan::create([
+                    'lender'                     => 'Test Lender',
+                    'liability_account_id'       => \App\Models\Account::firstOrCreate(['code' => '2100'], ['name' => 'Loans Payable', 'type' => 'Liability', 'is_group' => false, 'is_active' => true, 'sort_order' => 2100])->id,
+                    'opening_balance'            => 100,
+                    'opening_date'               => '2026-11-20',
+                    'opening_counter_account_id' => \App\Models\Account::firstOrCreate(['code' => '3200'], ['name' => 'Opening Balance Equity', 'type' => 'Equity', 'is_group' => false, 'is_active' => true, 'sort_order' => 3200])->id,
+                    'repayment_start_date'       => '2026-11-21',
+                    'counted_types'              => ['Harvest'],
+                    'repayment_source'           => 'received',
+                    'status'                     => 'Paid off',
                 ]),
                 'payment' => \App\Models\PledgePayment::create([
                     'pledge_id'      => \App\Models\Pledge::create([

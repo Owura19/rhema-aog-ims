@@ -94,6 +94,9 @@ class PledgePayment extends Model
 
                     $payment->transaction_id = $transaction->id;
                     $payment->saveQuietly();
+
+                    // In case a loan counts this type: its entry exists now
+                    app(\App\Services\Loans\LoanService::class)->syncTransaction($transaction);
                 }
             }
             $pledge = $payment->pledge;

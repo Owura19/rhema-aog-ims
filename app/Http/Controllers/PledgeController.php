@@ -310,15 +310,20 @@ class PledgeController extends Controller
             'payment_method' => 'required|in:Cash,Mobile Money,Bank Transfer,Cheque,Other',
             'notes'          => 'nullable|string',
         ]);
-        $payment->update($validated);
-        // Keep a linked finance transaction in sync (no 'updated' hook on the model)
-        if ($payment->transaction) {
-            $payment->transaction->update([
-                'amount'           => $validated['amount'],
-                'transaction_date' => $validated['payment_date'],
-                'payment_method'   => $validated['payment_method'],
-            ]);
-        }
+        \Illuminate\Support\Facades\DB::transaction(function () use ($payment, $validated) {
+            $payment->update($validated);
+            // Keep a linked finance transaction, and its ledger entry, in sync
+            if ($tx = $payment->transaction) {
+                $ledger = app(\App\Services\TransactionLedger::class);
+                $cash = $ledger->cashAccountId($tx);
+                $tx->update([
+                    'amount'           => $validated['amount'],
+                    'transaction_date' => $validated['payment_date'],
+                    'payment_method'   => $validated['payment_method'],
+                ]);
+                $ledger->repost($tx, $cash);
+            }
+        });
         optional($payment->pledge)->refreshStatus();
         return redirect()->route('pledges.show', $pledge)->with('success', 'Payment updated.');
     }

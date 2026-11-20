@@ -8,6 +8,7 @@ use App\Models\ChurchService;
 use App\Models\Harvest;
 use App\Exports\FinanceExport;
 use App\Services\HarvestLinker;
+use App\Services\TransactionLedger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -111,6 +112,18 @@ class FinanceController extends Controller
         return view('finance.index', compact('transactions', 'stats', 'rangeLabel'));
     }
 
+    /** Cash / Bank accounts only (Current Assets group) for the "Paid to / from" dropdown. */
+    public static function cashAccounts(): \Illuminate\Support\Collection
+    {
+        $currentAssetsGroup = \App\Models\Account::where('code', '1000')->first();
+
+        return \App\Models\Account::where('is_group', false)
+            ->where('type', 'Asset')
+            ->when($currentAssetsGroup, fn($q) => $q->where('parent_id', $currentAssetsGroup->id))
+            ->orderBy('sort_order')
+            ->get();
+    }
+
     public function create()
     {
         $members  = Member::orderBy('first_name')->get();
@@ -121,13 +134,7 @@ class FinanceController extends Controller
             ->orderBy('sort_order')
             ->get();
 
-        // Cash / Bank accounts only (Current Assets group) for the "Paid to / from" dropdown
-        $currentAssetsGroup = \App\Models\Account::where('code', '1000')->first();
-        $cashAccounts = \App\Models\Account::where('is_group', false)
-            ->where('type', 'Asset')
-            ->when($currentAssetsGroup, fn($q) => $q->where('parent_id', $currentAssetsGroup->id))
-            ->orderBy('sort_order')
-            ->get();
+        $cashAccounts = self::cashAccounts();
 
         // Balance-sheet accounts (all Asset + Liability) for asset/liability transactions
         $balanceSheetAccounts = \App\Models\Account::where('is_group', false)
@@ -313,6 +320,10 @@ class FinanceController extends Controller
                 $linker->link($finance, $harvest, $pledgeId);
             }
 
+            // Loan repayment (e.g. Project Offering / Harvest): now that its own entry exists,
+            // the repayment can be paid from the account it was received into.
+            app(\App\Services\Loans\LoanService::class)->syncTransaction($finance);
+
             DB::commit();
         } catch (\Throwable $e) {
             DB::rollBack();
@@ -342,14 +353,19 @@ class FinanceController extends Controller
             ->when($linked?->pledge?->harvest_id, fn ($q, $id) => $q->orWhere('id', $id))
             ->orderByDesc('year')->orderBy('name')->get();
 
-        return view('finance.edit', compact('transaction', 'members', 'services', 'harvests', 'linked'));
+        // The cash / bank account its ledger entry uses now (prefills "Paid to / from")
+        $cashAccounts = self::cashAccounts();
+        $currentCash  = app(TransactionLedger::class)->cashAccountId($transaction);
+
+        return view('finance.edit', compact('transaction', 'members', 'services', 'harvests', 'linked', 'cashAccounts', 'currentCash'));
     }
 
-    public function update(Request $request, Transaction $finance, HarvestLinker $linker)
+    public function update(Request $request, Transaction $finance, HarvestLinker $linker, TransactionLedger $ledger)
     {
         $current = $linker->linkedPayment($finance)?->pledge?->harvest_id;
 
         $validated = $request->validate([
+            'cash_account_id'      => 'nullable|exists:accounts,id',
             // an Active harvest, or the one it is already recorded against
             'harvest_id'           => ['nullable', 'required_if:type,Harvest', Rule::exists('harvests', 'id')->where(
                 fn ($q) => $q->where('status', 'Active')->when($current, fn ($q) => $q->orWhere('id', $current))
@@ -372,10 +388,18 @@ class FinanceController extends Controller
         ]);
 
         [$harvest, $pledgeId] = $this->harvestTarget($request, $validated, $linker, $finance);
-        unset($validated['harvest_id'], $validated['pledge_id']);
 
-        DB::transaction(function () use ($finance, $validated, $linker, $harvest, $pledgeId) {
+        // The cash / bank side, read before the edit: the one chosen on the form, else the one
+        // its ledger entry already uses.
+        $cash = ($validated['cash_account_id'] ?? null) ?: $ledger->cashAccountId($finance);
+        unset($validated['harvest_id'], $validated['pledge_id'], $validated['cash_account_id']);
+
+        DB::transaction(function () use ($finance, $validated, $linker, $harvest, $pledgeId, $ledger, $cash) {
             $finance->update($validated);
+
+            // Re-post its own ledger entry so the ledger matches the edited amount, date,
+            // category and status (it used to keep the entry from when it was recorded).
+            $ledger->repost($finance, $cash);
 
             // Keep the harvest pledge payment in step: amount/date/method follow the
             // transaction; a new member, harvest or pledge moves it; anything that is no

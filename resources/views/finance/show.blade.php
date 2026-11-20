@@ -66,6 +66,20 @@
                     <td style="padding:14px 20px; font-size:12px; color:#94a3b8; font-weight:600; text-transform:uppercase;">Payment Method</td>
                     <td style="padding:14px 20px; font-size:14px; color:#1e293b;">{{ $transaction->payment_method }}</td>
                 </tr>
+                @if($loanRepayment = \App\Models\LoanRepayment::with('loan')->where('transaction_id', $transaction->id)->first())
+                <tr style="border-bottom:1px solid #f1f5f9;">
+                    <td style="padding:14px 20px; font-size:12px; color:#94a3b8; font-weight:600; text-transform:uppercase;">Loan repayment</td>
+                    <td style="padding:14px 20px; font-size:14px; color:#1e293b;">
+                        <span class="loan-applied">@cedis($loanRepayment->amount_applied) applied to the <a href="{{ route('loans.show', $loanRepayment->loan_id) }}">{{ $loanRepayment->loan->lender }}</a> loan</span>
+                        @if((float) $loanRepayment->surplus > 0)
+                            <span class="badge badge-info" style="margin-left:6px;">@cedis($loanRepayment->surplus) not needed (loan paid off)</span>
+                        @endif
+                        @if($loanRepayment->flag === \App\Models\LoanRepayment::FLAG_NO_LEDGER)
+                            <span class="badge badge-warning" style="margin-left:6px;">Not in the ledger: edit this transaction and choose "Paid To / From"</span>
+                        @endif
+                    </td>
+                </tr>
+                @endif
                 @php($linkedPayment = \App\Models\PledgePayment::with('pledge.harvest')->where('transaction_id', $transaction->id)->first())
                 @if($linkedPledge = $linkedPayment?->pledge)
                 <tr style="border-bottom:1px solid #f1f5f9;">

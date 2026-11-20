@@ -88,6 +88,18 @@
             </div>
 
             <div>
+                <label class="form-label">Paid To / From (Cash or Bank)</label>
+                <select name="cash_account_id" class="form-control {{ $errors->has('cash_account_id') ? 'is-invalid' : '' }}">
+                    <option value="">{{ $currentCash ? 'Select cash / bank account' : 'Not in the ledger yet: choose to post it' }}</option>
+                    @foreach($cashAccounts as $ca)
+                        <option value="{{ $ca->id }}" {{ (string) old('cash_account_id', $currentCash) === (string) $ca->id ? 'selected' : '' }}>{{ $ca->code }} — {{ $ca->name }}</option>
+                    @endforeach
+                </select>
+                <small style="color:#94a3b8; font-size:12px;">Saving updates this transaction's ledger entry.</small>
+                @error('cash_account_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+            </div>
+
+            <div>
                 <label class="form-label">Amount (GHS) <span style="color:red;">*</span></label>
                 <input type="number" name="amount" value="{{ old('amount', $transaction->amount) }}" step="0.01" min="0.01" class="form-control">
             </div>

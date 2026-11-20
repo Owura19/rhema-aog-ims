@@ -84,6 +84,8 @@
     </div>
 </div>
 
+@include('dashboard._loan-card')
+
 <div class="grid-main">
 
     <!-- Recent Services -->

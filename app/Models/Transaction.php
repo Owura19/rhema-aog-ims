@@ -95,6 +95,16 @@ class Transaction extends Model
             // payment's own deleted hook won't touch this transaction again: it is
             // already soft-deleted, so $payment->transaction no longer loads.
             PledgePayment::where('transaction_id', $transaction->id)->get()->each->delete();
+
+            // A voided repayment stops counting towards its loan.
+            app(\App\Services\Loans\LoanService::class)->syncTransaction($transaction);
+        });
+
+        // Loans counting this type (e.g. Project Offering, Harvest) follow every change. Where
+        // the transaction's own ledger entry is posted after saving (Record Transaction, edits),
+        // the caller syncs again once it exists, so the "received into" account is known.
+        static::saved(function ($transaction) {
+            app(\App\Services\Loans\LoanService::class)->syncTransaction($transaction);
         });
     }
 
