@@ -16,7 +16,8 @@ use Tests\TestCase;
 
 /**
  * Guards on the routes that used to be reachable by ANY logged-in user:
- * harvests (incl. Link payments), budget edit/save, visitors, member relationships, and loans (34 routes).
+ * harvests (incl. Link payments), budget edit/save, visitors, member relationships, loans and
+ * biometric devices (45 routes), plus the key-authenticated biometric bridge API (2 routes, own test).
  *
  * The test DB has no production roles, so setUp() recreates them with the
  * exact role -> permission sets that production has today.
@@ -99,6 +100,29 @@ class RoutePermissionsTest extends TestCase
         'loans.update'      => ['PUT',  ['loan'], [self::SUPER_ADMIN]],
         'loans.adjust'      => ['POST', ['loan'], [self::SUPER_ADMIN]],
         'loans.recalculate' => ['POST', ['loan'], [self::SUPER_ADMIN]],
+
+        // Biometric devices — Super Admin only (role middleware; incl. the connection key and reprocess actions)
+        'devices.index'        => ['GET',    [],         [self::SUPER_ADMIN]],
+        'devices.create'       => ['GET',    [],         [self::SUPER_ADMIN]],
+        'devices.store'        => ['POST',   [],         [self::SUPER_ADMIN]],
+        'devices.show'         => ['GET',    ['device'], [self::SUPER_ADMIN]],
+        'devices.edit'         => ['GET',    ['device'], [self::SUPER_ADMIN]],
+        'devices.update'       => ['PUT',    ['device'], [self::SUPER_ADMIN]],
+        'devices.destroy'      => ['DELETE', ['device'], [self::SUPER_ADMIN]],
+        'devices.test'         => ['POST',   ['device'], [self::SUPER_ADMIN]],
+        'devices.key.generate' => ['POST',   ['device'], [self::SUPER_ADMIN]],
+        'devices.key.revoke'   => ['DELETE', ['device'], [self::SUPER_ADMIN]],
+        'devices.reprocess'    => ['POST',   ['device'], [self::SUPER_ADMIN]],
+    ];
+
+    /**
+     * The biometric bridge API: NOT permission-based. A device's connection key is the only way in
+     * (a logged-in user, whatever their role, is refused), so these can't sit in the role matrix
+     * above; they have their own test below.
+     */
+    private const BRIDGE_ROUTES = [
+        'api.v1.bridge.ping'    => 'GET',
+        'api.v1.bridge.punches' => 'POST',
     ];
 
     protected function setUp(): void
@@ -135,18 +159,47 @@ class RoutePermissionsTest extends TestCase
     public function test_route_table_matches_registered_routes(): void
     {
         $registered = collect(Route::getRoutes()->getRoutes())
-            ->filter(fn ($route) => preg_match('#^(harvests|visitors|budget|loans)(/|$)#', $route->uri())
+            ->filter(fn ($route) => preg_match('#^(harvests|visitors|budget|loans|devices)(/|$)#', $route->uri())
                 || preg_match('#^members/\{member\}/relationships#', $route->uri()))
             ->map(fn ($route) => $route->getName())
             ->sort()->values()->all();
 
         $expected = collect(array_keys(self::ROUTES))->sort()->values()->all();
 
-        $this->assertCount(34, $expected);
+        $this->assertCount(45, $expected);
         $this->assertSame($expected, $registered);
 
         foreach (self::ROUTES as $name => [$method]) {
             $this->assertContains($method, Route::getRoutes()->getByName($name)->methods(), "{$name} should accept {$method}");
+        }
+    }
+
+    /** The bridge routes: listed exactly, key-authenticated, and carrying no role or permission middleware. */
+    public function test_bridge_routes_are_token_authenticated_not_role_based(): void
+    {
+        $registered = collect(Route::getRoutes()->getRoutes())
+            ->filter(fn ($route) => preg_match('#^api/v1/bridge(/|$)#', $route->uri()))
+            ->map(fn ($route) => $route->getName())->sort()->values()->all();
+        $expected = collect(array_keys(self::BRIDGE_ROUTES))->sort()->values()->all();
+        $this->assertSame($expected, $registered);
+
+        $admin = User::factory()->create()->assignRole(self::SUPER_ADMIN);
+
+        foreach (self::BRIDGE_ROUTES as $name => $method) {
+            $route = Route::getRoutes()->getByName($name);
+            $this->assertContains($method, $route->methods(), "{$name} should accept {$method}");
+
+            $middleware = $route->gatherMiddleware();
+            $this->assertContains('bridge.device', $middleware, "{$name} must check the device key");
+            $this->assertContains('throttle:bridge', $middleware, "{$name} must be rate limited");
+            foreach ($middleware as $m) {
+                $this->assertDoesNotMatchRegularExpression('/^(role|permission|role_or_permission|auth)[:.]|^auth$/', (string) $m, "{$name} must not depend on a login or role ({$m})");
+            }
+
+            $url = route($name);
+            $this->json($method, $url)->assertUnauthorized();                              // nobody
+            $this->actingAs($admin)->json($method, $url)->assertUnauthorized();           // a Super Admin session is not a device key
+            $this->json($method, $url, [], ['Authorization' => 'Bearer wrong'])->assertUnauthorized();
         }
     }
 
@@ -218,6 +271,8 @@ class RoutePermissionsTest extends TestCase
                     'first_name' => 'Test',
                     'last_name'  => ucfirst($param),
                 ]),
+                // No IP: the "Test connection" route must never dial out from a test
+                'device' => \App\Models\BiometricDevice::create(['name' => 'Test Device', 'is_active' => true]),
                 // A paid-off loan, so fixtures never compete for the same counted types
                 'loan' => \App\Models\Loan::create([
                     'lender'                     => 'Test Lender',

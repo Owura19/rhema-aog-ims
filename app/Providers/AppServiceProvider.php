@@ -67,6 +67,18 @@ class AppServiceProvider extends ServiceProvider
             ];
         });
 
+        // Biometric bridge: 60/min per connection key (a device), and 120/min per IP overall so
+        // guessing keys is slowed too. Runs BEFORE the key check, so it keys on a hash of the
+        // bearer token, never the token itself.
+        RateLimiter::for('bridge', function (Request $request) {
+            $token = (string) $request->bearerToken();
+
+            return [
+                Limit::perMinute(60)->by('bridge-key:' . ($token !== '' ? hash('sha256', $token) : 'none:' . $request->ip())),
+                Limit::perMinute(120)->by('bridge-ip:' . $request->ip()),
+            ];
+        });
+
         // PUT /me/password: limits guessing of the current password.
         RateLimiter::for('password-change', function (Request $request) {
             $user = $request->user('sanctum');

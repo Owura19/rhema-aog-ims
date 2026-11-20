@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\V1\Auth\LogoutController;
 use App\Http\Controllers\Api\V1\Auth\PasswordResetController;
 use App\Http\Controllers\Api\V1\AnnouncementController;
 use App\Http\Controllers\Api\V1\BibleController;
+use App\Http\Controllers\Api\V1\BridgeController;
 use App\Http\Controllers\Api\V1\DayBornController;
 use App\Http\Controllers\Api\V1\Community\BlockController as CommunityBlockController;
 use App\Http\Controllers\Api\V1\Community\CommentController as CommunityCommentController;
@@ -44,6 +45,17 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('v1')->name('api.v1.')->group(function () {
 
     Route::get('/health', HealthController::class)->name('health');
+
+    // Biometric bridge (the program on the church PC that reads the fingerprint device).
+    // NOT Sanctum / not permission-based: each device has its own connection key
+    // (Authorization: Bearer <key>, see AuthenticateBridgeDevice). Own limiter: 60/min per key.
+    Route::prefix('bridge')->name('bridge.')
+        ->withoutMiddleware('throttle:api')
+        ->middleware(['throttle:bridge', 'bridge.device'])
+        ->group(function () {
+            Route::get('/ping', [BridgeController::class, 'ping'])->name('ping');
+            Route::post('/punches', [BridgeController::class, 'punches'])->name('punches');
+        });
 
     // Community photos: signed URLs only (no token, so image components can load them).
     // Own limiter per viewer instead of the shared per-IP one: a feed page loads many photos.

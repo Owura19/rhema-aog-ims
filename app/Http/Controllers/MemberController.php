@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Member;
 use App\Models\Family;
+use App\Rules\UniqueFingerprintId;
 use App\Support\MemberAppAccess;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -83,7 +84,7 @@ class MemberController extends Controller
             'member_type'             => 'required|in:Full Member,Associate,Visitor',
             'family_id'               => 'nullable|exists:families,id',
             'family_role'             => 'nullable|string|max:50',
-            'fingerprint_id'          => 'nullable|integer',
+            'fingerprint_id'          => ['nullable', 'integer', 'min:1', 'max:2147483647', new UniqueFingerprintId()],
             'notes'                   => 'nullable|string',
             'photo'                   => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
@@ -149,6 +150,8 @@ class MemberController extends Controller
             'status'          => 'nullable|string',
             'family_id'       => 'nullable|exists:families,id',
             'family_role'     => 'nullable|string|max:50',
+            // The edit form has always had this field, but it was never validated or saved.
+            'fingerprint_id'  => ['nullable', 'integer', 'min:1', 'max:2147483647', new UniqueFingerprintId($member->id)],
             'photo'           => 'nullable|image|max:4096',
         ]);
 

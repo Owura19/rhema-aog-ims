@@ -4,7 +4,7 @@
 
 @section('content')
 
-<div style="margin-bottom:24px; display:flex; align-items:center; justify-content:space-between;">
+<div style="margin-bottom:24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
     <div>
         <h2 style="font-size:20px; font-weight:700; color:#1e293b;">Biometric Devices</h2>
         <div style="font-size:13px; color:#64748b;">Manage ZKTeco fingerprint devices for attendance</div>
@@ -39,37 +39,53 @@
                 @endif
             </div>
 
-            <div style="font-size:16px; font-weight:700; color:#1e293b; margin-bottom:4px;">{{ $device->name }}</div>
+            <a href="{{ route('devices.show', $device) }}" style="font-size:16px; font-weight:700; color:#1e293b; margin-bottom:4px; display:block; text-decoration:none;">{{ $device->name }}</a>
             <div style="font-size:13px; color:#64748b; margin-bottom:16px;">{{ $device->location ?? 'No location set' }}</div>
 
             <div style="background:#f8fafc; border-radius:8px; padding:12px; margin-bottom:16px;">
+                @if($device->has_ip)
                 <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
                     <span style="font-size:12px; color:#94a3b8;">IP Address</span>
-                    <span style="font-size:13px; font-family:monospace; color:#1e293b;">{{ $device->ip_address }}</span>
+                    <span style="font-size:13px; font-family:monospace; color:#1e293b;">{{ $device->ip_address }}:{{ $device->port }}</span>
                 </div>
                 <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
-                    <span style="font-size:12px; color:#94a3b8;">Port</span>
-                    <span style="font-size:13px; font-family:monospace; color:#1e293b;">{{ $device->port }}</span>
-                </div>
-                <div style="display:flex; justify-content:space-between;">
                     <span style="font-size:12px; color:#94a3b8;">Last Synced</span>
                     <span style="font-size:12px; color:#64748b;">{{ $device->last_synced_label }}</span>
                 </div>
+                @else
+                <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+                    <span style="font-size:12px; color:#94a3b8;">Connection</span>
+                    <span style="font-size:12px; color:#64748b;">Church bridge computer</span>
+                </div>
+                @endif
+                <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+                    <span style="font-size:12px; color:#94a3b8;">Last seen</span>
+                    <span style="font-size:12px; color:#64748b;">{{ $device->last_seen_at?->diffForHumans() ?? 'Never' }}</span>
+                </div>
+                <div style="display:flex; justify-content:space-between;">
+                    <span style="font-size:12px; color:#94a3b8;">Connection key</span>
+                    <span style="font-size:12px; color:{{ $device->has_key ? '#16a34a' : '#b45309' }};">{{ $device->has_key ? 'Set' : 'Not set' }}</span>
+                </div>
             </div>
 
-            <div style="display:flex; gap:8px;">
+            <div class="toolbar" style="justify-content:flex-start; flex-wrap:nowrap;">
+                @if($device->has_ip)
                 <form method="POST" action="{{ route('devices.test', $device) }}" style="flex:1;">
                     @csrf
                     <button type="submit" class="btn-outline btn-sm" style="width:100%;">
                         <i class="fas fa-plug"></i> Test
                     </button>
                 </form>
-                <a href="{{ route('devices.edit', $device) }}" class="btn-primary btn-sm">
+                @endif
+                <a href="{{ route('devices.show', $device) }}" class="btn-outline btn-sm" style="flex:1; justify-content:center;">
+                    <i class="fas fa-eye"></i> Open
+                </a>
+                <a href="{{ route('devices.edit', $device) }}" class="btn-primary btn-sm" aria-label="Edit {{ $device->name }}">
                     <i class="fas fa-edit"></i>
                 </a>
                 <form method="POST" action="{{ route('devices.destroy', $device) }}" onsubmit="return confirm('Remove this device?')">
                     @csrf @method('DELETE')
-                    <button type="submit" class="btn-danger btn-sm"><i class="fas fa-trash"></i></button>
+                    <button type="submit" class="btn-danger btn-sm" aria-label="Remove {{ $device->name }}"><i class="fas fa-trash"></i></button>
                 </form>
             </div>
         </div>

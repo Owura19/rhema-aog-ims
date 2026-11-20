@@ -156,11 +156,17 @@
 
         <!-- Biometric Sync -->
         @if($service->biometric_enabled)
+        @php($lanDevices = \App\Models\BiometricDevice::where('is_active', true)->whereNotNull('ip_address')->whereNotNull('port')->get())
         <div class="card">
             <div class="card-header">
                 <div class="card-title"><i class="fas fa-fingerprint" style="color:#2563eb; margin-right:8px;"></i>Biometric Sync</div>
             </div>
             <div class="card-body">
+                @if($lanDevices->isEmpty())
+                    <div style="font-size:13px; color:#64748b;">
+                        No device can be read directly from this server. Devices connected through the church bridge computer send their punches by themselves; see Biometric Devices.
+                    </div>
+                @else
                 <form method="POST" action="{{ route('attendance.sync-biometric') }}">
                     @csrf
                     <input type="hidden" name="church_service_id" value="{{ $service->id }}">
@@ -168,7 +174,7 @@
                         <label class="form-label">Select Device</label>
                         <select name="biometric_device_id" class="form-control" required>
                             <option value="">Select device...</option>
-                            @foreach(\App\Models\BiometricDevice::where('is_active', true)->get() as $device)
+                            @foreach($lanDevices as $device)
                                 <option value="{{ $device->id }}">{{ $device->name }} ({{ $device->ip_address }})</option>
                             @endforeach
                         </select>
@@ -180,6 +186,7 @@
                         Pulls fingerprint punch records from the ZKTeco device
                     </div>
                 </form>
+                @endif
             </div>
         </div>
         @endif
