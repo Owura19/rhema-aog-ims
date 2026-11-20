@@ -181,7 +181,8 @@ class LoanSyncTest extends TestCase
         $tx = $this->record();
 
         $this->actingAs($this->admin)->get(route('finance.show', $tx))->assertOk()
-            ->assertSee('Loan repayment')->assertSee('GH₵ 300.00 applied to the Test Credit Union loan', false);
+            ->assertSee('Loan repayment')->assertSeeText('GH₵ 300.00 applied to the Test Credit Union loan')
+            ->assertSee(route('loans.show', $this->loan), false);
     }
 
     public function test_a_counted_transaction_without_a_cash_account_is_counted_and_flagged(): void

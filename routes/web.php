@@ -142,6 +142,21 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/finance-export-pdf', [FinanceController::class, 'exportPdf'])->name('finance.pdf');
         Route::get('/finance/{finance}', [FinanceController::class, 'show'])->name('finance.show');
     });
+    // LOANS — view: 'view finance' | create/edit/adjust/recalculate: 'edit finance'
+    Route::middleware('permission:view finance')->group(function () {
+        Route::get('/loans', [\App\Http\Controllers\LoanController::class, 'index'])->name('loans.index');
+        Route::get('/loans/{loan}', [\App\Http\Controllers\LoanController::class, 'show'])->whereNumber('loan')->name('loans.show');
+        Route::get('/loans/{loan}/export', [\App\Http\Controllers\LoanController::class, 'export'])->whereNumber('loan')->name('loans.export');
+    });
+    Route::middleware('permission:edit finance')->group(function () {
+        Route::get('/loans/create', [\App\Http\Controllers\LoanController::class, 'create'])->name('loans.create');
+        Route::post('/loans/preview', [\App\Http\Controllers\LoanController::class, 'preview'])->name('loans.preview');
+        Route::post('/loans', [\App\Http\Controllers\LoanController::class, 'store'])->name('loans.store');
+        Route::get('/loans/{loan}/edit', [\App\Http\Controllers\LoanController::class, 'edit'])->whereNumber('loan')->name('loans.edit');
+        Route::put('/loans/{loan}', [\App\Http\Controllers\LoanController::class, 'update'])->whereNumber('loan')->name('loans.update');
+        Route::post('/loans/{loan}/adjustments', [\App\Http\Controllers\LoanController::class, 'adjust'])->whereNumber('loan')->name('loans.adjust');
+        Route::post('/loans/{loan}/recalculate', [\App\Http\Controllers\LoanController::class, 'recalculate'])->whereNumber('loan')->name('loans.recalculate');
+    });
     Route::middleware('permission:view finance|manage pledges')->group(function () {
         Route::get('/receipts/{transaction}', [FinanceController::class, 'receiptView'])->name('finance.receipt');
         Route::get('/receipts/{transaction}/download', [FinanceController::class, 'receipt'])->name('finance.receipt.download');
