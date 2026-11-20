@@ -113,6 +113,10 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware('role:Super Admin')->group(function () {
         Route::resource('devices', BiometricDeviceController::class);
         Route::post('/devices/{device}/test', [BiometricDeviceController::class, 'testConnection'])->name('devices.test');
+        // Bridge computer: connection key (shown once) and waiting punches
+        Route::post('/devices/{device}/key', [BiometricDeviceController::class, 'generateKey'])->name('devices.key.generate');
+        Route::delete('/devices/{device}/key', [BiometricDeviceController::class, 'revokeKey'])->name('devices.key.revoke');
+        Route::post('/devices/{device}/reprocess', [BiometricDeviceController::class, 'reprocess'])->name('devices.reprocess');
     });
 
     // ─────────────────────────────────────────────────────────────
