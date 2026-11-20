@@ -131,6 +131,13 @@ class LoanService
     /** After a transaction is recorded, edited or voided: rebuild every loan it could affect. */
     public function syncTransaction(Transaction $tx, ?int $userId = null): void
     {
+        static $tableExists = null;   // checked once per process (the table comes with a migration)
+        $tableExists ??= \Illuminate\Support\Facades\Schema::hasTable('loans');
+        if (! $tableExists || ! Loan::exists()) {
+            return;   // no loans: nothing to keep in step
+        }
+        $userId ??= auth()->id();
+
         $holding = LoanRepayment::where('transaction_id', $tx->id)->pluck('loan_id');
         Loan::whereIn('id', $holding)->get()
             ->merge(Loan::get()->filter(fn (Loan $l) => $l->counts((string) $tx->type)))

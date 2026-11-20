@@ -320,6 +320,10 @@ class FinanceController extends Controller
                 $linker->link($finance, $harvest, $pledgeId);
             }
 
+            // Loan repayment (e.g. Project Offering / Harvest): now that its own entry exists,
+            // the repayment can be paid from the account it was received into.
+            app(\App\Services\Loans\LoanService::class)->syncTransaction($finance);
+
             DB::commit();
         } catch (\Throwable $e) {
             DB::rollBack();

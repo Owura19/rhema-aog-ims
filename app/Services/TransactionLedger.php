@@ -45,16 +45,19 @@ class TransactionLedger
             $ledger = new LedgerService();
             $ledger->removeForSource('transaction', $tx->id);
 
-            if ($tx->trashed() || $tx->status !== 'Confirmed' || ! $tx->account_id || ! $cash) {
-                return null;
+            $entry = null;
+            if (! $tx->trashed() && $tx->status === 'Confirmed' && $tx->account_id && $cash) {
+                $amount = (float) $tx->amount;
+                $lines  = $tx->category === 'Expense'
+                    ? [['account_id' => $tx->account_id, 'debit' => $amount, 'credit' => 0], ['account_id' => $cash, 'debit' => 0, 'credit' => $amount]]
+                    : [['account_id' => $cash, 'debit' => $amount, 'credit' => 0], ['account_id' => $tx->account_id, 'debit' => 0, 'credit' => $amount]];
+                $entry = $ledger->postEntry($lines, $tx->transaction_date->toDateString(), "{$tx->type} — {$tx->reference}", 'transaction', $tx->id);
             }
 
-            $amount = (float) $tx->amount;
-            $lines  = $tx->category === 'Expense'
-                ? [['account_id' => $tx->account_id, 'debit' => $amount, 'credit' => 0], ['account_id' => $cash, 'debit' => 0, 'credit' => $amount]]
-                : [['account_id' => $cash, 'debit' => $amount, 'credit' => 0], ['account_id' => $tx->account_id, 'debit' => 0, 'credit' => $amount]];
+            // A loan repayment paid from "the account it was received into" follows the new entry.
+            app(\App\Services\Loans\LoanService::class)->syncTransaction($tx);
 
-            return $ledger->postEntry($lines, $tx->transaction_date->toDateString(), "{$tx->type} — {$tx->reference}", 'transaction', $tx->id);
+            return $entry;
         });
     }
 }

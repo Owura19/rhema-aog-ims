@@ -82,6 +82,23 @@ class FinancialReportController extends Controller
             ->map(fn($r) => (object)['account' => optional($r->account)->name ?? '—', 'total' => (float)$r->total])
             ->sortByDesc('total')->values();
 
+        // Loan repayments taken from the cash received (e.g. Project Offering / Harvest paid to the
+        // credit union). They are journal entries, not transactions, so they are added here. Loans
+        // repaid from a fixed bank account are bank movements and stay out of this cash report.
+        \App\Models\LoanRepayment::query()
+            ->join('loans', 'loans.id', '=', 'loan_repayments.loan_id')
+            ->join('transactions', 'transactions.id', '=', 'loan_repayments.transaction_id')
+            ->where('loans.repayment_source', \App\Models\Loan::SOURCE_RECEIVED)
+            ->whereNull('transactions.deleted_at')
+            ->whereIn('transactions.payment_method', $cashMethods)
+            ->whereBetween('transactions.transaction_date', [$from->toDateString(), $to->toDateString()])
+            ->where('loan_repayments.amount_applied', '>', 0)
+            ->whereNotNull('loan_repayments.journal_entry_id')
+            ->groupBy('loans.lender')
+            ->selectRaw('loans.lender, SUM(loan_repayments.amount_applied) AS total')
+            ->get()
+            ->each(fn ($r) => $payments->push((object) ['account' => 'Loan repayment — ' . $r->lender, 'total' => (float) $r->total]));
+
         $totalReceipts = $receipts->sum('total');
         $totalPayments = $payments->sum('total');
         $netCash       = $totalReceipts - $totalPayments;
