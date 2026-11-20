@@ -10,8 +10,15 @@ use Rats\Zkteco\Lib\ZKTeco;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * Direct LAN access to a ZKTeco device (the server dials the device's IP and port). Devices that
+ * are only reachable through the church bridge computer have no IP and are never dialled: their
+ * punches arrive on /api/v1/bridge and are handled by App\Services\Biometric\PunchProcessor.
+ */
 class BiometricService
 {
+    public const NO_IP_MESSAGE = 'This device has no IP address: it connects through the church bridge computer, so the server cannot dial it.';
+
     public function syncDevice(BiometricDevice $device, ChurchService $service): array
     {
         $results = [
@@ -22,19 +29,27 @@ class BiometricService
             'logs'      => [],
         ];
 
-        try {
-            $zk = new ZKTeco($device->ip_address, $device->port);
+        if (! $device->has_ip) {
+            $results['message'] = self::NO_IP_MESSAGE;
+            return $results;
+        }
 
-            if (!$zk->connect()) {
+        try {
+            $zk = $this->connect($device);
+
+            if (! $zk) {
                 $results['message'] = "Could not connect to device {$device->name} at {$device->ip_address}:{$device->port}";
                 return $results;
             }
 
-            // Get attendance records from device
-            $zk->enableDevice();
-            $attendance = $zk->getAttendance();
-            $zk->disableDevice();
-            $zk->disconnect();
+            // Pause the device while reading; it is ALWAYS switched back on afterwards, even if
+            // the read fails, so a failed sync never leaves the device disabled.
+            try {
+                $zk->disableDevice();
+                $attendance = $zk->getAttendance();
+            } finally {
+                $this->release($zk);
+            }
 
             if (empty($attendance)) {
                 $results['success'] = true;
@@ -108,10 +123,14 @@ class BiometricService
 
     public function testConnection(BiometricDevice $device): array
     {
-        try {
-            $zk = new ZKTeco($device->ip_address, $device->port);
+        if (! $device->has_ip) {
+            return ['success' => false, 'message' => self::NO_IP_MESSAGE];
+        }
 
-            if ($zk->connect()) {
+        try {
+            $zk = $this->connect($device);
+
+            if ($zk) {
                 $zk->disconnect();
                 return ['success' => true, 'message' => "Successfully connected to {$device->name}"];
             }
@@ -120,6 +139,30 @@ class BiometricService
 
         } catch (\Exception $e) {
             return ['success' => false, 'message' => "Connection error: " . $e->getMessage()];
+        }
+    }
+
+    /** A connected ZKTeco client, or null when the device doesn't answer. */
+    protected function connect(BiometricDevice $device): ?ZKTeco
+    {
+        $zk = new ZKTeco($device->ip_address, (int) $device->port);
+
+        return $zk->connect() ? $zk : null;
+    }
+
+    /** Switches the device back on and hangs up; each step is tried even if the one before failed. */
+    private function release(ZKTeco $zk): void
+    {
+        try {
+            $zk->enableDevice();
+        } catch (\Throwable $e) {
+            Log::error('Biometric device could not be re-enabled: ' . $e->getMessage());
+        }
+
+        try {
+            $zk->disconnect();
+        } catch (\Throwable $e) {
+            Log::error('Biometric device disconnect failed: ' . $e->getMessage());
         }
     }
 }

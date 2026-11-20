@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\AuthenticateBridgeDevice;
 use App\Http\Middleware\EnsurePasswordChanged;
 use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\EnsureUserIsMember;
@@ -27,6 +28,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'active'             => EnsureUserIsActive::class,
             'member'             => EnsureUserIsMember::class,
             'password.changed'   => EnsurePasswordChanged::class,
+            // Biometric bridge program (token per device, not a user login)
+            'bridge.device'      => AuthenticateBridgeDevice::class,
         ]);
 
         // Mobile API (/api/*): always JSON, and rate limited ('api' limiter in AppServiceProvider).
